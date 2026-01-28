@@ -3,7 +3,7 @@
 ## Quick Info
 
 - [QMPlus Page](https://qmplus.qmul.ac.uk/course/view.php?id=15588)
-- Lab Time: 10:30
+- Lab Time: 10:00
 
 ## Project Description
 
