@@ -1,5 +1,11 @@
 # ECS506U-Software-Engineering-Project Group 18
 
+## Project Description
+
+#### Pet Minder
+
+This project is creating a hub (application) for pet owners and pet minders (might be a specific pet only such as dogs like gowalkies). The application allows pet owners to find minders (and vice-versa) based on ratings, testimonials, location and availability. The app should allow pet owners to give specific instructions to minders such as choosing walking routes, minding directions, etc. The app should enable minders to track their pets during walks or other activities.
+
 ## Quick Info
 
 - [QMPlus Page](https://qmplus.qmul.ac.uk/course/view.php?id=15588)
