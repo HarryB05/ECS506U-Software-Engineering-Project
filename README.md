@@ -23,12 +23,12 @@ By the end of the module the student will be able to:
 
 | Phase                     | Item          | Weight | Deadline            | Duration |
 |---------------------------|---------------|--------|---------------------|----------|
-| Domain Analysis           | Report        | 15%    | Monday 3rd Feb      | 3 weeks  |
-| Domain Analysis           | Presentation  | 10%    | Thursday 6th Feb    | 3 weeks  |
-| Requirements Elicitation  | Report        | 15%    | Monday 17th Feb     | 2 weeks  |
-| Requirements Elicitation  | Presentation  | 10%    | Thursday 20th Feb   | 2 weeks  |
-| Design                    | Report        | 15%    | Monday 3 Mar        | 11 days  |
-| Prototype                 | Presentation  | 35%    | Thursday 10th April | 6 weeks  |
+| Domain Analysis           | Report        | 15%    | Monday 9th Feb      | 3 weeks  |
+| Domain Analysis           | Presentation  | 10%    | Thursday 12th Feb    | 3 weeks  |
+| Requirements Elicitation  | Report        | 15%    | Monday 23rd Feb     | 2 weeks  |
+| Requirements Elicitation  | Presentation  | 10%    | Thursday 26th Feb   | 2 weeks  |
+| Design                    | Report        | 15%    | Monday 9th Mar        | 11 days  |
+| Prototype                 | Presentation  | 35%    | Thursday 16th April | 6 weeks  |
 
 ## Assessment Summary
 
