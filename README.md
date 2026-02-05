@@ -9,7 +9,7 @@
 
 #### Pet Minder
 
-This project is creating a hub (application) for pet owners and pet minders (mimght be a specific pet only such as dogs like gowalkies). The application allows pet owners to find minders (and vice-versa) based on ratings, testimonials, location and availability. The app should allow pet owners to give specific instructions to minders such as choosing walking routes, minding directions, etc. The app should enable minders to track their pets during walks or other activities.
+This project is creating a hub (application) for pet owners and pet minders (might be a specific pet only such as dogs like gowalkies). The application allows pet owners to find minders (and vice-versa) based on ratings, testimonials, location and availability. The app should allow pet owners to give specific instructions to minders such as choosing walking routes, minding directions, etc. The app should enable minders to track their pets during walks or other activities.
 
 ## Module Description
 Brief description about this module:
