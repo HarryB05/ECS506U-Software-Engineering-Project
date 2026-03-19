@@ -1,0 +1,15 @@
+---
+description: Follow Pet Minder design.md when building UI components
+globs: pet-minder/**/*.tsx
+alwaysApply: false
+---
+
+# Pet Minder UI Design System
+- Treat `pet-minder/design.md` as the source of truth for all UI work in this repo.
+- Do not invent colours, spacing, layout patterns, or component patterns. Match the classes and structure from the design document.
+- Typography: use `font-display` for headings, `text-muted-foreground` for subtitles, avoid `font-bold`, and never go below `text-xs`.
+- Colour tokens: use `bg-background`, `bg-card`, `border-border`, `shadow-card`, and the provided `teal-*`/status classes exactly as defined.
+- Icons: use `lucide-react` with the icon names and `size-*` classes specified in `pet-minder/design.md`.
+- Live session UI: use the provided card structure, `animate-live-pulse`, and amber card glow classes as shown.
+- Voice and tone: warm but direct, calm empty states, no emoji in functional UI.
+
