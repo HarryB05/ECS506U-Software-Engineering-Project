@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* shadcn semantic tokens — bare HSL channels, no hsl() wrapper */
+    --background: 60 11% 97%;
+    --foreground: 40 6% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 40 6% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 40 6% 10%;
+    --primary: 158 68% 29%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 60 8% 93%;
+    --secondary-foreground: 40 5% 29%;
+    --muted: 60 8% 93%;
+    --muted-foreground: 40 4% 47%;
+    --accent: 60 8% 93%;
+    --accent-foreground: 40 6% 10%;
+    --destructive: 4 63% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 60 6% 77%;
+    --input: 60 8% 93%;
+    --ring: 158 68% 29%;
+    --radius: 0.625rem;
+
+    /* Extended palette — used via Tailwind custom colours */
+    --teal-50: #eef8f6;
+    --teal-100: #d6efeb;
+    --teal-300: #4da892;
+    --teal-500: #1a7a66;
+    --teal-700: #0f5c4e;
+    --teal-900: #0d3d35;
+
+    --amber-100: #fdf0e0;
+    --amber-300: #f4bc82;
+    --amber-500: #e8933a;
+
+    --success-100: #d4eddf;
+    --success-500: #2e7d52;
+    --danger-100: #fae0de;
+    --danger-500: #c0392b;
+    --warning-100: #fdf3d0;
+    --warning-500: #b8860b;
+    --info-100: #d6eaf8;
+    --info-500: #2471a3;
+  }
+
+  .dark {
+    --background: 40 5% 7%;
+    --foreground: 55 10% 94%;
+    --card: 40 5% 11%;
+    --card-foreground: 55 10% 94%;
+    --popover: 40 5% 11%;
+    --popover-foreground: 55 10% 94%;
+    --primary: 161 57% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 4% 18%;
+    --secondary-foreground: 55 10% 80%;
+    --muted: 40 4% 18%;
+    --muted-foreground: 40 4% 55%;
+    --accent: 40 4% 18%;
+    --accent-foreground: 55 10% 94%;
+    --destructive: 4 63% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 4% 18%;
+    --input: 40 4% 18%;
+    --ring: 161 57% 40%;
+
+    --teal-50: #0d3d35;
+    --teal-100: #0d3d35;
+    --teal-300: #1a7a66;
+    --teal-500: #2a9e86;
+    --teal-700: #4da892;
+    --teal-900: #d6efeb;
+
+    --success-100: #0d2e1c;
+    --success-500: #4caf79;
+    --danger-100: #2e0d0a;
+    --danger-500: #e05a4e;
+    --warning-100: #2a1f00;
+    --warning-500: #d4a017;
+    --info-100: #0a1e30;
+    --info-500: #4a9fd4;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Display font on headings */
+  h1,
+  h2 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  /* Live GPS pulse — used on the position marker dot */
+  @keyframes live-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+  /* Active booking card amber glow */
+  @keyframes card-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(232, 147, 58, 0);
+    }
+    50% {
+      box-shadow: 0 0 0 4px rgba(232, 147, 58, 0.3);
+    }
+  }
+  /* Skeleton loading shimmer */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .animate-live-pulse {
+      animation: live-pulse 1.5s ease-in-out infinite;
+    }
+    .animate-card-glow {
+      animation: card-glow 2s ease-in-out infinite;
+    }
+    .animate-shimmer {
+      animation: shimmer 1.8s ease-in-out infinite;
+    }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--muted) / 0.5) 50%,
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+  }
+}
