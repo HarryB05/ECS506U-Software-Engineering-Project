@@ -10,7 +10,8 @@ import {
   listPetProfilesForOwner,
   updateProfile,
 } from "@/lib/pet-profile-service";
-import type { PetProfile } from "@/lib/types/pet-profile";
+import type { PetProfile, PetSex } from "@/lib/types/pet-profile";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,82 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { PawPrint, Plus, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown, PawPrint, Plus, Trash2 } from "lucide-react";
+
+type SexSelectValue = "" | PetSex;
+
+function petSexFromRow(sex: PetSex | null | undefined): SexSelectValue {
+  return sex === "male" || sex === "female" ? sex : "";
+}
+
+const SEX_LABEL: Record<SexSelectValue, string> = {
+  "": "Not specified",
+  male: "Male",
+  female: "Female",
+};
+
+function PetSexSelect({
+  id,
+  value,
+  onChange,
+  disabled,
+}: {
+  id: string;
+  value: SexSelectValue;
+  onChange: (v: SexSelectValue) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          id={id}
+          type="button"
+          disabled={disabled}
+          className={cn(
+            "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm",
+            "text-foreground transition-colors",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+            "disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+            value === "" && "text-muted-foreground",
+          )}
+        >
+          <span className="truncate text-left">{SEX_LABEL[value]}</span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+      >
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onSelect={() => onChange("")}
+        >
+          Not specified
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onSelect={() => onChange("male")}
+        >
+          Male
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onSelect={() => onChange("female")}
+        >
+          Female
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 type PetProfilesManagerProps = {
   initialPets: PetProfile[];
@@ -131,6 +207,7 @@ function AddPetForm({
   const [name, setName] = useState("");
   const [petType, setPetType] = useState("");
   const [age, setAge] = useState("");
+  const [sex, setSex] = useState<SexSelectValue>("");
   const [medical, setMedical] = useState("");
   const [dietary, setDietary] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -150,6 +227,7 @@ function AddPetForm({
       name,
       pet_type: petType,
       age: ageNum,
+      sex: sex === "" ? null : sex,
       medical_info: medical || null,
       dietary_requirements: dietary || null,
     });
@@ -202,6 +280,18 @@ function AddPetForm({
               value={age}
               onChange={(e) => setAge(e.target.value)}
               autoComplete="off"
+            />
+          </div>
+          <div className="space-y-1.5 max-w-xs">
+            <Label htmlFor="new-sex">
+              Sex{" "}
+              <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <PetSexSelect
+              id="new-sex"
+              value={sex}
+              onChange={setSex}
+              disabled={loading}
             />
           </div>
           <div className="space-y-1.5">
@@ -260,6 +350,9 @@ function PetCard({
   const [age, setAge] = useState(
     pet.age === null ? "" : String(pet.age),
   );
+  const [sex, setSex] = useState<SexSelectValue>(() =>
+    petSexFromRow(pet.sex),
+  );
   const [medical, setMedical] = useState(pet.medical_info ?? "");
   const [dietary, setDietary] = useState(pet.dietary_requirements ?? "");
 
@@ -267,6 +360,7 @@ function PetCard({
     setName(pet.name);
     setPetType(pet.pet_type);
     setAge(pet.age === null ? "" : String(pet.age));
+    setSex(petSexFromRow(pet.sex));
     setMedical(pet.medical_info ?? "");
     setDietary(pet.dietary_requirements ?? "");
   }, [pet]);
@@ -291,6 +385,7 @@ function PetCard({
       name,
       pet_type: petType,
       age: ageNum,
+      sex: sex === "" ? null : sex,
     });
     setSavingProfile(false);
     if (err) {
@@ -392,14 +487,30 @@ function PetCard({
               />
             </div>
           </div>
-          <div className="space-y-1.5 max-w-xs">
-            <Label htmlFor={`age-${pet.id}`}>Age (years)</Label>
-            <Input
-              id={`age-${pet.id}`}
-              inputMode="numeric"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-            />
+          <div className="grid gap-4 sm:grid-cols-2 max-w-medium">
+            <div className="space-y-1.5">
+              <Label htmlFor={`age-${pet.id}`}>Age (years)</Label>
+              <Input
+                id={`age-${pet.id}`}
+                inputMode="numeric"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`sex-${pet.id}`}>
+                Sex{" "}
+                <span className="text-muted-foreground font-normal">
+                  (optional)
+                </span>
+              </Label>
+              <PetSexSelect
+                id={`sex-${pet.id}`}
+                value={sex}
+                onChange={setSex}
+                disabled={savingProfile}
+              />
+            </div>
           </div>
           <Button type="submit" disabled={savingProfile}>
             {savingProfile ? "Saving…" : "Save profile"}

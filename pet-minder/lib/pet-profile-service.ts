@@ -37,6 +37,7 @@ export async function createPetProfile(
       name: input.name.trim(),
       pet_type: input.pet_type.trim(),
       age: input.age ?? null,
+      sex: input.sex ?? null,
       medical_info: input.medical_info?.trim() || null,
       dietary_requirements: input.dietary_requirements?.trim() || null,
     })
@@ -61,6 +62,7 @@ export async function updateProfile(
   if (fields.name !== undefined) payload.name = fields.name.trim();
   if (fields.pet_type !== undefined) payload.pet_type = fields.pet_type.trim();
   if (fields.age !== undefined) payload.age = fields.age;
+  if (fields.sex !== undefined) payload.sex = fields.sex;
   if (fields.medical_info !== undefined) {
     payload.medical_info = fields.medical_info?.trim() || null;
   }

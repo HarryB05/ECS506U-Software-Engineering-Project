@@ -5,6 +5,7 @@ create table if not exists public.pet_profiles (
   owner_id uuid not null references auth.users (id) on delete cascade,
   name text not null,
   pet_type text not null,
+  sex text check (sex is null or sex in ('male', 'female')),
   age integer,
   medical_info text,
   dietary_requirements text,
