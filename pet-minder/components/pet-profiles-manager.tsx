@@ -33,6 +33,16 @@ import { ChevronDown, PawPrint, Plus, Trash2 } from "lucide-react";
 
 type SexSelectValue = "" | PetSex;
 
+function preventEnterSubmit(e: React.KeyboardEvent) {
+  if (e.key !== "Enter") return;
+  const target = e.target as HTMLElement | null;
+  if (!target) return;
+  const tag = target.tagName;
+  if (tag === "TEXTAREA") return;
+  // Prevent accidental form submit when pressing Enter in an input/select.
+  e.preventDefault();
+}
+
 function petSexFromRow(sex: PetSex | null | undefined): SexSelectValue {
   return sex === "male" || sex === "female" ? sex : "";
 }
@@ -250,7 +260,11 @@ function AddPetForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-medium">
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={preventEnterSubmit}
+          className="space-y-4 max-w-medium"
+        >
           <div className="space-y-1.5">
             <Label htmlFor="new-name">Name</Label>
             <Input
@@ -466,7 +480,11 @@ function PetCard({
         </Button>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form onSubmit={handleSaveProfile} className="space-y-4 max-w-medium">
+        <form
+          onSubmit={handleSaveProfile}
+          onKeyDown={preventEnterSubmit}
+          className="space-y-4 max-w-medium"
+        >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor={`name-${pet.id}`}>Name</Label>
