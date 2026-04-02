@@ -67,6 +67,7 @@ export function DeleteAccountSection({ email }: { email: string }) {
           variant="destructive"
           disabled={loading}
           onClick={handleDelete}
+          className="w-full sm:w-auto"
         >
           {loading ? "Deleting…" : "Delete my account"}
         </Button>

@@ -19,10 +19,10 @@ export default function Home() {
 
       <section className="flex-1 w-full max-w-content mx-auto px-4 md:px-6 py-16 md:py-24">
         <div className="flex flex-col items-center text-center gap-8 max-w-medium mx-auto">
-          <h1 className="font-display text-4xl text-foreground md:text-5xl">
+          <h1 className="font-display text-3xl text-foreground sm:text-4xl md:text-5xl">
             Find trusted pet care, near you
           </h1>
-          <p className="text-lg text-muted-foreground max-w-xl">
+          <p className="text-base text-muted-foreground max-w-xl sm:text-lg">
             Book verified minders for walks, sitting and day care. See where your pet is with live tracking when a session is in progress.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
