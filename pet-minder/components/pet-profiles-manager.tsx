@@ -395,6 +395,7 @@ function PetCard({
   const [savingMedical, setSavingMedical] = useState(false);
   const [savingDietary, setSavingDietary] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isExpandedMobile, setIsExpandedMobile] = useState(false);
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -481,19 +482,49 @@ function PetCard({
             {pet.name}
           </CardTitle>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="text-danger-500 hover:text-danger-500 w-full sm:w-auto"
-          onClick={handleDelete}
-          disabled={deleting}
-        >
-          <Trash2 className="size-4" />
-          {deleting ? "Removing…" : "Remove"}
-        </Button>
+        <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="sm:hidden"
+            onClick={() => setIsExpandedMobile((prev) => !prev)}
+            aria-expanded={isExpandedMobile}
+            aria-controls={`pet-details-${pet.id}`}
+          >
+            {isExpandedMobile ? "Collapse" : "Expand"}
+            <ChevronDown
+              className={cn(
+                "size-4 transition-transform",
+                isExpandedMobile && "rotate-180",
+              )}
+            />
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn(
+              "text-danger-500 hover:text-danger-500 w-full sm:w-auto",
+              !isExpandedMobile && "hidden sm:inline-flex",
+            )}
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            <Trash2 className="size-4" />
+            {deleting ? "Removing…" : "Remove"}
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+
+      <CardContent
+        id={`pet-details-${pet.id}`}
+        className={cn(
+          "space-y-6",
+          !isExpandedMobile && "hidden sm:block",
+        )}
+      >
         <form
           onSubmit={handleSaveProfile}
           onKeyDown={preventEnterSubmit}
