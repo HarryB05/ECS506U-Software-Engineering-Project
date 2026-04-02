@@ -370,14 +370,24 @@ function PetCard({
   const [medical, setMedical] = useState(pet.medical_info ?? "");
   const [dietary, setDietary] = useState(pet.dietary_requirements ?? "");
 
+  const [profileDirty, setProfileDirty] = useState(false);
+  const [medicalDirty, setMedicalDirty] = useState(false);
+  const [dietaryDirty, setDietaryDirty] = useState(false);
+
   useEffect(() => {
-    setName(pet.name);
-    setPetType(pet.pet_type);
-    setAge(pet.age === null ? "" : String(pet.age));
-    setSex(petSexFromRow(pet.sex));
-    setMedical(pet.medical_info ?? "");
-    setDietary(pet.dietary_requirements ?? "");
-  }, [pet]);
+    if (!profileDirty) {
+      setName(pet.name);
+      setPetType(pet.pet_type);
+      setAge(pet.age === null ? "" : String(pet.age));
+      setSex(petSexFromRow(pet.sex));
+    }
+    if (!medicalDirty) {
+      setMedical(pet.medical_info ?? "");
+    }
+    if (!dietaryDirty) {
+      setDietary(pet.dietary_requirements ?? "");
+    }
+  }, [pet, dietaryDirty, medicalDirty, profileDirty]);
 
   const [error, setError] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -406,6 +416,7 @@ function PetCard({
       setError(err.message);
       return;
     }
+    setProfileDirty(false);
     await onChanged();
   }
 
@@ -419,6 +430,7 @@ function PetCard({
       setError(err.message);
       return;
     }
+    setMedicalDirty(false);
     await onChanged();
   }
 
@@ -436,6 +448,7 @@ function PetCard({
       setError(err.message);
       return;
     }
+    setDietaryDirty(false);
     await onChanged();
   }
 
@@ -491,7 +504,10 @@ function PetCard({
               <Input
                 id={`name-${pet.id}`}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setProfileDirty(true);
+                }}
                 required
               />
             </div>
@@ -500,7 +516,10 @@ function PetCard({
               <Input
                 id={`type-${pet.id}`}
                 value={petType}
-                onChange={(e) => setPetType(e.target.value)}
+                onChange={(e) => {
+                  setPetType(e.target.value);
+                  setProfileDirty(true);
+                }}
                 required
               />
             </div>
@@ -512,7 +531,10 @@ function PetCard({
                 id={`age-${pet.id}`}
                 inputMode="numeric"
                 value={age}
-                onChange={(e) => setAge(e.target.value)}
+                onChange={(e) => {
+                  setAge(e.target.value);
+                  setProfileDirty(true);
+                }}
               />
             </div>
             <div className="space-y-1.5">
@@ -525,7 +547,10 @@ function PetCard({
               <PetSexSelect
                 id={`sex-${pet.id}`}
                 value={sex}
-                onChange={setSex}
+                onChange={(v) => {
+                  setSex(v);
+                  setProfileDirty(true);
+                }}
                 disabled={savingProfile}
               />
             </div>
@@ -540,7 +565,10 @@ function PetCard({
           <Textarea
             id={`medical-${pet.id}`}
             value={medical}
-            onChange={(e) => setMedical(e.target.value)}
+            onChange={(e) => {
+              setMedical(e.target.value);
+              setMedicalDirty(true);
+            }}
           />
           <Button
             type="button"
@@ -557,7 +585,10 @@ function PetCard({
           <Textarea
             id={`dietary-${pet.id}`}
             value={dietary}
-            onChange={(e) => setDietary(e.target.value)}
+            onChange={(e) => {
+              setDietary(e.target.value);
+              setDietaryDirty(true);
+            }}
           />
           <Button
             type="button"
