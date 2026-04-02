@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useDashboardRole } from "@/components/dashboard-role-context";
-import { Home, Search, ShieldCheck, Star } from "lucide-react";
+import { Search, ShieldCheck, Star } from "lucide-react";
 
 type PlaceholderMinder = {
   id: string;
@@ -75,9 +75,16 @@ export function SearchPageContent() {
   const [search, setSearch] = useState("");
   const [petType, setPetType] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<"rating" | "price">("rating");
+
+  function togglePetType(nextType: string) {
+    setPetType((current) =>
+      current.trim().toLowerCase() === nextType.toLowerCase() ? "" : nextType,
+    );
+  }
 
   const filtered = useMemo(() => {
-    return PLACEHOLDER_MINDERS.filter((minder) => {
+    const results = PLACEHOLDER_MINDERS.filter((minder) => {
       const query = search.trim().toLowerCase();
       const matchesQuery =
         query.length === 0 ||
@@ -90,7 +97,14 @@ export function SearchPageContent() {
       const matchesVerified = !verifiedOnly || minder.verified;
       return matchesQuery && matchesType && matchesVerified;
     });
-  }, [petType, search, verifiedOnly]);
+
+    return [...results].sort((a, b) => {
+      if (sortBy === "rating") {
+        return b.rating - a.rating;
+      }
+      return a.priceLabel.localeCompare(b.priceLabel);
+    });
+  }, [petType, search, sortBy, verifiedOnly]);
 
   if (activeRole === "minder") {
     return (
@@ -204,65 +218,130 @@ export function SearchPageContent() {
             </div>
           </div>
         </CardContent>
+        <CardContent className="pt-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant={petType.toLowerCase() === "dogs" ? "default" : "outline"}
+              size="sm"
+              onClick={() => togglePetType("dogs")}
+            >
+              Dogs
+            </Button>
+            <Button
+              type="button"
+              variant={petType.toLowerCase() === "cats" ? "default" : "outline"}
+              size="sm"
+              onClick={() => togglePetType("cats")}
+            >
+              Cats
+            </Button>
+            <Button
+              type="button"
+              variant={
+                petType.toLowerCase() === "small pets" ? "default" : "outline"
+              }
+              size="sm"
+              onClick={() => togglePetType("small pets")}
+            >
+              Small pets
+            </Button>
+            <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+            <Label className="text-sm text-muted-foreground">Sort by</Label>
+            <Button
+              type="button"
+              variant={sortBy === "rating" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("rating")}
+            >
+              Rating
+            </Button>
+            <Button
+              type="button"
+              variant={sortBy === "price" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("price")}
+            >
+              Price
+            </Button>
+          </div>
+        </CardContent>
       </Card>
 
-      <div className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          Showing {filtered.length} placeholder result
-          {filtered.length === 1 ? "" : "s"}.
-        </p>
-        {filtered.length === 0 ? (
-          <Card className="shadow-card border-border">
-            <CardContent className="p-10 text-center text-muted-foreground">
-              No minders match your current filters. Try widening your search.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {filtered.map((minder) => (
-              <Card key={minder.id} className="shadow-card border-border">
-                <CardHeader className="space-y-2">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <CardTitle className="text-xl font-medium">
-                        {minder.name}
-                      </CardTitle>
-                      <CardDescription>{minder.area}</CardDescription>
+      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Showing {filtered.length} placeholder result
+            {filtered.length === 1 ? "" : "s"}.
+          </p>
+          {filtered.length === 0 ? (
+            <Card className="shadow-card border-border">
+              <CardContent className="p-10 text-center text-muted-foreground">
+                No minders match your current filters. Try widening your search.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {filtered.map((minder) => (
+                <Card key={minder.id} className="shadow-card border-border">
+                  <CardHeader className="space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-xl font-medium">
+                          {minder.name}
+                        </CardTitle>
+                        <CardDescription>{minder.area}</CardDescription>
+                      </div>
+                      <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-xs text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+                        <Star className="size-3.5" />
+                        {minder.rating.toFixed(1)}
+                      </div>
                     </div>
-                    <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-xs text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
-                      <Star className="size-3.5" />
-                      {minder.rating.toFixed(1)}
-                    </div>
-                  </div>
-                  {minder.verified ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs text-success-500">
-                      <ShieldCheck className="size-3.5" />
-                      Verified minder
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                      Verification pending
-                    </span>
-                  )}
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">{minder.intro}</p>
-                  <p className="text-sm text-foreground">
-                    Supports: {minder.supports.join(", ")}
-                  </p>
-                  <div className="flex items-center justify-between gap-3 pt-1">
-                    <p className="text-sm text-muted-foreground">
-                      {minder.priceLabel}
+                    {minder.verified ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-success-500">
+                        <ShieldCheck className="size-3.5" />
+                        Verified minder
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                        Verification pending
+                      </span>
+                    )}
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">{minder.intro}</p>
+                    <p className="text-sm text-foreground">
+                      Supports: {minder.supports.join(", ")}
                     </p>
-                    <Button type="button" variant="outline" size="sm">
-                      View profile
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                    <div className="flex items-center justify-between gap-3 pt-1">
+                      <p className="text-sm text-muted-foreground">
+                        {minder.priceLabel}
+                      </p>
+                      <Button type="button" variant="outline" size="sm">
+                        View profile
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+        <Card className="shadow-card border-border h-fit">
+          <CardHeader>
+            <CardTitle className="text-xl font-medium">Map preview</CardTitle>
+            <CardDescription>
+              Planned listing + map split-view for location-first search.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="h-44 rounded-lg border border-border bg-teal-50 dark:bg-teal-900/20" />
+            <p className="text-sm text-muted-foreground">
+              Placeholder map area. Future version will show pin clusters based on
+              minders that match active filters.
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="shadow-card border-border">
