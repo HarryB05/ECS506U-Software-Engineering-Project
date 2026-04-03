@@ -87,7 +87,7 @@ export default function OnboardingPage() {
   return (
     <div className="w-full max-w-narrow">
       <div className="mb-8 text-center md:text-left">
-        <h1 className="font-display text-3xl text-foreground">
+        <h1 className="font-display text-2xl text-foreground sm:text-3xl">
           Tell us about yourself
         </h1>
         <p className="mt-2 text-muted-foreground">
@@ -136,7 +136,7 @@ export default function OnboardingPage() {
                   type="button"
                   onClick={() => toggleRole("owner")}
                   className={cn(
-                    "rounded-lg border p-5 text-left shadow-card transition-all duration-150",
+                    "rounded-lg border p-4 text-left shadow-card transition-all duration-150 sm:p-5",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     selectedRoles.includes("owner")
                       ? "border-primary bg-teal-50 dark:bg-teal-900/25"
@@ -157,7 +157,7 @@ export default function OnboardingPage() {
                   type="button"
                   onClick={() => toggleRole("minder")}
                   className={cn(
-                    "rounded-lg border p-5 text-left shadow-card transition-all duration-150",
+                    "rounded-lg border p-4 text-left shadow-card transition-all duration-150 sm:p-5",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     selectedRoles.includes("minder")
                       ? "border-primary bg-teal-50 dark:bg-teal-900/25"

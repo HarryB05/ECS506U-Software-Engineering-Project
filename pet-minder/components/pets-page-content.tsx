@@ -22,12 +22,12 @@ export function PetsPageContent({
   if (activeRole === "minder") {
     return (
       <div className="max-w-content mx-auto">
-        <h1 className="font-display text-3xl text-foreground mb-1">Pets</h1>
+        <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">Pets</h1>
         <p className="text-muted-foreground mb-8">
           Pet profiles are part of the owner experience. Switch to owner mode
           to add and manage pets.
         </p>
-        <div className="rounded-lg border border-border bg-card p-12 text-center shadow-card">
+        <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card sm:p-8 md:p-12">
           <PawPrint className="mx-auto size-12 text-muted-foreground/50 mb-4" />
           {isDualRole ? (
             <div className="flex flex-col items-center gap-4">
@@ -53,12 +53,12 @@ export function PetsPageContent({
   if (!roleTypes.includes("owner")) {
     return (
       <div className="max-w-content mx-auto">
-        <h1 className="font-display text-3xl text-foreground mb-1">Pets</h1>
+        <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">Pets</h1>
         <p className="text-muted-foreground mb-8">
           Pet profiles are available when your account includes the pet owner
           role.
         </p>
-        <div className="rounded-lg border border-border bg-card p-12 text-center shadow-card">
+        <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card sm:p-8 md:p-12">
           <PawPrint className="mx-auto size-12 text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
             Your account is set up as a pet minder only. Owner features such as
@@ -74,7 +74,7 @@ export function PetsPageContent({
 
   return (
     <div className="max-w-content mx-auto">
-      <h1 className="font-display text-3xl text-foreground mb-1">Pets</h1>
+      <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">Pets</h1>
       <p className="text-muted-foreground mb-8">
         Add and manage your pet profiles for bookings.
       </p>

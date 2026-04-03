@@ -178,7 +178,7 @@ export function PetProfilesManager({
       )}
 
       {pets.length === 0 && !showAdd ? (
-        <div className="rounded-lg border border-border bg-card p-12 text-center shadow-card">
+        <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card sm:p-8 md:p-12">
           <PawPrint className="mx-auto size-12 text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground mb-4">
             No pets added yet. Add a pet to get started.
@@ -263,7 +263,7 @@ function AddPetForm({
         <form
           onSubmit={handleSubmit}
           onKeyDown={preventEnterSubmit}
-          className="space-y-4 max-w-medium"
+          className="space-y-4 max-w-medium w-full"
         >
           <div className="space-y-1.5">
             <Label htmlFor="new-name">Name</Label>
@@ -331,8 +331,8 @@ function AddPetForm({
               {error}
             </p>
           )}
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={loading}>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
               {loading ? "Saving…" : "Create profile"}
             </Button>
             <Button
@@ -340,6 +340,7 @@ function AddPetForm({
               variant="outline"
               onClick={onCancel}
               disabled={loading}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -394,6 +395,7 @@ function PetCard({
   const [savingMedical, setSavingMedical] = useState(false);
   const [savingDietary, setSavingDietary] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isExpandedMobile, setIsExpandedMobile] = useState(false);
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -474,29 +476,59 @@ function PetCard({
 
   return (
     <Card className="shadow-card border-border">
-      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-4 space-y-0">
+      <CardHeader className="flex flex-col items-start justify-between gap-3 space-y-0 sm:flex-row sm:flex-wrap sm:gap-4">
         <div>
           <CardTitle className="font-display text-2xl text-foreground">
             {pet.name}
           </CardTitle>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="text-danger-500 hover:text-danger-500"
-          onClick={handleDelete}
-          disabled={deleting}
-        >
-          <Trash2 className="size-4" />
-          {deleting ? "Removing…" : "Remove"}
-        </Button>
+        <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="sm:hidden"
+            onClick={() => setIsExpandedMobile((prev) => !prev)}
+            aria-expanded={isExpandedMobile}
+            aria-controls={`pet-details-${pet.id}`}
+          >
+            {isExpandedMobile ? "Collapse" : "Expand"}
+            <ChevronDown
+              className={cn(
+                "size-4 transition-transform",
+                isExpandedMobile && "rotate-180",
+              )}
+            />
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn(
+              "text-danger-500 hover:text-danger-500 w-full sm:w-auto",
+              !isExpandedMobile && "hidden sm:inline-flex",
+            )}
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            <Trash2 className="size-4" />
+            {deleting ? "Removing…" : "Remove"}
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+
+      <CardContent
+        id={`pet-details-${pet.id}`}
+        className={cn(
+          "space-y-6",
+          !isExpandedMobile && "hidden sm:block",
+        )}
+      >
         <form
           onSubmit={handleSaveProfile}
           onKeyDown={preventEnterSubmit}
-          className="space-y-4 max-w-medium"
+          className="space-y-4 max-w-medium w-full"
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -555,12 +587,12 @@ function PetCard({
               />
             </div>
           </div>
-          <Button type="submit" disabled={savingProfile}>
+          <Button type="submit" disabled={savingProfile} className="w-full sm:w-auto">
             {savingProfile ? "Saving…" : "Save profile"}
           </Button>
         </form>
 
-        <div className="space-y-2 max-w-medium border-t border-border pt-6">
+        <div className="space-y-2 max-w-medium w-full border-t border-border pt-6">
           <Label htmlFor={`medical-${pet.id}`}>Medical information</Label>
           <Textarea
             id={`medical-${pet.id}`}
@@ -575,12 +607,13 @@ function PetCard({
             variant="secondary"
             onClick={handleSaveMedical}
             disabled={savingMedical}
+            className="w-full sm:w-auto"
           >
             {savingMedical ? "Saving…" : "Save medical information"}
           </Button>
         </div>
 
-        <div className="space-y-2 max-w-medium border-t border-border pt-6">
+        <div className="space-y-2 max-w-medium w-full border-t border-border pt-6">
           <Label htmlFor={`dietary-${pet.id}`}>Dietary requirements</Label>
           <Textarea
             id={`dietary-${pet.id}`}
@@ -595,6 +628,7 @@ function PetCard({
             variant="secondary"
             onClick={handleSaveDietary}
             disabled={savingDietary}
+            className="w-full sm:w-auto"
           >
             {savingDietary ? "Saving…" : "Save dietary requirements"}
           </Button>
