@@ -10,6 +10,7 @@ import {
   PawPrint,
   User,
   Home,
+  Search,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
@@ -20,6 +21,7 @@ const ownerNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/bookings", label: "Bookings", icon: CalendarCheck },
   { href: "/dashboard/pets", label: "Pets", icon: PawPrint },
+  { href: "/dashboard/search", label: "Search", icon: Search },
 ] as const;
 
 const minderNav = [
