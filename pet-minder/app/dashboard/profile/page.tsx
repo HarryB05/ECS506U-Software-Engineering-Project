@@ -25,7 +25,7 @@ async function ProfileContent() {
   return (
     <div className="max-w-narrow mx-auto space-y-8">
       <div>
-        <h1 className="font-display text-3xl text-foreground">Profile</h1>
+        <h1 className="font-display text-2xl text-foreground sm:text-3xl">Profile</h1>
         <p className="text-muted-foreground mt-1">
           Your account details and preferences.
         </p>
