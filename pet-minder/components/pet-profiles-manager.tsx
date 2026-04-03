@@ -546,6 +546,7 @@ function AddPetForm({
               variant="outline"
               onClick={onCancel}
               disabled={loading}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>

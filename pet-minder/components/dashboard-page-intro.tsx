@@ -8,7 +8,7 @@ export function DashboardPageIntro() {
   if (activeRole === "minder") {
     return (
       <>
-        <h1 className="font-display text-3xl text-foreground mb-1">
+        <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
           Minder dashboard
         </h1>
         <p className="text-muted-foreground mb-8">
@@ -20,7 +20,7 @@ export function DashboardPageIntro() {
 
   return (
     <>
-      <h1 className="font-display text-3xl text-foreground mb-1">Dashboard</h1>
+      <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">Dashboard</h1>
       <p className="text-muted-foreground mb-8">
         Welcome back. Here you can manage your bookings and pets.
       </p>

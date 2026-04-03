@@ -14,8 +14,8 @@ export function MinderWorkspaceGate({
 
   if (!roleTypes.includes("minder")) {
     return (
-      <div className="max-w-narrow mx-auto rounded-lg border border-border bg-card p-10 text-center shadow-card">
-        <h1 className="font-display text-2xl text-foreground mb-2">
+      <div className="max-w-narrow mx-auto rounded-lg border border-border bg-card p-6 text-center shadow-card sm:p-8 md:p-10">
+        <h1 className="font-display text-xl text-foreground mb-2 sm:text-2xl">
           Minder workspace
         </h1>
         <p className="text-muted-foreground mb-6">
@@ -31,8 +31,8 @@ export function MinderWorkspaceGate({
 
   if (activeRole === "owner" && isDualRole) {
     return (
-      <div className="max-w-narrow mx-auto rounded-lg border border-border bg-card p-10 text-center shadow-card">
-        <h1 className="font-display text-2xl text-foreground mb-2">
+      <div className="max-w-narrow mx-auto rounded-lg border border-border bg-card p-6 text-center shadow-card sm:p-8 md:p-10">
+        <h1 className="font-display text-xl text-foreground mb-2 sm:text-2xl">
           Wrong mode
         </h1>
         <p className="text-muted-foreground mb-6">
