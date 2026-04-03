@@ -29,9 +29,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, PawPrint, Plus, Trash2 } from "lucide-react";
+import {
+  Bird,
+  Cat,
+  ChevronDown,
+  Dog,
+  Fish,
+  PawPrint,
+  Pencil,
+  Plus,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 
 type SexSelectValue = "" | PetSex;
+type PetTypeSelectValue = "dog" | "cat" | "bird" | "fish" | "other";
+type AgeRangeValue = "" | "0-1" | "2-4" | "5-8" | "9-12" | "13+";
 
 function preventEnterSubmit(e: React.KeyboardEvent) {
   if (e.key !== "Enter") return;
@@ -52,6 +65,98 @@ const SEX_LABEL: Record<SexSelectValue, string> = {
   male: "Male",
   female: "Female",
 };
+
+const PET_TYPE_LABEL: Record<PetTypeSelectValue, string> = {
+  dog: "Dog",
+  cat: "Cat",
+  bird: "Bird",
+  fish: "Fish",
+  other: "Other",
+};
+
+const AGE_RANGE_LABEL: Record<AgeRangeValue, string> = {
+  "": "Not specified",
+  "0-1": "0-1 years",
+  "2-4": "2-4 years",
+  "5-8": "5-8 years",
+  "9-12": "9-12 years",
+  "13+": "13+ years",
+};
+
+function getPetTypeSelection(rawType: string): PetTypeSelectValue {
+  const normalised = rawType.trim().toLowerCase();
+  switch (normalised) {
+    case "dog":
+      return "dog";
+    case "cat":
+      return "cat";
+    case "bird":
+      return "bird";
+    case "fish":
+      return "fish";
+    default:
+      return "other";
+  }
+}
+
+function getPetTypeFromSelection(
+  selectedType: PetTypeSelectValue | "",
+  otherType: string,
+): string {
+  if (selectedType === "") return "";
+  if (selectedType === "other") return otherType.trim();
+  return selectedType;
+}
+
+function getPetTypeIcon(rawType: string): LucideIcon {
+  const selectedType = getPetTypeSelection(rawType);
+  switch (selectedType) {
+    case "dog":
+      return Dog;
+    case "cat":
+      return Cat;
+    case "bird":
+      return Bird;
+    case "fish":
+      return Fish;
+    case "other":
+      return PawPrint;
+    default: {
+      const exhaustiveCheck: never = selectedType;
+      return exhaustiveCheck;
+    }
+  }
+}
+
+function ageRangeFromNumber(age: number | null): AgeRangeValue {
+  if (age === null) return "";
+  if (age <= 1) return "0-1";
+  if (age <= 4) return "2-4";
+  if (age <= 8) return "5-8";
+  if (age <= 12) return "9-12";
+  return "13+";
+}
+
+function ageNumberFromRange(ageRange: AgeRangeValue): number | null {
+  switch (ageRange) {
+    case "":
+      return null;
+    case "0-1":
+      return 1;
+    case "2-4":
+      return 3;
+    case "5-8":
+      return 6;
+    case "9-12":
+      return 10;
+    case "13+":
+      return 13;
+    default: {
+      const exhaustiveCheck: never = ageRange;
+      return exhaustiveCheck;
+    }
+  }
+}
 
 function PetSexSelect({
   id,
@@ -87,24 +192,113 @@ function PetSexSelect({
         align="start"
         className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
       >
-        <DropdownMenuItem
-          className="cursor-pointer"
-          onSelect={() => onChange("")}
-        >
+        <DropdownMenuItem className="cursor-pointer" onSelect={() => onChange("")}>
           Not specified
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="cursor-pointer"
-          onSelect={() => onChange("male")}
-        >
+        <DropdownMenuItem className="cursor-pointer" onSelect={() => onChange("male")}>
           Male
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="cursor-pointer"
-          onSelect={() => onChange("female")}
-        >
+        <DropdownMenuItem className="cursor-pointer" onSelect={() => onChange("female")}>
           Female
         </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function PetTypeSelect({
+  id,
+  value,
+  onChange,
+  disabled,
+}: {
+  id: string;
+  value: PetTypeSelectValue | "";
+  onChange: (v: PetTypeSelectValue) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          id={id}
+          type="button"
+          disabled={disabled}
+          className={cn(
+            "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm",
+            "text-foreground transition-colors",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+            "disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+            value === "" && "text-muted-foreground",
+          )}
+        >
+          <span className="truncate text-left">
+            {value === "" ? "Select pet type" : PET_TYPE_LABEL[value]}
+          </span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+      >
+        {(Object.keys(PET_TYPE_LABEL) as PetTypeSelectValue[]).map((type) => (
+          <DropdownMenuItem
+            key={type}
+            className="cursor-pointer"
+            onSelect={() => onChange(type)}
+          >
+            {PET_TYPE_LABEL[type]}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function AgeRangeSelect({
+  id,
+  value,
+  onChange,
+  disabled,
+}: {
+  id: string;
+  value: AgeRangeValue;
+  onChange: (v: AgeRangeValue) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          id={id}
+          type="button"
+          disabled={disabled}
+          className={cn(
+            "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm",
+            "text-foreground transition-colors",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+            "disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+            value === "" && "text-muted-foreground",
+          )}
+        >
+          <span className="truncate text-left">{AGE_RANGE_LABEL[value]}</span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+      >
+        {(Object.keys(AGE_RANGE_LABEL) as AgeRangeValue[]).map((range) => (
+          <DropdownMenuItem
+            key={range === "" ? "unspecified" : range}
+            className="cursor-pointer"
+            onSelect={() => onChange(range)}
+          >
+            {AGE_RANGE_LABEL[range]}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -178,9 +372,9 @@ export function PetProfilesManager({
       )}
 
       {pets.length === 0 && !showAdd ? (
-        <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card sm:p-8 md:p-12">
-          <PawPrint className="mx-auto size-12 text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground mb-4">
+        <div className="rounded-lg border border-border bg-card p-12 text-center shadow-card">
+          <PawPrint className="mx-auto mb-4 size-12 text-muted-foreground/50" />
+          <p className="mb-4 text-muted-foreground">
             No pets added yet. Add a pet to get started.
           </p>
           <Button type="button" onClick={() => setShowAdd(true)}>
@@ -189,7 +383,7 @@ export function PetProfilesManager({
           </Button>
         </div>
       ) : (
-        <ul className="space-y-6">
+        <ul className="grid gap-4 md:grid-cols-2">
           {pets.map((pet) => (
             <li key={pet.id}>
               <PetCard
@@ -215,8 +409,9 @@ function AddPetForm({
   onCreated: () => void | Promise<void>;
 }) {
   const [name, setName] = useState("");
-  const [petType, setPetType] = useState("");
-  const [age, setAge] = useState("");
+  const [petType, setPetType] = useState<PetTypeSelectValue | "">("");
+  const [otherPetType, setOtherPetType] = useState("");
+  const [ageRange, setAgeRange] = useState<AgeRangeValue>("");
   const [sex, setSex] = useState<SexSelectValue>("");
   const [medical, setMedical] = useState("");
   const [dietary, setDietary] = useState("");
@@ -226,16 +421,17 @@ function AddPetForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const ageNum = age.trim() === "" ? null : Number.parseInt(age, 10);
-    if (age.trim() !== "" && (Number.isNaN(ageNum) || ageNum! < 0)) {
-      setError("Age must be a valid non-negative number.");
+    const ageNum = ageNumberFromRange(ageRange);
+    const resolvedPetType = getPetTypeFromSelection(petType, otherPetType);
+    if (resolvedPetType === "") {
+      setError("Please choose a pet type.");
       return;
     }
     setLoading(true);
     const supabase = createClient();
     const { error: err } = await createPetProfile(supabase, ownerUserId, {
       name,
-      pet_type: petType,
+      pet_type: resolvedPetType,
       age: ageNum,
       sex: sex === "" ? null : sex,
       medical_info: medical || null,
@@ -250,7 +446,7 @@ function AddPetForm({
   }
 
   return (
-    <Card className="shadow-card border-border">
+    <Card className="border-border shadow-card">
       <CardHeader>
         <CardTitle className="font-display text-2xl text-foreground">
           New pet
@@ -263,7 +459,7 @@ function AddPetForm({
         <form
           onSubmit={handleSubmit}
           onKeyDown={preventEnterSubmit}
-          className="space-y-4 max-w-medium w-full"
+          className="max-w-medium space-y-4"
         >
           <div className="space-y-1.5">
             <Label htmlFor="new-name">Name</Label>
@@ -277,29 +473,39 @@ function AddPetForm({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="new-type">Type</Label>
-            <Input
+            <PetTypeSelect
               id="new-type"
-              placeholder="e.g. dog, cat"
               value={petType}
-              onChange={(e) => setPetType(e.target.value)}
-              required
-              autoComplete="off"
+              onChange={setPetType}
+              disabled={loading}
             />
           </div>
+          {petType === "other" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="new-type-other">Other type</Label>
+              <Input
+                id="new-type-other"
+                placeholder="e.g. rabbit, lizard"
+                value={otherPetType}
+                onChange={(e) => setOtherPetType(e.target.value)}
+                required
+                autoComplete="off"
+              />
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label htmlFor="new-age">Age (years)</Label>
-            <Input
+            <AgeRangeSelect
               id="new-age"
-              inputMode="numeric"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              autoComplete="off"
+              value={ageRange}
+              onChange={setAgeRange}
+              disabled={loading}
             />
           </div>
-          <div className="space-y-1.5 max-w-xs">
+          <div className="max-w-xs space-y-1.5">
             <Label htmlFor="new-sex">
               Sex{" "}
-              <span className="text-muted-foreground font-normal">(optional)</span>
+              <span className="font-normal text-muted-foreground">(optional)</span>
             </Label>
             <PetSexSelect
               id="new-sex"
@@ -314,7 +520,7 @@ function AddPetForm({
               id="new-medical"
               value={medical}
               onChange={(e) => setMedical(e.target.value)}
-              placeholder="Allergies, medications, vet notes…"
+              placeholder="Allergies, medications, vet notes..."
             />
           </div>
           <div className="space-y-1.5">
@@ -323,7 +529,7 @@ function AddPetForm({
               id="new-dietary"
               value={dietary}
               onChange={(e) => setDietary(e.target.value)}
-              placeholder="Feeding schedule, restrictions…"
+              placeholder="Feeding schedule, restrictions..."
             />
           </div>
           {error && (
@@ -331,9 +537,9 @@ function AddPetForm({
               {error}
             </p>
           )}
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-              {loading ? "Saving…" : "Create profile"}
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : "Create profile"}
             </Button>
             <Button
               type="button"
@@ -360,10 +566,14 @@ function PetCard({
   onChanged: () => void | Promise<void>;
   onDeleted: () => void | Promise<void>;
 }) {
+  const initialPetType = getPetTypeSelection(pet.pet_type);
   const [name, setName] = useState(pet.name);
-  const [petType, setPetType] = useState(pet.pet_type);
-  const [age, setAge] = useState(
-    pet.age === null ? "" : String(pet.age),
+  const [petType, setPetType] = useState<PetTypeSelectValue>(initialPetType);
+  const [otherPetType, setOtherPetType] = useState(
+    initialPetType === "other" ? pet.pet_type : "",
+  );
+  const [ageRange, setAgeRange] = useState<AgeRangeValue>(() =>
+    ageRangeFromNumber(pet.age),
   );
   const [sex, setSex] = useState<SexSelectValue>(() =>
     petSexFromRow(pet.sex),
@@ -377,9 +587,11 @@ function PetCard({
 
   useEffect(() => {
     if (!profileDirty) {
+      const nextType = getPetTypeSelection(pet.pet_type);
       setName(pet.name);
-      setPetType(pet.pet_type);
-      setAge(pet.age === null ? "" : String(pet.age));
+      setPetType(nextType);
+      setOtherPetType(nextType === "other" ? pet.pet_type : "");
+      setAgeRange(ageRangeFromNumber(pet.age));
       setSex(petSexFromRow(pet.sex));
     }
     if (!medicalDirty) {
@@ -395,21 +607,22 @@ function PetCard({
   const [savingMedical, setSavingMedical] = useState(false);
   const [savingDietary, setSavingDietary] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isExpandedMobile, setIsExpandedMobile] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const ageNum = age.trim() === "" ? null : Number.parseInt(age, 10);
-    if (age.trim() !== "" && (Number.isNaN(ageNum) || ageNum! < 0)) {
-      setError("Age must be a valid non-negative number.");
+    const ageNum = ageNumberFromRange(ageRange);
+    const resolvedPetType = getPetTypeFromSelection(petType, otherPetType);
+    if (resolvedPetType === "") {
+      setError("Please choose a pet type.");
       return;
     }
     setSavingProfile(true);
     const supabase = createClient();
     const { error: err } = await updateProfile(supabase, pet.id, {
       name,
-      pet_type: petType,
+      pet_type: resolvedPetType,
       age: ageNum,
       sex: sex === "" ? null : sex,
     });
@@ -419,6 +632,7 @@ function PetCard({
       return;
     }
     setProfileDirty(false);
+    setExpanded(false);
     await onChanged();
   }
 
@@ -474,172 +688,181 @@ function PetCard({
     await onDeleted();
   }
 
-  return (
-    <Card className="shadow-card border-border">
-      <CardHeader className="flex flex-col items-start justify-between gap-3 space-y-0 sm:flex-row sm:flex-wrap sm:gap-4">
-        <div>
-          <CardTitle className="font-display text-2xl text-foreground">
-            {pet.name}
-          </CardTitle>
-        </div>
-        <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="sm:hidden"
-            onClick={() => setIsExpandedMobile((prev) => !prev)}
-            aria-expanded={isExpandedMobile}
-            aria-controls={`pet-details-${pet.id}`}
-          >
-            {isExpandedMobile ? "Collapse" : "Expand"}
-            <ChevronDown
-              className={cn(
-                "size-4 transition-transform",
-                isExpandedMobile && "rotate-180",
-              )}
-            />
-          </Button>
+  const PetTypeIcon = getPetTypeIcon(pet.pet_type);
 
+  return (
+    <Card className="border-border shadow-card">
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-4 space-y-0">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 rounded-full border border-border bg-teal-50 p-2 text-teal-700">
+            <PetTypeIcon className="size-5" aria-hidden />
+          </div>
+          <div>
+            <CardTitle className="font-display text-2xl text-foreground">
+              {pet.name}
+            </CardTitle>
+            <CardDescription className="mt-1">
+              {pet.pet_type}
+              {pet.age !== null ? ` • ${pet.age} years` : ""}
+            </CardDescription>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className={cn(
-              "text-danger-500 hover:text-danger-500 w-full sm:w-auto",
-              !isExpandedMobile && "hidden sm:inline-flex",
-            )}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            <Pencil className="size-4" />
+            {expanded ? "Close" : "Edit"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-danger-500 hover:text-danger-500"
             onClick={handleDelete}
             disabled={deleting}
           >
             <Trash2 className="size-4" />
-            {deleting ? "Removing…" : "Remove"}
+            {deleting ? "Removing..." : "Remove"}
           </Button>
         </div>
       </CardHeader>
-
-      <CardContent
-        id={`pet-details-${pet.id}`}
-        className={cn(
-          "space-y-6",
-          !isExpandedMobile && "hidden sm:block",
-        )}
-      >
-        <form
-          onSubmit={handleSaveProfile}
-          onKeyDown={preventEnterSubmit}
-          className="space-y-4 max-w-medium w-full"
-        >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor={`name-${pet.id}`}>Name</Label>
-              <Input
-                id={`name-${pet.id}`}
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setProfileDirty(true);
-                }}
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor={`type-${pet.id}`}>Type</Label>
-              <Input
-                id={`type-${pet.id}`}
-                value={petType}
-                onChange={(e) => {
-                  setPetType(e.target.value);
-                  setProfileDirty(true);
-                }}
-                required
-              />
-            </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 max-w-medium">
-            <div className="space-y-1.5">
-              <Label htmlFor={`age-${pet.id}`}>Age (years)</Label>
-              <Input
-                id={`age-${pet.id}`}
-                inputMode="numeric"
-                value={age}
-                onChange={(e) => {
-                  setAge(e.target.value);
-                  setProfileDirty(true);
-                }}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor={`sex-${pet.id}`}>
-                Sex{" "}
-                <span className="text-muted-foreground font-normal">
-                  (optional)
-                </span>
-              </Label>
-              <PetSexSelect
-                id={`sex-${pet.id}`}
-                value={sex}
-                onChange={(v) => {
-                  setSex(v);
-                  setProfileDirty(true);
-                }}
-                disabled={savingProfile}
-              />
-            </div>
-          </div>
-          <Button type="submit" disabled={savingProfile} className="w-full sm:w-auto">
-            {savingProfile ? "Saving…" : "Save profile"}
-          </Button>
-        </form>
-
-        <div className="space-y-2 max-w-medium w-full border-t border-border pt-6">
-          <Label htmlFor={`medical-${pet.id}`}>Medical information</Label>
-          <Textarea
-            id={`medical-${pet.id}`}
-            value={medical}
-            onChange={(e) => {
-              setMedical(e.target.value);
-              setMedicalDirty(true);
-            }}
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleSaveMedical}
-            disabled={savingMedical}
-            className="w-full sm:w-auto"
+      {expanded && (
+        <CardContent className="space-y-6 border-t border-border pt-6">
+          <form
+            onSubmit={handleSaveProfile}
+            onKeyDown={preventEnterSubmit}
+            className="max-w-medium space-y-4"
           >
-            {savingMedical ? "Saving…" : "Save medical information"}
-          </Button>
-        </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor={`name-${pet.id}`}>Name</Label>
+                <Input
+                  id={`name-${pet.id}`}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setProfileDirty(true);
+                  }}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`type-${pet.id}`}>Type</Label>
+                <PetTypeSelect
+                  id={`type-${pet.id}`}
+                  value={petType}
+                  onChange={(v) => {
+                    setPetType(v);
+                    if (v !== "other") {
+                      setOtherPetType("");
+                    }
+                    setProfileDirty(true);
+                  }}
+                  disabled={savingProfile}
+                />
+              </div>
+            </div>
+            {petType === "other" && (
+              <div className="max-w-medium space-y-1.5">
+                <Label htmlFor={`type-other-${pet.id}`}>Other type</Label>
+                <Input
+                  id={`type-other-${pet.id}`}
+                  value={otherPetType}
+                  onChange={(e) => {
+                    setOtherPetType(e.target.value);
+                    setProfileDirty(true);
+                  }}
+                  placeholder="e.g. rabbit, lizard"
+                />
+              </div>
+            )}
+            <div className="max-w-medium grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor={`age-${pet.id}`}>Age (years)</Label>
+                <AgeRangeSelect
+                  id={`age-${pet.id}`}
+                  value={ageRange}
+                  onChange={(v) => {
+                    setAgeRange(v);
+                    setProfileDirty(true);
+                  }}
+                  disabled={savingProfile}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`sex-${pet.id}`}>
+                  Sex{" "}
+                  <span className="font-normal text-muted-foreground">
+                    (optional)
+                  </span>
+                </Label>
+                <PetSexSelect
+                  id={`sex-${pet.id}`}
+                  value={sex}
+                  onChange={(v) => {
+                    setSex(v);
+                    setProfileDirty(true);
+                  }}
+                  disabled={savingProfile}
+                />
+              </div>
+            </div>
+            <Button type="submit" disabled={savingProfile}>
+              {savingProfile ? "Saving..." : "Save profile"}
+            </Button>
+          </form>
 
-        <div className="space-y-2 max-w-medium w-full border-t border-border pt-6">
-          <Label htmlFor={`dietary-${pet.id}`}>Dietary requirements</Label>
-          <Textarea
-            id={`dietary-${pet.id}`}
-            value={dietary}
-            onChange={(e) => {
-              setDietary(e.target.value);
-              setDietaryDirty(true);
-            }}
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleSaveDietary}
-            disabled={savingDietary}
-            className="w-full sm:w-auto"
-          >
-            {savingDietary ? "Saving…" : "Save dietary requirements"}
-          </Button>
-        </div>
+          <div className="max-w-medium space-y-2 border-t border-border pt-6">
+            <Label htmlFor={`medical-${pet.id}`}>Medical information</Label>
+            <Textarea
+              id={`medical-${pet.id}`}
+              value={medical}
+              onChange={(e) => {
+                setMedical(e.target.value);
+                setMedicalDirty(true);
+              }}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleSaveMedical}
+              disabled={savingMedical}
+            >
+              {savingMedical ? "Saving..." : "Save medical information"}
+            </Button>
+          </div>
 
-        {error && (
-          <p className="text-sm text-danger-500" role="alert">
-            {error}
-          </p>
-        )}
-      </CardContent>
+          <div className="max-w-medium space-y-2 border-t border-border pt-6">
+            <Label htmlFor={`dietary-${pet.id}`}>Dietary requirements</Label>
+            <Textarea
+              id={`dietary-${pet.id}`}
+              value={dietary}
+              onChange={(e) => {
+                setDietary(e.target.value);
+                setDietaryDirty(true);
+              }}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleSaveDietary}
+              disabled={savingDietary}
+            >
+              {savingDietary ? "Saving..." : "Save dietary requirements"}
+            </Button>
+          </div>
+
+          {error && (
+            <p className="text-sm text-danger-500" role="alert">
+              {error}
+            </p>
+          )}
+        </CardContent>
+      )}
     </Card>
   );
 }
