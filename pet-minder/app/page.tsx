@@ -4,13 +4,18 @@ import { Button } from "@/components/ui/button";
 import { HomeNav } from "@/components/home-nav";
 import { HomeNavFallback } from "@/components/home-nav-fallback";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { createClient } from "@/lib/supabase/server";
 import {
   Footprints,
   MapPin,
   ShieldCheck,
 } from "lucide-react";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return (
     <main className="min-h-screen bg-background flex flex-col">
       <Suspense fallback={<HomeNavFallback />}>
@@ -26,12 +31,20 @@ export default function Home() {
             Book verified minders for walks, sitting and day care. See where your pet is with live tracking when a session is in progress.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Button asChild size="lg">
-              <Link href="/auth/sign-up">Get started</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/auth/login">Sign in</Link>
-            </Button>
+            {user ? (
+              <Button asChild size="lg">
+                <Link href="/dashboard">Go to dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild size="lg">
+                  <Link href="/auth/sign-up">Get started</Link>
+                </Button>
+                <Button asChild variant="outline" size="lg">
+                  <Link href="/auth/login">Sign in</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
