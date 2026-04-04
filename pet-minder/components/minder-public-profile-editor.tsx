@@ -25,17 +25,23 @@ import {
   normalizeServicePricing,
   servicePricingToInputString,
 } from "@/lib/minder-display";
+import { PRESET_PET_TYPES } from "@/lib/pet-types";
 
-function typesToInput(types: string[] | null): string {
-  if (!types?.length) return "";
-  return types.join(", ");
-}
-
-function inputToTypes(raw: string): string[] {
-  return raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+/**
+ * Initialise selected chips from existing profile data.
+ * Exact case-insensitive match → use the preset label.
+ * Anything unrecognised → "Other" (so old free-text data isn't silently dropped).
+ */
+function initSelectedTypes(types: string[] | null): string[] {
+  if (!types?.length) return [];
+  const presetMap = new Map(PRESET_PET_TYPES.map((p) => [p.toLowerCase(), p]));
+  const result: string[] = [];
+  for (const t of types) {
+    const match = presetMap.get(t.toLowerCase().trim());
+    if (match) result.push(match);
+    else if (t.trim()) result.push("Other");
+  }
+  return [...new Set(result)];
 }
 
 type MinderPublicProfileEditorProps = {
@@ -51,8 +57,8 @@ export function MinderPublicProfileEditor({
   const [description, setDescription] = useState(
     initialProfile?.service_description ?? "",
   );
-  const [typesInput, setTypesInput] = useState(
-    typesToInput(initialProfile?.supported_pet_types ?? null),
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(() =>
+    initSelectedTypes(initialProfile?.supported_pet_types ?? null),
   );
   const [pricing, setPricing] = useState(() =>
     servicePricingToInputString(initialProfile?.service_pricing),
@@ -68,10 +74,18 @@ export function MinderPublicProfileEditor({
   useEffect(() => {
     setProfile(initialProfile);
     setDescription(initialProfile?.service_description ?? "");
-    setTypesInput(typesToInput(initialProfile?.supported_pet_types ?? null));
+    setSelectedTypes(initSelectedTypes(initialProfile?.supported_pet_types ?? null));
     setPricing(servicePricingToInputString(initialProfile?.service_pricing));
     setVisibleInSearch(initialProfile?.visible_in_search ?? false);
   }, [initialProfile]);
+
+  function toggleType(type: string) {
+    setSelectedTypes((current) =>
+      current.includes(type)
+        ? current.filter((t) => t !== type)
+        : [...current, type],
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -88,7 +102,7 @@ export function MinderPublicProfileEditor({
       userId,
       {
         service_description: description.trim() || null,
-        supported_pet_types: inputToTypes(typesInput),
+        supported_pet_types: selectedTypes,
         service_pricing: normalizeServicePricing(pricing),
       },
     );
@@ -211,19 +225,29 @@ export function MinderPublicProfileEditor({
               rows={5}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="minder-pet-types">Supported pet types</Label>
-            <Input
-              id="minder-pet-types"
-              value={typesInput}
-              onChange={(e) => setTypesInput(e.target.value)}
-              placeholder="e.g. dogs, cats, rabbits"
-              autoComplete="off"
-            />
-            <p className="text-xs text-muted-foreground">
-              Comma-separated list. These power search filters for owners.
-            </p>
+
+          <div className="space-y-2">
+            <Label>Supported pet types</Label>
+            <div className="flex flex-wrap gap-2">
+              {PRESET_PET_TYPES.map((type) => (
+                <Button
+                  key={type}
+                  type="button"
+                  variant={selectedTypes.includes(type) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleType(type)}
+                >
+                  {type}
+                </Button>
+              ))}
+            </div>
+            {selectedTypes.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Select all pet types you are comfortable caring for.
+              </p>
+            )}
           </div>
+
           <div className="space-y-1.5 max-w-xs">
             <Label htmlFor="minder-pricing">Hourly rate (optional)</Label>
             <Input
