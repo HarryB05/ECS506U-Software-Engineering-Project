@@ -43,7 +43,7 @@ async function MinderWorkspaceInner() {
   return (
     <div className="max-w-content mx-auto space-y-8">
       <div>
-        <h1 className="font-display text-3xl text-foreground mb-1">
+        <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
           Minder workspace
         </h1>
         <p className="text-muted-foreground">
@@ -51,8 +51,8 @@ async function MinderWorkspaceInner() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="md:col-span-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="md:col-span-2 xl:col-span-3">
           {profileEnsureError && (
             <Card className="shadow-card border-border mb-4">
               <CardHeader>

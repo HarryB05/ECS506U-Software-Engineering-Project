@@ -78,7 +78,7 @@ export function SearchPageContent({
   if (activeRole === "minder") {
     return (
       <div className="max-w-content mx-auto">
-        <h1 className="font-display text-3xl text-foreground mb-1">
+        <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
           Find a pet minder
         </h1>
         <p className="text-muted-foreground mb-8">
@@ -86,7 +86,7 @@ export function SearchPageContent({
           available minders.
         </p>
         <Card className="shadow-card">
-          <CardContent className="p-12 text-center">
+          <CardContent className="p-6 text-center sm:p-8 md:p-12">
             <div className="mx-auto mb-4 inline-flex rounded-lg bg-teal-50 p-3 dark:bg-teal-900/30">
               <Search className="size-6 text-teal-700 dark:text-teal-300" />
             </div>
@@ -115,7 +115,7 @@ export function SearchPageContent({
   if (!roleTypes.includes("owner")) {
     return (
       <div className="max-w-content mx-auto">
-        <h1 className="font-display text-3xl text-foreground mb-1">
+        <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
           Find a pet minder
         </h1>
         <p className="text-muted-foreground mb-8">
@@ -123,7 +123,7 @@ export function SearchPageContent({
           role.
         </p>
         <Card className="shadow-card">
-          <CardContent className="p-12 text-center">
+          <CardContent className="p-6 text-center sm:p-8 md:p-12">
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               Your account is set up as a pet minder only. Owner features such as
               minder search are not enabled for this account.
@@ -140,7 +140,7 @@ export function SearchPageContent({
   return (
     <div className="max-w-content mx-auto space-y-6">
       <div>
-        <h1 className="font-display text-3xl text-foreground mb-1">
+        <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
           Find a pet minder
         </h1>
         <p className="text-muted-foreground">
@@ -181,8 +181,8 @@ export function SearchPageContent({
               onChange={(e) => setPetType(e.target.value)}
             />
           </div>
-          <div className="flex items-end">
-            <div className="flex items-center gap-2 pb-2">
+          <div className="flex items-center md:items-end">
+            <div className="flex items-center gap-2 pt-1 md:pb-2">
               <Checkbox
                 id="verified-only"
                 checked={verifiedOnly}
@@ -251,7 +251,7 @@ export function SearchPageContent({
           </p>
           {filtered.length === 0 ? (
             <Card className="shadow-card border-border">
-              <CardContent className="p-10 text-center text-muted-foreground">
+              <CardContent className="p-6 text-center text-muted-foreground sm:p-8 md:p-10">
                 No minders match your current filters. Try widening your search.
               </CardContent>
             </Card>
@@ -271,7 +271,7 @@ export function SearchPageContent({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="h-44 rounded-lg border border-border bg-teal-50 dark:bg-teal-900/20" />
+            <div className="h-40 rounded-lg border border-border bg-teal-50 dark:bg-teal-900/20 sm:h-44" />
             <p className="text-sm text-muted-foreground">
               Placeholder map area. Future version will show pin clusters based on
               minders that match active filters.
@@ -295,7 +295,7 @@ function MinderSearchCard({ minder }: { minder: PublicMinderListItem }) {
   return (
     <Card className="shadow-card border-border">
       <CardHeader className="space-y-2">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
           <div>
             <CardTitle className="text-xl font-medium">
               {minder.displayName}
@@ -321,7 +321,7 @@ function MinderSearchCard({ minder }: { minder: PublicMinderListItem }) {
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground">{intro}</p>
         <p className="text-sm text-foreground">Supports: {typesLine}</p>
-        <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex flex-col items-start justify-between gap-3 pt-1 sm:flex-row sm:items-center">
           <p className="text-sm text-muted-foreground">{priceLabel}</p>
           <Button type="button" variant="outline" size="sm" asChild>
             <Link href={`/dashboard/minders/${minder.profileId}`}>

@@ -41,7 +41,7 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-narrow shadow-card">
       <CardHeader className="space-y-1 pb-2">
-        <h1 className="font-display text-3xl text-foreground">
+        <h1 className="font-display text-2xl text-foreground sm:text-3xl">
           Welcome back
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -61,7 +61,7 @@ export default function LoginPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Label htmlFor="password">Password</Label>
               <Link
                 href="/auth/forgot-password"
