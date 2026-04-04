@@ -22,6 +22,7 @@ import {
   parsePriceSortValue,
 } from "@/lib/minder-display";
 import { filterMindersForOwnerSearch } from "@/lib/minder-search-match";
+import { PRESET_PET_TYPES } from "@/lib/pet-types";
 
 type SearchPageContentProps = {
   initialMinders: PublicMinderListItem[];
@@ -37,12 +38,6 @@ export function SearchPageContent({
   const [petType, setPetType] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"rating" | "price">("rating");
-
-  function togglePetType(nextType: string) {
-    setPetType((current) =>
-      current.trim().toLowerCase() === nextType.toLowerCase() ? "" : nextType,
-    );
-  }
 
   const filtered = useMemo(() => {
     const results = filterMindersForOwnerSearch(initialMinders, {
@@ -152,10 +147,8 @@ export function SearchPageContent({
         <CardHeader>
           <CardTitle className="text-xl font-medium">Search filters</CardTitle>
           <CardDescription>
-            Keywords match name, description, and pet types (all words must
-            match somewhere). Pet type accepts singular or plural, e.g. dogs
-            matches dog. Small pets includes rabbits, rodents, birds, reptiles,
-            and fish when listed in the profile.
+            Search by name or keywords. Select a pet type to narrow results, or
+            leave it as any to see all minders.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
@@ -163,19 +156,27 @@ export function SearchPageContent({
             <Label htmlFor="minder-search">Name or keywords</Label>
             <Input
               id="minder-search"
-              placeholder="e.g. Stratford, dogs"
+              placeholder="e.g. Stratford, experienced"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pet-type-search">Pet type</Label>
-            <Input
+            <select
               id="pet-type-search"
-              placeholder="e.g. dogs"
               value={petType}
-              onChange={(e) => setPetType(e.target.value)}
-            />
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPetType(e.target.value)}
+              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="">Any pet type</option>
+              {PRESET_PET_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+              <option value="Small pets">Small pets</option>
+            </select>
           </div>
           <div className="flex items-center md:items-end">
             <div className="flex items-center gap-2 pt-1 md:pb-2">
@@ -192,33 +193,6 @@ export function SearchPageContent({
         </CardContent>
         <CardContent className="pt-0">
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant={petType.toLowerCase() === "dogs" ? "default" : "outline"}
-              size="sm"
-              onClick={() => togglePetType("dogs")}
-            >
-              Dogs
-            </Button>
-            <Button
-              type="button"
-              variant={petType.toLowerCase() === "cats" ? "default" : "outline"}
-              size="sm"
-              onClick={() => togglePetType("cats")}
-            >
-              Cats
-            </Button>
-            <Button
-              type="button"
-              variant={
-                petType.toLowerCase() === "small pets" ? "default" : "outline"
-              }
-              size="sm"
-              onClick={() => togglePetType("small pets")}
-            >
-              Small pets
-            </Button>
-            <span className="mx-1 h-4 w-px bg-border" aria-hidden />
             <Label className="text-sm text-muted-foreground">Sort by</Label>
             <Button
               type="button"
