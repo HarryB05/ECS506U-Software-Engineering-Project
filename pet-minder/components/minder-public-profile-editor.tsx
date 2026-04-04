@@ -20,6 +20,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Star, ShieldCheck } from "lucide-react";
+import {
+  normalizeServicePricing,
+  servicePricingToInputString,
+} from "@/lib/minder-display";
 
 function typesToInput(types: string[] | null): string {
   if (!types?.length) return "";
@@ -49,7 +53,9 @@ export function MinderPublicProfileEditor({
   const [typesInput, setTypesInput] = useState(
     typesToInput(initialProfile?.supported_pet_types ?? null),
   );
-  const [pricing, setPricing] = useState(initialProfile?.service_pricing ?? "");
+  const [pricing, setPricing] = useState(() =>
+    servicePricingToInputString(initialProfile?.service_pricing),
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -57,7 +63,7 @@ export function MinderPublicProfileEditor({
     setProfile(initialProfile);
     setDescription(initialProfile?.service_description ?? "");
     setTypesInput(typesToInput(initialProfile?.supported_pet_types ?? null));
-    setPricing(initialProfile?.service_pricing ?? "");
+    setPricing(servicePricingToInputString(initialProfile?.service_pricing));
   }, [initialProfile]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -76,7 +82,7 @@ export function MinderPublicProfileEditor({
       {
         service_description: description.trim() || null,
         supported_pet_types: inputToTypes(typesInput),
-        service_pricing: pricing.trim() || null,
+        service_pricing: normalizeServicePricing(pricing),
       },
     );
     setLoading(false);
@@ -85,7 +91,10 @@ export function MinderPublicProfileEditor({
       return;
     }
     const { data: next } = await getMinderProfileByUserId(supabase, userId);
-    if (next) setProfile(next);
+    if (next) {
+      setProfile(next);
+      setPricing(servicePricingToInputString(next.service_pricing));
+    }
   }
 
   if (!profile) {

@@ -4,6 +4,7 @@ import type {
   MinderProfileUpdate,
   PublicMinderListItem,
 } from "@/lib/types/minder-profile";
+import { normalizeServicePricing } from "@/lib/minder-display";
 
 const TABLE = "minder_profiles";
 
@@ -56,8 +57,7 @@ function mapToPublicItem(
         ? row.service_description
         : null,
     supportedPetTypes,
-    servicePricing:
-      typeof row.service_pricing === "string" ? row.service_pricing : null,
+    servicePricing: normalizeServicePricing(row.service_pricing),
     isVerified: row.is_verified === true,
     averageRating,
   };
@@ -77,7 +77,58 @@ export async function getMinderProfileByUserId(
   if (error) {
     return { data: null, error: new Error(error.message) };
   }
-  return { data: data as MinderProfile | null, error: null };
+  if (!data) {
+    return { data: null, error: null };
+  }
+  const row = data as Record<string, unknown>;
+  const profile = data as MinderProfile;
+  return {
+    data: {
+      ...profile,
+      service_pricing: normalizeServicePricing(row.service_pricing),
+    },
+    error: null,
+  };
+}
+
+/**
+ * Ensures a `minder_profiles` row exists for this user (same as onboarding insert).
+ * Use when the row was removed or soft-deleted so the workspace can load again.
+ */
+export async function ensureMinderProfileForUser(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<{ data: MinderProfile | null; error: Error | null }> {
+  const existing = await getMinderProfileByUserId(supabase, userId);
+  if (existing.error) return existing;
+  if (existing.data) return existing;
+
+  const { error: insertError } = await supabase
+    .from(TABLE)
+    .insert({ user_id: userId });
+
+  if (!insertError) {
+    return getMinderProfileByUserId(supabase, userId);
+  }
+
+  // Likely a soft-deleted row still holding unique(user_id).
+  if (insertError.code !== "23505") {
+    return { data: null, error: new Error(insertError.message) };
+  }
+
+  const { error: reviveError } = await supabase
+    .from(TABLE)
+    .update({
+      deleted_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId);
+
+  if (reviveError) {
+    return { data: null, error: new Error(reviveError.message) };
+  }
+
+  return getMinderProfileByUserId(supabase, userId);
 }
 
 export async function getMinderProfileById(
@@ -131,7 +182,7 @@ export async function updateMinderProfile(
     payload.supported_pet_types = fields.supported_pet_types;
   }
   if (fields.service_pricing !== undefined) {
-    payload.service_pricing = fields.service_pricing?.trim() || null;
+    payload.service_pricing = normalizeServicePricing(fields.service_pricing);
   }
 
   const { error } = await supabase

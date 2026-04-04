@@ -12,7 +12,7 @@ import { MinderWorkspaceGate } from "@/components/minder-workspace-gate";
 import { MinderPublicProfileEditor } from "@/components/minder-public-profile-editor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/server";
-import { getMinderProfileByUserId } from "@/lib/minder-profile-service";
+import { ensureMinderProfileForUser } from "@/lib/minder-profile-service";
 
 function MinderWorkspaceSkeleton() {
   return (
@@ -37,10 +37,8 @@ async function MinderWorkspaceInner() {
     redirect("/auth/login");
   }
 
-  const { data: minderProfile } = await getMinderProfileByUserId(
-    supabase,
-    user.id,
-  );
+  const { data: minderProfile, error: profileEnsureError } =
+    await ensureMinderProfileForUser(supabase, user.id);
 
   return (
     <div className="max-w-content mx-auto space-y-8">
@@ -55,6 +53,28 @@ async function MinderWorkspaceInner() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
+          {profileEnsureError && (
+            <Card className="shadow-card border-border mb-4">
+              <CardHeader>
+                <CardTitle className="text-lg font-medium">
+                  Could not restore minder profile
+                </CardTitle>
+                <CardDescription>
+                  {profileEnsureError.message}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Check that your Supabase project allows inserts on{" "}
+                  <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                    minder_profiles
+                  </code>{" "}
+                  for users with the minder role, or add a row manually in the
+                  Table Editor with your user ID.
+                </p>
+              </CardContent>
+            </Card>
+          )}
           <MinderPublicProfileEditor
             userId={user.id}
             initialProfile={minderProfile}
