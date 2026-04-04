@@ -15,62 +15,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useDashboardRole } from "@/components/dashboard-role-context";
 import { Search, ShieldCheck, Star } from "lucide-react";
+import type { PublicMinderListItem } from "@/lib/types/minder-profile";
+import {
+  formatMinderPriceLabel,
+  minderIntroText,
+  parsePriceSortValue,
+} from "@/lib/minder-display";
 
-type PlaceholderMinder = {
-  id: string;
-  name: string;
-  area: string;
-  supports: string[];
-  rating: number;
-  verified: boolean;
-  priceLabel: string;
-  intro: string;
+type SearchPageContentProps = {
+  initialMinders: PublicMinderListItem[];
+  loadError?: string | null;
 };
 
-const PLACEHOLDER_MINDERS: PlaceholderMinder[] = [
-  {
-    id: "m1",
-    name: "Ayesha Khan",
-    area: "Mile End",
-    supports: ["Dogs", "Cats"],
-    rating: 4.9,
-    verified: true,
-    priceLabel: "From PS18 / hour",
-    intro: "Calm, structured walks and routine check-ins for anxious pets.",
-  },
-  {
-    id: "m2",
-    name: "Daniel Morgan",
-    area: "Canary Wharf",
-    supports: ["Dogs"],
-    rating: 4.7,
-    verified: false,
-    priceLabel: "From PS16 / hour",
-    intro: "Evening availability for energetic dogs and short-notice bookings.",
-  },
-  {
-    id: "m3",
-    name: "Priya Patel",
-    area: "Bow",
-    supports: ["Cats", "Small pets"],
-    rating: 4.8,
-    verified: true,
-    priceLabel: "From PS15 / hour",
-    intro: "Indoor-focused care with medication reminders and photo updates.",
-  },
-  {
-    id: "m4",
-    name: "Luca Rossi",
-    area: "Stratford",
-    supports: ["Dogs", "Cats", "Small pets"],
-    rating: 4.6,
-    verified: true,
-    priceLabel: "From PS20 / hour",
-    intro: "Longer weekend sessions for owners needing flexible cover.",
-  },
-];
-
-export function SearchPageContent() {
+export function SearchPageContent({
+  initialMinders,
+  loadError = null,
+}: SearchPageContentProps) {
   const { activeRole, setActiveRole, isDualRole, roleTypes } = useDashboardRole();
   const [search, setSearch] = useState("");
   const [petType, setPetType] = useState("");
@@ -84,27 +44,36 @@ export function SearchPageContent() {
   }
 
   const filtered = useMemo(() => {
-    const results = PLACEHOLDER_MINDERS.filter((minder) => {
+    const results = initialMinders.filter((minder) => {
       const query = search.trim().toLowerCase();
+      const desc = (minder.serviceDescription ?? "").toLowerCase();
       const matchesQuery =
         query.length === 0 ||
-        minder.name.toLowerCase().includes(query) ||
-        minder.area.toLowerCase().includes(query);
+        minder.displayName.toLowerCase().includes(query) ||
+        desc.includes(query) ||
+        minder.supportedPetTypes.some((t) => t.toLowerCase().includes(query));
       const typeQuery = petType.trim().toLowerCase();
       const matchesType =
         typeQuery.length === 0 ||
-        minder.supports.some((type) => type.toLowerCase().includes(typeQuery));
-      const matchesVerified = !verifiedOnly || minder.verified;
+        minder.supportedPetTypes.some((type) =>
+          type.toLowerCase().includes(typeQuery),
+        );
+      const matchesVerified = !verifiedOnly || minder.isVerified;
       return matchesQuery && matchesType && matchesVerified;
     });
 
     return [...results].sort((a, b) => {
       if (sortBy === "rating") {
-        return b.rating - a.rating;
+        const ar = a.averageRating ?? 0;
+        const br = b.averageRating ?? 0;
+        return br - ar;
       }
-      return a.priceLabel.localeCompare(b.priceLabel);
+      return (
+        parsePriceSortValue(a.servicePricing) -
+        parsePriceSortValue(b.servicePricing)
+      );
     });
-  }, [petType, search, sortBy, verifiedOnly]);
+  }, [initialMinders, petType, search, sortBy, verifiedOnly]);
 
   if (activeRole === "minder") {
     return (
@@ -179,19 +148,26 @@ export function SearchPageContent() {
         </p>
       </div>
 
+      {loadError && (
+        <p className="text-sm text-danger-500" role="alert">
+          Could not load minders: {loadError}
+        </p>
+      )}
+
       <Card className="shadow-card border-border">
         <CardHeader>
           <CardTitle className="text-xl font-medium">Search filters</CardTitle>
           <CardDescription>
-            Placeholder filter controls for the first UI pass.
+            Filter by name, description, or pet type. Results use live minder
+            profiles.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="space-y-1.5">
-            <Label htmlFor="minder-search">Name or area</Label>
+            <Label htmlFor="minder-search">Name or keywords</Label>
             <Input
               id="minder-search"
-              placeholder="e.g. Stratford"
+              placeholder="e.g. Stratford, dogs"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -271,58 +247,18 @@ export function SearchPageContent() {
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Showing {filtered.length} placeholder result
-            {filtered.length === 1 ? "" : "s"}.
+            Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}.
           </p>
           {filtered.length === 0 ? (
             <Card className="shadow-card border-border">
-              <CardContent className="p-10 text-center text-muted-foreground">
+              <CardContent className="p-6 text-center text-muted-foreground sm:p-8 md:p-10">
                 No minders match your current filters. Try widening your search.
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-4">
               {filtered.map((minder) => (
-                <Card key={minder.id} className="shadow-card border-border">
-                  <CardHeader className="space-y-2">
-                    <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
-                      <div>
-                        <CardTitle className="text-xl font-medium">
-                          {minder.name}
-                        </CardTitle>
-                        <CardDescription>{minder.area}</CardDescription>
-                      </div>
-                      <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-xs text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
-                        <Star className="size-3.5" />
-                        {minder.rating.toFixed(1)}
-                      </div>
-                    </div>
-                    {minder.verified ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-success-500">
-                        <ShieldCheck className="size-3.5" />
-                        Verified minder
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                        Verification pending
-                      </span>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-muted-foreground">{minder.intro}</p>
-                    <p className="text-sm text-foreground">
-                      Supports: {minder.supports.join(", ")}
-                    </p>
-                    <div className="flex flex-col items-start justify-between gap-3 pt-1 sm:flex-row sm:items-center">
-                      <p className="text-sm text-muted-foreground">
-                        {minder.priceLabel}
-                      </p>
-                      <Button type="button" variant="outline" size="sm">
-                        View profile
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <MinderSearchCard key={minder.profileId} minder={minder} />
               ))}
             </div>
           )}
@@ -343,13 +279,57 @@ export function SearchPageContent() {
           </CardContent>
         </Card>
       </div>
-
-      <Card className="shadow-card border-border">
-        <CardContent className="p-4 text-sm text-muted-foreground">
-          This is a placeholder browse experience. Next step is wiring these
-          controls and cards to `minder_profiles` and availability data.
-        </CardContent>
-      </Card>
     </div>
+  );
+}
+
+function MinderSearchCard({ minder }: { minder: PublicMinderListItem }) {
+  const rating = minder.averageRating ?? 0;
+  const priceLabel = formatMinderPriceLabel(minder.servicePricing);
+  const intro = minderIntroText(minder.serviceDescription);
+  const typesLine =
+    minder.supportedPetTypes.length > 0
+      ? minder.supportedPetTypes.join(", ")
+      : "Pet types not specified";
+
+  return (
+    <Card className="shadow-card border-border">
+      <CardHeader className="space-y-2">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
+          <div>
+            <CardTitle className="text-xl font-medium">
+              {minder.displayName}
+            </CardTitle>
+            <CardDescription>{typesLine}</CardDescription>
+          </div>
+          <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-xs text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+            <Star className="size-3.5" />
+            {rating.toFixed(1)}
+          </div>
+        </div>
+        {minder.isVerified ? (
+          <span className="inline-flex items-center gap-1.5 text-xs text-success-500">
+            <ShieldCheck className="size-3.5" />
+            Verified minder
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            Verification pending
+          </span>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground">{intro}</p>
+        <p className="text-sm text-foreground">Supports: {typesLine}</p>
+        <div className="flex flex-col items-start justify-between gap-3 pt-1 sm:flex-row sm:items-center">
+          <p className="text-sm text-muted-foreground">{priceLabel}</p>
+          <Button type="button" variant="outline" size="sm" asChild>
+            <Link href={`/dashboard/minders/${minder.profileId}`}>
+              View profile
+            </Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
