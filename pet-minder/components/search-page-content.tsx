@@ -21,6 +21,7 @@ import {
   minderIntroText,
   parsePriceSortValue,
 } from "@/lib/minder-display";
+import { filterMindersForOwnerSearch } from "@/lib/minder-search-match";
 
 type SearchPageContentProps = {
   initialMinders: PublicMinderListItem[];
@@ -44,34 +45,27 @@ export function SearchPageContent({
   }
 
   const filtered = useMemo(() => {
-    const results = initialMinders.filter((minder) => {
-      const query = search.trim().toLowerCase();
-      const desc = (minder.serviceDescription ?? "").toLowerCase();
-      const matchesQuery =
-        query.length === 0 ||
-        minder.displayName.toLowerCase().includes(query) ||
-        desc.includes(query) ||
-        minder.supportedPetTypes.some((t) => t.toLowerCase().includes(query));
-      const typeQuery = petType.trim().toLowerCase();
-      const matchesType =
-        typeQuery.length === 0 ||
-        minder.supportedPetTypes.some((type) =>
-          type.toLowerCase().includes(typeQuery),
-        );
-      const matchesVerified = !verifiedOnly || minder.isVerified;
-      return matchesQuery && matchesType && matchesVerified;
+    const results = filterMindersForOwnerSearch(initialMinders, {
+      search,
+      petType,
+      verifiedOnly,
     });
 
     return [...results].sort((a, b) => {
       if (sortBy === "rating") {
         const ar = a.averageRating ?? 0;
         const br = b.averageRating ?? 0;
-        return br - ar;
+        if (br !== ar) return br - ar;
+        return a.displayName.localeCompare(b.displayName, undefined, {
+          sensitivity: "base",
+        });
       }
-      return (
-        parsePriceSortValue(a.servicePricing) -
-        parsePriceSortValue(b.servicePricing)
-      );
+      const pa = parsePriceSortValue(a.servicePricing);
+      const pb = parsePriceSortValue(b.servicePricing);
+      if (pa !== pb) return pa - pb;
+      return a.displayName.localeCompare(b.displayName, undefined, {
+        sensitivity: "base",
+      });
     });
   }, [initialMinders, petType, search, sortBy, verifiedOnly]);
 
@@ -158,8 +152,10 @@ export function SearchPageContent({
         <CardHeader>
           <CardTitle className="text-xl font-medium">Search filters</CardTitle>
           <CardDescription>
-            Filter by name, description, or pet type. Results use live minder
-            profiles.
+            Keywords match name, description, and pet types (all words must
+            match somewhere). Pet type accepts singular or plural, e.g. dogs
+            matches dog. Small pets includes rabbits, rodents, birds, reptiles,
+            and fish when listed in the profile.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
