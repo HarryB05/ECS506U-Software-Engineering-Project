@@ -9,6 +9,7 @@ export type MinderProfile = {
   service_pricing: string | null;
   is_verified: boolean;
   average_rating: number | null;
+  visible_in_search: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -18,6 +19,7 @@ export type MinderProfileUpdate = Partial<{
   service_description: string | null;
   supported_pet_types: string[] | null;
   service_pricing: string | null;
+  visible_in_search: boolean;
 }>;
 
 /** Row joined with `users` for owner search and public cards. */

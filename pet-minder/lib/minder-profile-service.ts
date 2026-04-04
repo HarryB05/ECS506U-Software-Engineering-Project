@@ -184,6 +184,9 @@ export async function updateMinderProfile(
   if (fields.service_pricing !== undefined) {
     payload.service_pricing = normalizeServicePricing(fields.service_pricing);
   }
+  if (fields.visible_in_search !== undefined) {
+    payload.visible_in_search = fields.visible_in_search;
+  }
 
   const { error } = await supabase
     .from(TABLE)
@@ -223,6 +226,7 @@ export async function listPublicMindersForSearch(
     `,
     )
     .is("deleted_at", null)
+    .eq("visible_in_search", true)
     .order("created_at", { ascending: false });
 
   if (options?.excludeUserId) {
