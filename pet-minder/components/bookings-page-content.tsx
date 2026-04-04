@@ -12,7 +12,7 @@ export function BookingsPageContent() {
   if (activeRole === "minder") {
     return (
       <div className="max-w-content mx-auto">
-        <h1 className="font-display text-3xl text-foreground mb-1">
+        <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
           Minder bookings
         </h1>
         <p className="text-muted-foreground mb-8">
@@ -20,7 +20,7 @@ export function BookingsPageContent() {
         </p>
 
         <Card className="shadow-card">
-          <CardContent className="p-12 text-center">
+          <CardContent className="p-6 text-center sm:p-8 md:p-12">
             <div className="mx-auto mb-4 inline-flex rounded-lg bg-teal-50 p-3 dark:bg-teal-900/30">
               <CalendarCheck className="size-6 text-teal-700 dark:text-teal-300" />
             </div>
@@ -38,13 +38,13 @@ export function BookingsPageContent() {
 
   return (
     <div className="max-w-content mx-auto">
-      <h1 className="font-display text-3xl text-foreground mb-1">Bookings</h1>
+      <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">Bookings</h1>
       <p className="text-muted-foreground mb-8">
         Your upcoming and past bookings will appear here.
       </p>
 
       <Card className="shadow-card">
-        <CardContent className="p-12 text-center">
+        <CardContent className="p-6 text-center sm:p-8 md:p-12">
           <div className="mx-auto mb-4 inline-flex rounded-lg bg-teal-50 p-3 dark:bg-teal-900/30">
             <CalendarCheck className="size-6 text-teal-700 dark:text-teal-300" />
           </div>
