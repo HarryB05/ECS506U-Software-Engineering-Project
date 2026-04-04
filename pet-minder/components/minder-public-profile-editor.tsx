@@ -19,7 +19,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Star, ShieldCheck } from "lucide-react";
+import { Star, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   normalizeServicePricing,
   servicePricingToInputString,
@@ -56,14 +57,20 @@ export function MinderPublicProfileEditor({
   const [pricing, setPricing] = useState(() =>
     servicePricingToInputString(initialProfile?.service_pricing),
   );
+  const [visibleInSearch, setVisibleInSearch] = useState(
+    initialProfile?.visible_in_search ?? false,
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [visibilityLoading, setVisibilityLoading] = useState(false);
+  const [visibilityError, setVisibilityError] = useState<string | null>(null);
 
   useEffect(() => {
     setProfile(initialProfile);
     setDescription(initialProfile?.service_description ?? "");
     setTypesInput(typesToInput(initialProfile?.supported_pet_types ?? null));
     setPricing(servicePricingToInputString(initialProfile?.service_pricing));
+    setVisibleInSearch(initialProfile?.visible_in_search ?? false);
   }, [initialProfile]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -95,6 +102,22 @@ export function MinderPublicProfileEditor({
       setProfile(next);
       setPricing(servicePricingToInputString(next.service_pricing));
     }
+  }
+
+  async function handleVisibilityToggle(checked: boolean) {
+    if (!profile) return;
+    setVisibilityLoading(true);
+    setVisibilityError(null);
+    const supabase = createClient();
+    const { error: err } = await updateMinderProfile(supabase, profile.id, userId, {
+      visible_in_search: checked,
+    });
+    setVisibilityLoading(false);
+    if (err) {
+      setVisibilityError(err.message);
+      return;
+    }
+    setVisibleInSearch(checked);
   }
 
   if (!profile) {
@@ -139,6 +162,42 @@ export function MinderPublicProfileEditor({
             <Star className="size-4 text-teal-600 dark:text-teal-400" />
             {rating !== null ? `${rating.toFixed(1)} average` : "No reviews yet"}
           </span>
+        </div>
+
+        <div className="flex items-start gap-3 rounded-lg border border-border p-4">
+          <Checkbox
+            id="visible-in-search"
+            checked={visibleInSearch}
+            disabled={visibilityLoading}
+            onCheckedChange={(checked) =>
+              handleVisibilityToggle(checked === true)
+            }
+          />
+          <div className="space-y-0.5">
+            <Label
+              htmlFor="visible-in-search"
+              className="flex items-center gap-1.5 text-sm font-medium"
+            >
+              {visibleInSearch ? (
+                <Eye className="size-4 text-teal-600 dark:text-teal-400" />
+              ) : (
+                <EyeOff className="size-4 text-muted-foreground" />
+              )}
+              {visibleInSearch
+                ? "Listed in owner search"
+                : "Hidden from owner search"}
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              {visibleInSearch
+                ? "Owners can find and view your profile. Uncheck to hide it while you make changes."
+                : "Your profile will not appear in search results until you check this."}
+            </p>
+            {visibilityError && (
+              <p className="text-xs text-danger-500" role="alert">
+                {visibilityError}
+              </p>
+            )}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
