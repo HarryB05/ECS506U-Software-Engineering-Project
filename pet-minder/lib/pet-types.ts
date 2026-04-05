@@ -1,14 +1,8 @@
 export const PRESET_PET_TYPES = [
-  "Dogs",
-  "Cats",
-  "Rabbits",
-  "Guinea Pigs",
-  "Hamsters",
-  "Birds",
+  "Dog",
+  "Cat",
+  "Bird",
   "Fish",
-  "Reptiles",
-  "Horses",
-  "Ferrets",
   "Other",
 ] as const;
 
