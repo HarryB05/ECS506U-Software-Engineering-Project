@@ -254,7 +254,7 @@ export function MinderPublicProfileEditor({
               id="minder-pricing"
               value={pricing}
               onChange={(e) => setPricing(e.target.value)}
-              placeholder="e.g. 18 or £18"
+              placeholder="e.g. 18"
               autoComplete="off"
             />
           </div>
