@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Home } from "lucide-react";
 
 import { BookingsActivityList } from "@/components/bookings-activity-list";
 import { Button } from "@/components/ui/button";
@@ -34,9 +33,6 @@ export function BookingsPageContent({
         <p className="text-sm text-danger-500" role="alert">
           {loadError}
         </p>
-        <Button asChild variant="outline">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
       </div>
     );
   }
@@ -51,11 +47,18 @@ export function BookingsPageContent({
         <h1 className="font-display mb-1 text-2xl text-foreground sm:text-3xl">
           {isMinder ? "Minder bookings" : "Bookings"}
         </h1>
-        <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed sm:text-base">
-          {isMinder
-            ? "Everything in one list, newest first. A booking request is a message waiting for your answer. After you accept, the session is the agreed appointment (open it for cancellation rules and the exact time window)."
-            : "Everything in one list, newest first. Requests you have sent show until they are declined, cancelled, or replaced by a session after acceptance. Open any row for the full timeline and actions."}
-        </p>
+        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed sm:text-base">
+            {isMinder
+              ? "Everything in one list, newest first. A booking request is a message waiting for your answer. After you accept, the session is the agreed appointment (open it for cancellation rules and the exact time window)."
+              : "Everything in one list, newest first. Requests you have sent show until they are declined, cancelled, or replaced by a session after acceptance. Open any row for the full timeline and actions."}
+          </p>
+          {!isMinder ? (
+            <Button asChild className="sm:shrink-0">
+              <Link href="/dashboard/search">Search for Minder</Link>
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <BookingsActivityList
@@ -63,15 +66,6 @@ export function BookingsPageContent({
         requests={requests}
         bookings={bookings}
       />
-
-      <Button asChild variant="outline">
-        <Link href={isMinder ? "/dashboard/minder" : "/dashboard"}>
-          <span className="inline-flex items-center gap-2">
-            <Home className="size-4" />
-            {isMinder ? "Minder workspace" : "Back to dashboard"}
-          </span>
-        </Link>
-      </Button>
     </div>
   );
 }
