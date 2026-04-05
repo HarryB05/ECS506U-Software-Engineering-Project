@@ -45,7 +45,7 @@ Stack: Next.js (React) · Supabase · Vercel
 
 ## To Do
 
-### Booking System (core, must-have)
+### Booking System (core, must-have) - Harry & Canute
 - [ ] Full booking request flow: owner selects minder → picks date/time → submits request — URF 2.14, 2.15
 - [ ] Attach care instructions to a booking — URF 2.16
 - [ ] Minder views incoming booking requests — URF 3.5
@@ -56,23 +56,23 @@ Stack: Next.js (React) · Supabase · Vercel
 - [ ] Owner reschedules a booking before minder confirmation — URF 2.18
 - [ ] Filter minder search results by availability — URF 2.10
 
-### Sessions & Live Tracking
+### Sessions & Live Tracking - [On Hold For Now]
 - [ ] Minder starts and ends a pet minding session — URF 3.9, 3.10
 - [ ] Minder updates live activity tracking during a session — URF 3.12
 - [ ] Owner views live activity tracking during an active session — URF 2.20
 - [ ] Minder submits session activity log on completion — URF 3.11
 - [ ] Owner views completed activity logs — URF 2.21
 
-### Reviews & Ratings
+### Reviews & Ratings [Lena]
 - [ ] Star rating (1–5) between owner and minder after a booking — URF 1.12
 - [ ] Written review on completed bookings — URF 1.13
 - [ ] Calculate and display average rating on minder profile — URF 1.14
 
-### Map / Location Search
+### Map / Location Search [Rayyan]
 - [ ] Replace map placeholder with real map showing minder pins — URF 2.9
 - [ ] Location-radius filtering in search results — URF 2.9
 
-### Admin Panel
+### Admin Panel [Luqman]
 - [ ] Admin view of all registered users — URF 4.1
 - [ ] Suspend / deactivate user accounts — URF 4.2
 - [ ] Verify pet minder profiles before activation — URF 4.3
@@ -80,11 +80,11 @@ Stack: Next.js (React) · Supabase · Vercel
 - [ ] Moderate and remove inappropriate reviews — URF 4.5
 - [ ] Log all admin actions with timestamps — URF 4.6
 
-### Security & Constraints
+### Security & Constraints [TO DISCUSS]
 - [ ] Two-factor authentication (2FA) on login — URF 1.4
 - [ ] Account lockout after 5 consecutive failed login attempts — URC 1.5
 - [ ] Automatic session expiry after 15 minutes of inactivity — URC 1.3
 
-### Notifications
+### Notifications [TO DISCUSS]
 - [ ] Notify minder of new booking request
 - [ ] Notify owner of booking acceptance or decline
