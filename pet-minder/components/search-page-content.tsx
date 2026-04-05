@@ -22,12 +22,14 @@ import {
   parsePriceSortValue,
 } from "@/lib/minder-display";
 import { filterMindersForOwnerSearch } from "@/lib/minder-search-match";
-import { PRESET_PET_TYPES } from "@/lib/pet-types";
+import { PRESET_PET_TYPES, type PresetPetType } from "@/lib/pet-types";
 
 type SearchPageContentProps = {
   initialMinders: PublicMinderListItem[];
   loadError?: string | null;
 };
+
+type SearchPetTypeValue = "" | PresetPetType;
 
 export function SearchPageContent({
   initialMinders,
@@ -35,14 +37,18 @@ export function SearchPageContent({
 }: SearchPageContentProps) {
   const { activeRole, setActiveRole, isDualRole, roleTypes } = useDashboardRole();
   const [search, setSearch] = useState("");
-  const [petType, setPetType] = useState("");
+  const [petType, setPetType] = useState<SearchPetTypeValue>("");
+  const [otherPetType, setOtherPetType] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"rating" | "price">("rating");
 
   const filtered = useMemo(() => {
+    const selectedPetType =
+      petType === "Other" ? otherPetType.trim() : petType;
+
     const results = filterMindersForOwnerSearch(initialMinders, {
       search,
-      petType,
+      petType: selectedPetType,
       verifiedOnly,
     });
 
@@ -62,7 +68,7 @@ export function SearchPageContent({
         sensitivity: "base",
       });
     });
-  }, [initialMinders, petType, search, sortBy, verifiedOnly]);
+  }, [initialMinders, otherPetType, petType, search, sortBy, verifiedOnly]);
 
   if (activeRole === "minder") {
     return (
@@ -166,7 +172,13 @@ export function SearchPageContent({
             <select
               id="pet-type-search"
               value={petType}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPetType(e.target.value)}
+              onChange={(e) => {
+                const nextPetType = e.target.value as SearchPetTypeValue;
+                setPetType(nextPetType);
+                if (nextPetType !== "Other") {
+                  setOtherPetType("");
+                }
+              }}
               className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                 petType === ""
                   ? "text-muted-foreground placeholder:text-muted-foreground"
@@ -179,8 +191,19 @@ export function SearchPageContent({
                   {type}
                 </option>
               ))}
-              <option value="Small pets" className="bg-background text-foreground">Small pets</option>
             </select>
+            {petType === "Other" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="pet-type-other-search">Other type</Label>
+                <Input
+                  id="pet-type-other-search"
+                  placeholder="e.g. rabbit, lizard"
+                  value={otherPetType}
+                  onChange={(e) => setOtherPetType(e.target.value)}
+                  autoComplete="off"
+                />
+              </div>
+            )}
           </div>
           <div className="flex items-center md:items-end">
             <div className="flex items-center gap-2 pt-1 md:pb-2">
