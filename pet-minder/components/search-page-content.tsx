@@ -3,6 +3,11 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+
+const MinderMap = dynamic(
+  () => import("@/components/minder-map").then((m) => m.MinderMap),
+  { ssr: false, loading: () => <div className="h-[340px] w-full rounded-lg border border-border bg-muted animate-pulse sm:h-[420px]" /> },
+);
 import {
   Card,
   CardContent,
