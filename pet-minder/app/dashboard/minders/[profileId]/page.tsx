@@ -41,6 +41,15 @@ async function MinderProfileInner({
     redirect("/auth/login");
   }
 
+  const { data: roleRows } = await supabase
+    .from("roles")
+    .select("role_type")
+    .eq("user_id", user.id)
+    .is("deleted_at", null);
+
+  const canBookAsOwner =
+    (roleRows ?? []).some((r) => r.role_type === "owner");
+
   const { data, error } = await getMinderProfileById(supabase, profileId);
 
   if (error) {
@@ -116,6 +125,15 @@ async function MinderProfileInner({
               {formatMinderPriceLabel(data.servicePricing)}
             </p>
           </div>
+          {canBookAsOwner && data.userId !== user.id ? (
+            <div className="border-t border-border pt-4">
+              <Button asChild className="w-full sm:w-auto">
+                <Link href={`/dashboard/minders/${profileId}/book`}>
+                  Request a booking
+                </Link>
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </div>
