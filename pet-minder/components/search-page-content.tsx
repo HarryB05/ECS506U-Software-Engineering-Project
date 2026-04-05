@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -23,6 +24,11 @@ import {
 } from "@/lib/minder-display";
 import { filterMindersForOwnerSearch } from "@/lib/minder-search-match";
 import { PRESET_PET_TYPES, type PresetPetType } from "@/lib/pet-types";
+
+const MinderMap = dynamic(
+  () => import("@/components/minder-map").then((m) => m.MinderMap),
+  { ssr: false, loading: () => <div className="h-[340px] w-full rounded-lg border border-border bg-muted animate-pulse sm:h-[420px]" /> },
+);
 
 type SearchPageContentProps = {
   initialMinders: PublicMinderListItem[];
@@ -262,17 +268,14 @@ export function SearchPageContent({
         </div>
         <Card className="shadow-card border-border h-fit">
           <CardHeader>
-            <CardTitle className="text-xl font-medium">Map preview</CardTitle>
+            <CardTitle className="text-xl font-medium">Map</CardTitle>
             <CardDescription>
-              Planned listing + map split-view for location-first search.
+              Minders with a set location appear as pins. Pins update as you
+              filter.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="h-40 rounded-lg border border-border bg-teal-50 dark:bg-teal-900/20 sm:h-44" />
-            <p className="text-sm text-muted-foreground">
-              Placeholder map area. Future version will show pin clusters based on
-              minders that match active filters.
-            </p>
+          <CardContent>
+            <MinderMap minders={filtered} />
           </CardContent>
         </Card>
       </div>
