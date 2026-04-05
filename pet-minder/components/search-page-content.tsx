@@ -167,15 +167,19 @@ export function SearchPageContent({
               id="pet-type-search"
               value={petType}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPetType(e.target.value)}
-              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                petType === ""
+                  ? "text-muted-foreground placeholder:text-muted-foreground"
+                  : "text-foreground"
+              }`}
             >
-              <option value="">Any pet type</option>
+              <option value="" className="bg-background text-foreground">Any pet type</option>
               {PRESET_PET_TYPES.map((type) => (
-                <option key={type} value={type}>
+                <option key={type} value={type} className="bg-background text-foreground">
                   {type}
                 </option>
               ))}
-              <option value="Small pets">Small pets</option>
+              <option value="Small pets" className="bg-background text-foreground">Small pets</option>
             </select>
           </div>
           <div className="flex items-center md:items-end">
