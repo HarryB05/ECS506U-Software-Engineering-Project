@@ -89,16 +89,18 @@ async function BookMinderInner({ profileId }: { profileId: string }) {
           </Link>
         </Button>
         <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
-          Request a booking
+          Book with {minder.displayName}
         </h1>
         <p className="text-muted-foreground">
-          Propose a date and time. Nothing is confirmed until the minder accepts.
+          Pick times and pets below. Nothing is confirmed until they accept your
+          request.
         </p>
       </div>
 
       <BookMinderRequestForm
         minderProfileId={minder.profileId}
         minderDisplayName={minder.displayName}
+        servicePricing={minder.servicePricing}
         pets={pets}
       />
     </div>

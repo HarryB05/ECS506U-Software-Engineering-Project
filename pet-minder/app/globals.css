@@ -156,3 +156,13 @@
     background-size: 200% 100%;
   }
 }
+
+/* react-day-picker (booking flow): match primary / popover tokens */
+.booking-day-picker .rdp-root {
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-accent-background-color: hsl(var(--primary) / 0.14);
+  --rdp-selected-border: 2px solid hsl(var(--primary));
+  --rdp-day_button-border-radius: var(--radius);
+  --rdp-background-color: hsl(var(--popover));
+  --rdp-outside-opacity: 0.45;
+}

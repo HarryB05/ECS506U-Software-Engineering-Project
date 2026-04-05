@@ -18,7 +18,8 @@ const config: Record<
   },
   confirmed: {
     label: "Confirmed",
-    className: "bg-info-100 text-info-500 border-info-500/20",
+    className:
+      "bg-primary/12 text-primary border-primary/25 dark:bg-primary/18 dark:border-primary/35",
   },
   active: {
     label: "Live",

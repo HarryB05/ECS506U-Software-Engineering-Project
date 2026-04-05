@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   BookingListItem,
+  BookingRequestDetail,
   BookingRequestListItem,
   BookingRequestStatus,
   BookingRowStatus,
+  BookingSessionDetail,
   BookingsDashboardPayload,
   OwnerPetOption,
 } from "@/lib/types/booking";
@@ -149,6 +151,7 @@ export async function loadBookingsDashboard(
     .select(
       `
       id,
+      request_id,
       start_datetime,
       end_datetime,
       status,
@@ -180,6 +183,7 @@ export async function loadBookingsDashboard(
     const pets = row.booking_pets as { pet_id?: string }[] | null;
     return {
       id: row.id as string,
+      requestId: (row.request_id as string | null) ?? null,
       startDatetime: row.start_datetime as string,
       endDatetime: row.end_datetime as string,
       status: mapBookingStatus(String(row.status)),
@@ -245,6 +249,7 @@ export async function loadBookingsDashboard(
       .select(
         `
         id,
+        request_id,
         start_datetime,
         end_datetime,
         status,
@@ -269,6 +274,7 @@ export async function loadBookingsDashboard(
       const pets = row.booking_pets as { pet_id?: string }[] | null;
       return {
         id: row.id as string,
+        requestId: (row.request_id as string | null) ?? null,
         startDatetime: row.start_datetime as string,
         endDatetime: row.end_datetime as string,
         status: mapBookingStatus(String(row.status)),
@@ -305,5 +311,225 @@ function emptyPayload(
     ownerBookings: [],
     minderRequests: [],
     minderBookings: [],
+  };
+}
+
+function firstRelationRow<T>(rel: T | T[] | null | undefined): T | null {
+  if (rel == null) return null;
+  return Array.isArray(rel) ? (rel[0] ?? null) : rel;
+}
+
+export async function loadBookingSessionDetail(
+  supabase: SupabaseClient,
+  userId: string,
+  bookingId: string,
+): Promise<{ data: BookingSessionDetail | null; error: Error | null }> {
+  const { data: row, error } = await supabase
+    .from("bookings")
+    .select(
+      `
+      id,
+      request_id,
+      start_datetime,
+      end_datetime,
+      status,
+      cancellation_deadline,
+      cancelled_at,
+      care_instructions,
+      owner_id,
+      minder_id,
+      minder_profiles ( users ( full_name ) ),
+      users!bookings_owner_id_fkey ( full_name ),
+      booking_pets (
+        pet_id,
+        pet_profiles ( name )
+      ),
+      booking_requests (
+        id,
+        created_at,
+        updated_at,
+        status,
+        message,
+        requested_datetime,
+        requested_end_datetime,
+        duration_minutes
+      )
+    `,
+    )
+    .eq("id", bookingId)
+    .maybeSingle();
+
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+  if (!row) {
+    return { data: null, error: null };
+  }
+
+  const ownerId = row.owner_id as string;
+  const viewerRole: "owner" | "minder" = ownerId === userId ? "owner" : "minder";
+
+  const mp = row.minder_profiles as
+    | { users?: unknown }
+    | { users?: unknown }[]
+    | null;
+  const mpOne = Array.isArray(mp) ? mp[0] : mp;
+  const minderName = displayNameFromUsersJoin(mpOne?.users, "Pet minder");
+  const ownerName = displayNameFromUsersJoin(row.users, "Pet owner");
+
+  const counterpartyName =
+    viewerRole === "owner" ? minderName : ownerName;
+
+  const pets = row.booking_pets as
+    | {
+        pet_id?: string;
+        pet_profiles?:
+          | { name?: string | null }
+          | { name?: string | null }[]
+          | null;
+      }[]
+    | null;
+
+  const petNames: string[] = [];
+  for (const bp of pets ?? []) {
+    const rel = bp.pet_profiles;
+    const profile = Array.isArray(rel) ? rel[0] : rel;
+    const raw = profile?.name;
+    if (typeof raw === "string" && raw.trim().length > 0) {
+      petNames.push(raw.trim());
+    }
+  }
+
+  const reqRaw = firstRelationRow(
+    row.booking_requests as Record<string, unknown> | Record<string, unknown>[] | null,
+  );
+
+  let request: BookingSessionDetail["request"] = null;
+  if (reqRaw && typeof reqRaw === "object") {
+    request = {
+      id: String(reqRaw.id),
+      createdAt: String(reqRaw.created_at),
+      updatedAt:
+        reqRaw.updated_at != null ? String(reqRaw.updated_at) : null,
+      status: mapRequestStatus(String(reqRaw.status)),
+      message: (reqRaw.message as string | null) ?? null,
+      requestedDatetime: String(reqRaw.requested_datetime),
+      requestedEndDatetime:
+        (reqRaw.requested_end_datetime as string | null) ?? null,
+      durationMinutes: Number(reqRaw.duration_minutes),
+    };
+  }
+
+  return {
+    data: {
+      id: row.id as string,
+      requestId: (row.request_id as string | null) ?? null,
+      startDatetime: row.start_datetime as string,
+      endDatetime: row.end_datetime as string,
+      status: mapBookingStatus(String(row.status)),
+      cancellationDeadline: row.cancellation_deadline as string,
+      cancelledAt: (row.cancelled_at as string | null) ?? null,
+      careInstructions: (row.care_instructions as string | null) ?? null,
+      counterpartyName,
+      petCount: Array.isArray(pets) ? pets.length : 0,
+      petNames,
+      createdAt: null,
+      viewerRole,
+      request,
+    },
+    error: null,
+  };
+}
+
+export async function loadBookingRequestDetail(
+  supabase: SupabaseClient,
+  userId: string,
+  requestId: string,
+): Promise<{ data: BookingRequestDetail | null; error: Error | null }> {
+  const { data: row, error } = await supabase
+    .from("booking_requests")
+    .select(
+      `
+      id,
+      requested_datetime,
+      requested_end_datetime,
+      duration_minutes,
+      message,
+      care_instructions,
+      status,
+      created_at,
+      updated_at,
+      owner_id,
+      minder_id,
+      minder_profiles ( users ( full_name ) ),
+      users!booking_requests_owner_id_fkey ( full_name ),
+      booking_request_pets ( pet_id ),
+      bookings (
+        id,
+        start_datetime,
+        end_datetime,
+        status,
+        cancelled_at
+      )
+    `,
+    )
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+  if (!row) {
+    return { data: null, error: null };
+  }
+
+  const ownerId = row.owner_id as string;
+  const isOwner = ownerId === userId;
+  const mp = row.minder_profiles as
+    | { users?: unknown }
+    | { users?: unknown }[]
+    | null;
+  const mpOne = Array.isArray(mp) ? mp[0] : mp;
+  const minderName = displayNameFromUsersJoin(mpOne?.users, "Pet minder");
+  const ownerName = displayNameFromUsersJoin(row.users, "Pet owner");
+  const counterpartyName = isOwner ? minderName : ownerName;
+
+  const reqPets = row.booking_request_pets as
+    | { pet_id?: string }[]
+    | null;
+
+  const bookRaw = firstRelationRow(
+    row.bookings as Record<string, unknown> | Record<string, unknown>[] | null,
+  );
+
+  let linkedSession: BookingRequestDetail["linkedSession"] = null;
+  if (bookRaw && typeof bookRaw === "object") {
+    linkedSession = {
+      id: String(bookRaw.id),
+      startDatetime: String(bookRaw.start_datetime),
+      endDatetime: String(bookRaw.end_datetime),
+      status: mapBookingStatus(String(bookRaw.status)),
+      cancelledAt: (bookRaw.cancelled_at as string | null) ?? null,
+    };
+  }
+
+  return {
+    data: {
+      id: row.id as string,
+      requestedDatetime: row.requested_datetime as string,
+      requestedEndDatetime:
+        (row.requested_end_datetime as string | null) ?? null,
+      durationMinutes: row.duration_minutes as number,
+      message: (row.message as string | null) ?? null,
+      careInstructions: (row.care_instructions as string | null) ?? null,
+      status: mapRequestStatus(String(row.status)),
+      createdAt: row.created_at as string,
+      updatedAt: (row.updated_at as string | null) ?? null,
+      counterpartyName,
+      petCount: Array.isArray(reqPets) ? reqPets.length : 0,
+      viewerRole: isOwner ? "owner" : "minder",
+      linkedSession,
+    },
+    error: null,
   };
 }

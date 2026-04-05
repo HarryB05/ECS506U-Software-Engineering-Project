@@ -32,6 +32,8 @@ export type BookingRequestListItem = {
 
 export type BookingListItem = {
   id: string;
+  /** Source request when created via accept flow. */
+  requestId: string | null;
   startDatetime: string;
   endDatetime: string;
   status: BookingRowStatus;
@@ -40,6 +42,50 @@ export type BookingListItem = {
   careInstructions: string | null;
   counterpartyName: string;
   petCount: number;
+};
+
+/** Linked request snapshot for session detail timeline. */
+export type BookingDetailRequestSnapshot = {
+  id: string;
+  createdAt: string;
+  updatedAt: string | null;
+  status: BookingRequestStatus;
+  message: string | null;
+  requestedDatetime: string;
+  requestedEndDatetime: string | null;
+  durationMinutes: number;
+};
+
+export type BookingSessionDetail = {
+  id: string;
+  requestId: string | null;
+  startDatetime: string;
+  endDatetime: string;
+  status: BookingRowStatus;
+  cancellationDeadline: string;
+  cancelledAt: string | null;
+  careInstructions: string | null;
+  counterpartyName: string;
+  petCount: number;
+  /** Resolved from booking pets; may be empty if names are not readable. */
+  petNames: string[];
+  /** When the session row was created (if column exists). */
+  createdAt: string | null;
+  viewerRole: "owner" | "minder";
+  request: BookingDetailRequestSnapshot | null;
+};
+
+export type BookingRequestDetail = BookingRequestListItem & {
+  updatedAt: string | null;
+  viewerRole: "owner" | "minder";
+  /** Populated once the minder has accepted (confirmed session). */
+  linkedSession: {
+    id: string;
+    startDatetime: string;
+    endDatetime: string;
+    status: BookingRowStatus;
+    cancelledAt: string | null;
+  } | null;
 };
 
 export type BookingsDashboardPayload = {
