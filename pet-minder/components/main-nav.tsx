@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -11,6 +12,7 @@ import {
   User,
   Home,
   Search,
+  Shield,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
@@ -29,6 +31,12 @@ const minderNav = [
   { href: "/dashboard/bookings", label: "Bookings", icon: CalendarCheck },
   { href: "/dashboard/minder", label: "Minder", icon: Home },
 ] as const;
+
+const adminNavItem = {
+  href: "/dashboard/admin",
+  label: "Admin",
+  icon: Shield,
+} as const;
 
 function isNavActive(href: string, pathname: string): boolean {
   if (href === "/dashboard") {
@@ -52,11 +60,18 @@ export function MainNav({
     if (!dashboardRole) {
       return ownerNav;
     }
-    const { roleTypes, activeRole } = dashboardRole;
+    const { roleTypes, activeRole, allRoleTypes } = dashboardRole;
+    const isAdmin = allRoleTypes.includes("admin");
+    let base: readonly { href: string; label: string; icon: LucideIcon }[];
     if (roleTypes.length === 1) {
-      return roleTypes[0] === "minder" ? minderNav : ownerNav;
+      base = roleTypes[0] === "minder" ? minderNav : ownerNav;
+    } else {
+      base = activeRole === "minder" ? minderNav : ownerNav;
     }
-    return activeRole === "minder" ? minderNav : ownerNav;
+    if (isAdmin) {
+      return [...base, adminNavItem];
+    }
+    return base;
   }, [dashboardRole]);
 
   return (
