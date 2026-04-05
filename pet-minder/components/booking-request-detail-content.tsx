@@ -179,7 +179,7 @@ export function BookingRequestDetailContent({
       </Card>
 
       {detail.linkedSession ? (
-        <Card className="shadow-card border-border border-primary/30">
+        <Card className="shadow-card border-border">
           <CardHeader className="pb-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-base font-medium">
