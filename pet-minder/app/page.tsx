@@ -11,11 +11,46 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-export default async function Home() {
+async function HeroCTA() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (user) {
+    return (
+      <Button asChild size="lg">
+        <Link href="/dashboard">Go to dashboard</Link>
+      </Button>
+    );
+  }
+
+  return (
+    <>
+      <Button asChild size="lg">
+        <Link href="/auth/sign-up">Get started</Link>
+      </Button>
+      <Button asChild variant="outline" size="lg">
+        <Link href="/auth/login">Sign in</Link>
+      </Button>
+    </>
+  );
+}
+
+function HeroCTAFallback() {
+  return (
+    <>
+      <Button asChild size="lg">
+        <Link href="/auth/sign-up">Get started</Link>
+      </Button>
+      <Button asChild variant="outline" size="lg">
+        <Link href="/auth/login">Sign in</Link>
+      </Button>
+    </>
+  );
+}
+
+export default function Home() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
       <Suspense fallback={<HomeNavFallback />}>
@@ -31,20 +66,9 @@ export default async function Home() {
             Book verified minders for walks, sitting and day care. See where your pet is with live tracking when a session is in progress.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
-            {user ? (
-              <Button asChild size="lg">
-                <Link href="/dashboard">Go to dashboard</Link>
-              </Button>
-            ) : (
-              <>
-                <Button asChild size="lg">
-                  <Link href="/auth/sign-up">Get started</Link>
-                </Button>
-                <Button asChild variant="outline" size="lg">
-                  <Link href="/auth/login">Sign in</Link>
-                </Button>
-              </>
-            )}
+            <Suspense fallback={<HeroCTAFallback />}>
+              <HeroCTA />
+            </Suspense>
           </div>
         </div>
 
