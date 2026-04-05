@@ -19,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Star, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Star, ShieldCheck, Eye, EyeOff, MapPin } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   normalizeServicePricing,
@@ -66,6 +66,10 @@ export function MinderPublicProfileEditor({
   const [visibleInSearch, setVisibleInSearch] = useState(
     initialProfile?.visible_in_search ?? false,
   );
+  const [locationInput, setLocationInput] = useState(
+    initialProfile?.location_name ?? "",
+  );
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [visibilityLoading, setVisibilityLoading] = useState(false);
@@ -77,6 +81,7 @@ export function MinderPublicProfileEditor({
     setSelectedTypes(initSelectedTypes(initialProfile?.supported_pet_types ?? null));
     setPricing(servicePricingToInputString(initialProfile?.service_pricing));
     setVisibleInSearch(initialProfile?.visible_in_search ?? false);
+    setLocationInput(initialProfile?.location_name ?? "");
   }, [initialProfile]);
 
   function toggleType(type: string) {
@@ -94,7 +99,44 @@ export function MinderPublicProfileEditor({
       return;
     }
     setError(null);
+    setGeocodeError(null);
     setLoading(true);
+
+    // Geocode the location input if it changed or is newly set.
+    let latitude: number | null = profile.latitude ?? null;
+    let longitude: number | null = profile.longitude ?? null;
+    let location_name: string | null = profile.location_name ?? null;
+
+    const trimmedLocation = locationInput.trim();
+    if (trimmedLocation !== (profile.location_name ?? "").trim()) {
+      if (trimmedLocation) {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(trimmedLocation)}&format=json&limit=1`,
+            { headers: { "Accept-Language": "en" } },
+          );
+          const results = await res.json();
+          if (results.length > 0) {
+            latitude = parseFloat(results[0].lat);
+            longitude = parseFloat(results[0].lon);
+            location_name = results[0].display_name.split(",").slice(0, 3).join(",").trim();
+          } else {
+            setGeocodeError("Location not found — try a more specific city or area name.");
+            setLoading(false);
+            return;
+          }
+        } catch {
+          setGeocodeError("Could not reach the geocoding service. Check your connection.");
+          setLoading(false);
+          return;
+        }
+      } else {
+        latitude = null;
+        longitude = null;
+        location_name = null;
+      }
+    }
+
     const supabase = createClient();
     const { error: err } = await updateMinderProfile(
       supabase,
@@ -104,6 +146,9 @@ export function MinderPublicProfileEditor({
         service_description: description.trim() || null,
         supported_pet_types: selectedTypes,
         service_pricing: normalizeServicePricing(pricing),
+        location_name,
+        latitude,
+        longitude,
       },
     );
     setLoading(false);
@@ -115,6 +160,7 @@ export function MinderPublicProfileEditor({
     if (next) {
       setProfile(next);
       setPricing(servicePricingToInputString(next.service_pricing));
+      setLocationInput(next.location_name ?? "");
     }
   }
 
@@ -258,6 +304,34 @@ export function MinderPublicProfileEditor({
               autoComplete="off"
             />
           </div>
+
+          <div className="space-y-1.5 max-w-xs">
+            <Label htmlFor="minder-location" className="flex items-center gap-1.5">
+              <MapPin className="size-3.5 text-muted-foreground" />
+              Location (optional)
+            </Label>
+            <Input
+              id="minder-location"
+              value={locationInput}
+              onChange={(e) => setLocationInput(e.target.value)}
+              placeholder="e.g. Stratford, London"
+              autoComplete="off"
+            />
+            {profile.latitude && profile.longitude && (
+              <p className="text-xs text-success-500">
+                Pinned: {profile.location_name ?? locationInput}
+              </p>
+            )}
+            {geocodeError && (
+              <p className="text-xs text-danger-500" role="alert">
+                {geocodeError}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Used to show your pin on the map. Enter a city, area, or postcode.
+            </p>
+          </div>
+
           {error && (
             <p className="text-sm text-danger-500" role="alert">
               {error}
