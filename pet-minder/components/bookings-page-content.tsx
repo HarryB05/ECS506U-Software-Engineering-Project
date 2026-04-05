@@ -11,24 +11,28 @@ export function BookingsPageContent() {
 
   if (activeRole === "minder") {
     return (
-      <div className="max-w-content mx-auto">
-        <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
-          Minder bookings
-        </h1>
-        <p className="text-muted-foreground mb-8">
-          Owner booking requests and upcoming sessions will appear here.
-        </p>
+      <div className="max-w-content mx-auto space-y-8">
+        <div>
+          <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
+            Bookings
+          </h1>
+          <p className="text-muted-foreground mb-8">
+            Confirmed sessions will appear here. Incoming booking requests are
+            managed on the requests page.
+          </p>
+        </div>
 
         <Card className="shadow-card">
-          <CardContent className="p-6 text-center sm:p-8 md:p-12">
+          <CardContent className="p-6 text-center sm:p-8 md:p-12 space-y-6">
             <div className="mx-auto mb-4 inline-flex rounded-lg bg-teal-50 p-3 dark:bg-teal-900/30">
               <CalendarCheck className="size-6 text-teal-700 dark:text-teal-300" />
             </div>
             <p className="text-muted-foreground mb-6">
-              No requests yet. When an owner books you, it will show up here.
+              This page shows your confirmed bookings. To review new requests,
+              go to the requests page.
             </p>
             <Button asChild variant="outline">
-              <Link href="/dashboard/minder">Go to minder workspace</Link>
+              <Link href="/dashboard/requests">View requests</Link>
             </Button>
           </CardContent>
         </Card>

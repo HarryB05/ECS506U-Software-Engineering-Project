@@ -56,7 +56,7 @@ export function DashboardHomeContent() {
         <div>
           <h2 className="text-xl font-medium text-foreground">Bookings</h2>
           <p className="text-sm text-muted-foreground">
-            View and manage your bookings
+            View requests and confirmed sessions
           </p>
         </div>
       </Link>

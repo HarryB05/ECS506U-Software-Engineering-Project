@@ -23,9 +23,10 @@ const ownerNav = [
   { href: "/dashboard/pets", label: "Pets", icon: PawPrint },
   { href: "/dashboard/search", label: "Search", icon: Search },
 ] as const;
-
+ 
 const minderNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/requests", label: "Requests", icon: CalendarCheck },
   { href: "/dashboard/bookings", label: "Bookings", icon: CalendarCheck },
   { href: "/dashboard/minder", label: "Minder", icon: Home },
 ] as const;
