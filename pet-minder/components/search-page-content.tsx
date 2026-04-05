@@ -3,11 +3,6 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-
-const MinderMap = dynamic(
-  () => import("@/components/minder-map").then((m) => m.MinderMap),
-  { ssr: false, loading: () => <div className="h-[340px] w-full rounded-lg border border-border bg-muted animate-pulse sm:h-[420px]" /> },
-);
 import {
   Card,
   CardContent,
@@ -20,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useDashboardRole } from "@/components/dashboard-role-context";
-import { Search, ShieldCheck, Star } from "lucide-react";
+import { ArrowDown, ArrowUp, Loader2, MapPin, Search, ShieldCheck, Star, X } from "lucide-react";
 import type { PublicMinderListItem } from "@/lib/types/minder-profile";
 import {
   formatMinderPriceLabel,
@@ -52,6 +47,69 @@ export function SearchPageContent({
   const [otherPetType, setOtherPetType] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"rating" | "price">("rating");
+  // desc = highest first for rating, highest first for price
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+
+  // Location proximity filter state
+  const [locationInput, setLocationInput] = useState("");
+  const [nearLocation, setNearLocation] = useState<{
+    latitude: number;
+    longitude: number;
+    label: string;
+    radiusKm: number;
+  } | null>(null);
+  const [radiusKm, setRadiusKm] = useState(10);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+
+  function handleSortClick(field: "rating" | "price") {
+    if (sortBy === field) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortBy(field);
+      // Natural defaults: rating → highest first, price → lowest first
+      setSortDir(field === "rating" ? "desc" : "asc");
+    }
+  }
+
+  async function handleLocationSearch() {
+    const q = locationInput.trim();
+    if (!q) return;
+    setGeocoding(true);
+    setGeocodeError(null);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
+        { headers: { "Accept-Language": "en" } },
+      );
+      const results = await res.json();
+      if (results.length > 0) {
+        setNearLocation({
+          latitude: parseFloat(results[0].lat),
+          longitude: parseFloat(results[0].lon),
+          label: results[0].display_name.split(",").slice(0, 2).join(",").trim(),
+          radiusKm,
+        });
+      } else {
+        setGeocodeError("Location not found — try a more specific place name.");
+      }
+    } catch {
+      setGeocodeError("Could not reach geocoding service. Check your connection.");
+    } finally {
+      setGeocoding(false);
+    }
+  }
+
+  function clearLocationFilter() {
+    setNearLocation(null);
+    setLocationInput("");
+    setGeocodeError(null);
+  }
+
+  // Re-apply radius when it changes while a location is already pinned.
+  const activeNearLocation = nearLocation
+    ? { ...nearLocation, radiusKm }
+    : null;
 
   const filtered = useMemo(() => {
     const selectedPetType =
@@ -61,25 +119,26 @@ export function SearchPageContent({
       search,
       petType: selectedPetType,
       verifiedOnly,
+      nearLocation: activeNearLocation,
     });
 
     return [...results].sort((a, b) => {
+      let diff = 0;
       if (sortBy === "rating") {
         const ar = a.averageRating ?? 0;
         const br = b.averageRating ?? 0;
-        if (br !== ar) return br - ar;
-        return a.displayName.localeCompare(b.displayName, undefined, {
-          sensitivity: "base",
-        });
+        diff = br - ar; // desc by default
+      } else {
+        const pa = parsePriceSortValue(a.servicePricing);
+        const pb = parsePriceSortValue(b.servicePricing);
+        diff = pa - pb; // asc by default (cheapest first)
       }
-      const pa = parsePriceSortValue(a.servicePricing);
-      const pb = parsePriceSortValue(b.servicePricing);
-      if (pa !== pb) return pa - pb;
+      if (diff !== 0) return sortDir === "desc" ? diff : -diff;
       return a.displayName.localeCompare(b.displayName, undefined, {
         sensitivity: "base",
       });
     });
-  }, [initialMinders, otherPetType, petType, search, sortBy, verifiedOnly]);
+  }, [initialMinders, otherPetType, petType, search, sortBy, sortDir, verifiedOnly, activeNearLocation?.latitude, activeNearLocation?.longitude, activeNearLocation?.radiusKm]);
 
   if (activeRole === "minder") {
     return (
@@ -164,8 +223,8 @@ export function SearchPageContent({
         <CardHeader>
           <CardTitle className="text-xl font-medium">Search filters</CardTitle>
           <CardDescription>
-            Search by name or keywords. Select a pet type to narrow results, or
-            leave it as any to see all minders.
+            Search by name or keywords. Filter by pet type, location, or
+            verification status.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
@@ -173,7 +232,7 @@ export function SearchPageContent({
             <Label htmlFor="minder-search">Name or keywords</Label>
             <Input
               id="minder-search"
-              placeholder="e.g. Stratford, experienced"
+              placeholder="e.g. experienced, caring"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -229,6 +288,73 @@ export function SearchPageContent({
             </div>
           </div>
         </CardContent>
+
+        {/* Location proximity row */}
+        <CardContent className="pt-0">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5 text-sm">
+              <MapPin className="size-3.5 text-muted-foreground" />
+              Near location
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              <Input
+                className="max-w-56"
+                placeholder="e.g. Stratford, London"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleLocationSearch(); }}
+                disabled={geocoding}
+              />
+              <select
+                value={radiusKm}
+                onChange={(e) => setRadiusKm(Number(e.target.value))}
+                className="flex h-9 rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value={5}>Within 5 km</option>
+                <option value={10}>Within 10 km</option>
+                <option value={25}>Within 25 km</option>
+                <option value={50}>Within 50 km</option>
+              </select>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9"
+                onClick={handleLocationSearch}
+                disabled={geocoding || !locationInput.trim()}
+              >
+                {geocoding ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Search className="size-3.5" />
+                )}
+                <span className="ml-1.5">Search</span>
+              </Button>
+              {nearLocation && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 text-muted-foreground"
+                  onClick={clearLocationFilter}
+                >
+                  <X className="size-3.5" />
+                  <span className="ml-1">Clear</span>
+                </Button>
+              )}
+            </div>
+            {nearLocation && (
+              <p className="text-xs text-success-500">
+                Showing minders within {radiusKm} km of {nearLocation.label}
+              </p>
+            )}
+            {geocodeError && (
+              <p className="text-xs text-danger-500" role="alert">{geocodeError}</p>
+            )}
+          </div>
+        </CardContent>
+
+        {/* Sort row */}
         <CardContent className="pt-0">
           <div className="flex flex-wrap items-center gap-2">
             <Label className="text-sm text-muted-foreground">Sort by</Label>
@@ -236,18 +362,31 @@ export function SearchPageContent({
               type="button"
               variant={sortBy === "rating" ? "default" : "outline"}
               size="sm"
-              onClick={() => setSortBy("rating")}
+              onClick={() => handleSortClick("rating")}
+              className="gap-1"
             >
               Rating
+              {sortBy === "rating" ? (
+                sortDir === "desc" ? <ArrowDown className="size-3" /> : <ArrowUp className="size-3" />
+              ) : null}
             </Button>
             <Button
               type="button"
               variant={sortBy === "price" ? "default" : "outline"}
               size="sm"
-              onClick={() => setSortBy("price")}
+              onClick={() => handleSortClick("price")}
+              className="gap-1"
             >
               Price
+              {sortBy === "price" ? (
+                sortDir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />
+              ) : null}
             </Button>
+            <span className="text-xs text-muted-foreground">
+              {sortBy === "rating"
+                ? sortDir === "desc" ? "Highest first" : "Lowest first"
+                : sortDir === "asc" ? "Cheapest first" : "Most expensive first"}
+            </span>
           </div>
         </CardContent>
       </Card>
