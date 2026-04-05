@@ -11,6 +11,7 @@ import {
   User,
   Home,
   Search,
+  ClipboardList,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
@@ -19,7 +20,7 @@ import { RoleModeSwitch } from "@/components/role-mode-switch";
 
 const ownerNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/bookings", label: "Bookings", icon: CalendarCheck },
+  { href: "/dashboard/bookings", label: "Bookings", icon: ClipboardList },
   { href: "/dashboard/pets", label: "Pets", icon: PawPrint },
   { href: "/dashboard/search", label: "Search", icon: Search },
 ] as const;
