@@ -69,8 +69,8 @@ Stack: Next.js (React) · Supabase · Vercel
 - [ ] Calculate and display average rating on minder profile — URF 1.14
 
 ### Map / Location Search [Rayyan]
-- [ ] Replace map placeholder with real map showing minder pins — URF 2.9
-- [ ] Location-radius filtering in search results — URF 2.9
+- [x] Replace map placeholder with real map showing minder pins — URF 2.9
+- [x] Location-radius filtering in search results — URF 2.9
 
 ### Admin Panel [Luqman]
 - [ ] Admin view of all registered users — URF 4.1
