@@ -48,6 +48,9 @@ function mapToPublicItem(
     averageRating = Number.isFinite(n) ? n : null;
   }
 
+  const lat = row.latitude;
+  const lng = row.longitude;
+
   return {
     profileId: id,
     userId,
@@ -60,6 +63,10 @@ function mapToPublicItem(
     servicePricing: normalizeServicePricing(row.service_pricing),
     isVerified: row.is_verified === true,
     averageRating,
+    locationName:
+      typeof row.location_name === "string" ? row.location_name : null,
+    latitude: typeof lat === "number" && Number.isFinite(lat) ? lat : null,
+    longitude: typeof lng === "number" && Number.isFinite(lng) ? lng : null,
   };
 }
 
@@ -146,6 +153,9 @@ export async function getMinderProfileById(
       service_pricing,
       is_verified,
       average_rating,
+      location_name,
+      latitude,
+      longitude,
       users!inner (
         full_name
       )
@@ -187,6 +197,15 @@ export async function updateMinderProfile(
   if (fields.visible_in_search !== undefined) {
     payload.visible_in_search = fields.visible_in_search;
   }
+  if (fields.location_name !== undefined) {
+    payload.location_name = fields.location_name?.trim() || null;
+  }
+  if (fields.latitude !== undefined) {
+    payload.latitude = fields.latitude;
+  }
+  if (fields.longitude !== undefined) {
+    payload.longitude = fields.longitude;
+  }
 
   const { error } = await supabase
     .from(TABLE)
@@ -220,6 +239,9 @@ export async function listPublicMindersForSearch(
       service_pricing,
       is_verified,
       average_rating,
+      location_name,
+      latitude,
+      longitude,
       users!inner (
         full_name
       )
