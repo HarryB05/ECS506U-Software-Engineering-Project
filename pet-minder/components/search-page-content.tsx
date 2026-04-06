@@ -308,12 +308,12 @@ export function SearchPageContent({
               <select
                 value={radiusKm}
                 onChange={(e) => setRadiusKm(Number(e.target.value))}
-                className="flex h-9 rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="flex h-9 rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
-                <option value={5}>Within 5 km</option>
-                <option value={10}>Within 10 km</option>
-                <option value={25}>Within 25 km</option>
-                <option value={50}>Within 50 km</option>
+                <option value={5} className="bg-background text-foreground">Within 5 km</option>
+                <option value={10} className="bg-background text-foreground">Within 10 km</option>
+                <option value={25} className="bg-background text-foreground">Within 25 km</option>
+                <option value={50} className="bg-background text-foreground">Within 50 km</option>
               </select>
               <Button
                 type="button"
