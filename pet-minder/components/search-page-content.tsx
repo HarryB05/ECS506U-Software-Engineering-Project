@@ -24,6 +24,7 @@ import {
 } from "@/lib/minder-display";
 import { filterMindersForOwnerSearch } from "@/lib/minder-search-match";
 import { PRESET_PET_TYPES, type PresetPetType } from "@/lib/pet-types";
+import type { PetSize } from "@/lib/types/pet-profile";
 
 const MinderMap = dynamic(
   () => import("@/components/minder-map").then((m) => m.MinderMap),
@@ -36,6 +37,14 @@ type SearchPageContentProps = {
 };
 
 type SearchPetTypeValue = "" | PresetPetType;
+type SearchPetSizeValue = "" | PetSize;
+
+const PET_SIZE_LABEL: Record<PetSize, string> = {
+  small: "Small (0-10kg)",
+  medium: "Medium (10-25kg)",
+  large: "Large (25-40kg)",
+  "x-large": "X-large (40+kg)",
+};
 
 export function SearchPageContent({
   initialMinders,
@@ -44,6 +53,7 @@ export function SearchPageContent({
   const { activeRole, setActiveRole, isDualRole, roleTypes } = useDashboardRole();
   const [search, setSearch] = useState("");
   const [petType, setPetType] = useState<SearchPetTypeValue>("");
+  const [petSize, setPetSize] = useState<SearchPetSizeValue>("");
   const [otherPetType, setOtherPetType] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"rating" | "price">("rating");
@@ -118,6 +128,7 @@ export function SearchPageContent({
     const results = filterMindersForOwnerSearch(initialMinders, {
       search,
       petType: selectedPetType,
+      petSize,
       verifiedOnly,
       nearLocation: activeNearLocation,
     });
@@ -138,7 +149,7 @@ export function SearchPageContent({
         sensitivity: "base",
       });
     });
-  }, [initialMinders, otherPetType, petType, search, sortBy, sortDir, verifiedOnly, activeNearLocation?.latitude, activeNearLocation?.longitude, activeNearLocation?.radiusKm]);
+  }, [initialMinders, otherPetType, petSize, petType, search, sortBy, sortDir, verifiedOnly, activeNearLocation?.latitude, activeNearLocation?.longitude, activeNearLocation?.radiusKm]);
 
   if (activeRole === "minder") {
     return (
@@ -223,7 +234,7 @@ export function SearchPageContent({
         <CardHeader>
           <CardTitle className="text-xl font-medium">Search filters</CardTitle>
           <CardDescription>
-            Search by name or keywords. Filter by pet type, location, or
+            Search by name or keywords. Filter by pet type, pet size, location, or
             verification status.
           </CardDescription>
         </CardHeader>
@@ -275,6 +286,26 @@ export function SearchPageContent({
               </div>
             )}
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="pet-size-search">Pet size</Label>
+            <select
+              id="pet-size-search"
+              value={petSize}
+              onChange={(e) => setPetSize(e.target.value as SearchPetSizeValue)}
+              className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                petSize === ""
+                  ? "text-muted-foreground placeholder:text-muted-foreground"
+                  : "text-foreground"
+              }`}
+            >
+              <option value="" className="bg-background text-foreground">Any pet size</option>
+              {(Object.keys(PET_SIZE_LABEL) as PetSize[]).map((size) => (
+                <option key={size} value={size} className="bg-background text-foreground">
+                  {PET_SIZE_LABEL[size]}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="flex items-center md:items-end">
             <div className="flex items-center gap-2 pt-1 md:pb-2">
               <Checkbox
@@ -308,12 +339,12 @@ export function SearchPageContent({
               <select
                 value={radiusKm}
                 onChange={(e) => setRadiusKm(Number(e.target.value))}
-                className="flex h-9 rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="flex h-9 rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
-                <option value={5}>Within 5 km</option>
-                <option value={10}>Within 10 km</option>
-                <option value={25}>Within 25 km</option>
-                <option value={50}>Within 50 km</option>
+                <option value={5} className="bg-background text-foreground">Within 5 km</option>
+                <option value={10} className="bg-background text-foreground">Within 10 km</option>
+                <option value={25} className="bg-background text-foreground">Within 25 km</option>
+                <option value={50} className="bg-background text-foreground">Within 50 km</option>
               </select>
               <Button
                 type="button"
@@ -435,6 +466,10 @@ function MinderSearchCard({ minder }: { minder: PublicMinderListItem }) {
     minder.supportedPetTypes.length > 0
       ? minder.supportedPetTypes.join(", ")
       : "Pet types not specified";
+  const sizesLine =
+    minder.supportedPetSizes.length > 0
+      ? minder.supportedPetSizes.map((size) => PET_SIZE_LABEL[size]).join(", ")
+      : "Pet sizes not specified";
 
   return (
     <Card className="shadow-card border-border">
@@ -465,6 +500,7 @@ function MinderSearchCard({ minder }: { minder: PublicMinderListItem }) {
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground">{intro}</p>
         <p className="text-sm text-foreground">Supports: {typesLine}</p>
+        <p className="text-sm text-foreground">Sizes: {sizesLine}</p>
         <div className="flex flex-col items-start justify-between gap-3 pt-1 sm:flex-row sm:items-center">
           <p className="text-sm text-muted-foreground">{priceLabel}</p>
           <Button type="button" variant="outline" size="sm" asChild>

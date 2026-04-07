@@ -10,7 +10,7 @@ import {
   listPetProfilesForOwner,
   updateProfile,
 } from "@/lib/pet-profile-service";
-import type { PetProfile, PetSex } from "@/lib/types/pet-profile";
+import type { PetProfile, PetSex, PetSize } from "@/lib/types/pet-profile";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 
 type SexSelectValue = "" | PetSex;
+type PetSizeValue = "" | PetSize;
 type PetTypeSelectValue = "dog" | "cat" | "bird" | "fish" | "other";
 type AgeRangeValue = "" | "0-1" | "2-4" | "5-8" | "9-12" | "13+";
 
@@ -60,10 +61,24 @@ function petSexFromRow(sex: PetSex | null | undefined): SexSelectValue {
   return sex === "male" || sex === "female" ? sex : "";
 }
 
+function petSizeFromRow(size: PetSize | null | undefined): PetSizeValue {
+  return size === "small" || size === "medium" || size === "large" || size === "x-large"
+    ? size
+    : "";
+}
+
 const SEX_LABEL: Record<SexSelectValue, string> = {
   "": "Not specified",
   male: "Male",
   female: "Female",
+};
+
+const PET_SIZE_LABEL: Record<PetSizeValue, string> = {
+  "": "Not specified",
+  small: "Small (0-10kg)",
+  medium: "Medium (10-25kg)",
+  large: "Large (25-40kg)",
+  "x-large": "X-large (40+kg)",
 };
 
 const PET_TYPE_LABEL: Record<PetTypeSelectValue, string> = {
@@ -304,6 +319,54 @@ function AgeRangeSelect({
   );
 }
 
+function PetSizeSelect({
+  id,
+  value,
+  onChange,
+  disabled,
+}: {
+  id: string;
+  value: PetSizeValue;
+  onChange: (v: PetSizeValue) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          id={id}
+          type="button"
+          disabled={disabled}
+          className={cn(
+            "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm",
+            "text-foreground transition-colors",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+            "disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+            value === "" && "text-muted-foreground",
+          )}
+        >
+          <span className="truncate text-left">{PET_SIZE_LABEL[value]}</span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+      >
+        {(Object.keys(PET_SIZE_LABEL) as PetSizeValue[]).map((size) => (
+          <DropdownMenuItem
+            key={size === "" ? "unspecified" : size}
+            className="cursor-pointer"
+            onSelect={() => onChange(size)}
+          >
+            {PET_SIZE_LABEL[size]}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 type PetProfilesManagerProps = {
   initialPets: PetProfile[];
   ownerUserId: string;
@@ -412,6 +475,7 @@ function AddPetForm({
   const [petType, setPetType] = useState<PetTypeSelectValue | "">("");
   const [otherPetType, setOtherPetType] = useState("");
   const [ageRange, setAgeRange] = useState<AgeRangeValue>("");
+  const [petSize, setPetSize] = useState<PetSizeValue>("");
   const [sex, setSex] = useState<SexSelectValue>("");
   const [medical, setMedical] = useState("");
   const [dietary, setDietary] = useState("");
@@ -434,6 +498,7 @@ function AddPetForm({
       pet_type: resolvedPetType,
       age: ageNum,
       sex: sex === "" ? null : sex,
+      pet_size: petSize === "" ? null : petSize,
       medical_info: medical || null,
       dietary_requirements: dietary || null,
     });
@@ -499,6 +564,18 @@ function AddPetForm({
               id="new-age"
               value={ageRange}
               onChange={setAgeRange}
+              disabled={loading}
+            />
+          </div>
+          <div className="max-w-xs space-y-1.5">
+            <Label htmlFor="new-size">
+              Size{" "}
+              <span className="font-normal text-muted-foreground">(optional)</span>
+            </Label>
+            <PetSizeSelect
+              id="new-size"
+              value={petSize}
+              onChange={setPetSize}
               disabled={loading}
             />
           </div>
@@ -575,6 +652,9 @@ function PetCard({
   const [ageRange, setAgeRange] = useState<AgeRangeValue>(() =>
     ageRangeFromNumber(pet.age),
   );
+  const [petSize, setPetSize] = useState<PetSizeValue>(() =>
+    petSizeFromRow(pet.pet_size),
+  );
   const [sex, setSex] = useState<SexSelectValue>(() =>
     petSexFromRow(pet.sex),
   );
@@ -592,6 +672,7 @@ function PetCard({
       setPetType(nextType);
       setOtherPetType(nextType === "other" ? pet.pet_type : "");
       setAgeRange(ageRangeFromNumber(pet.age));
+      setPetSize(petSizeFromRow(pet.pet_size));
       setSex(petSexFromRow(pet.sex));
     }
     if (!medicalDirty) {
@@ -625,6 +706,7 @@ function PetCard({
       pet_type: resolvedPetType,
       age: ageNum,
       sex: sex === "" ? null : sex,
+      pet_size: petSize === "" ? null : petSize,
     });
     setSavingProfile(false);
     if (err) {
@@ -704,6 +786,7 @@ function PetCard({
             <CardDescription className="mt-1">
               {pet.pet_type}
               {pet.age !== null ? ` • ${pet.age} years` : ""}
+              {pet.pet_size ? ` • ${PET_SIZE_LABEL[pet.pet_size]}` : ""}
             </CardDescription>
           </div>
         </div>
@@ -780,7 +863,7 @@ function PetCard({
                 />
               </div>
             )}
-            <div className="max-w-medium grid gap-4 sm:grid-cols-2">
+            <div className="max-w-medium grid gap-4 sm:grid-cols-2 md:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor={`age-${pet.id}`}>Age (years)</Label>
                 <AgeRangeSelect
@@ -788,6 +871,23 @@ function PetCard({
                   value={ageRange}
                   onChange={(v) => {
                     setAgeRange(v);
+                    setProfileDirty(true);
+                  }}
+                  disabled={savingProfile}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`size-${pet.id}`}>
+                  Size{" "}
+                  <span className="font-normal text-muted-foreground">
+                    (optional)
+                  </span>
+                </Label>
+                <PetSizeSelect
+                  id={`size-${pet.id}`}
+                  value={petSize}
+                  onChange={(v) => {
+                    setPetSize(v);
                     setProfileDirty(true);
                   }}
                   disabled={savingProfile}

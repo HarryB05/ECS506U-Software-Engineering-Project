@@ -40,19 +40,23 @@ Stack: Next.js (React) · Supabase · Vercel
 - [x] Responsive dashboard shell with sidebar navigation — URC 2.5
 - [x] Dark / light theme toggle
 - [x] Next.js + Supabase + Vercel stack set up — URC 3.3, 3.4
+- [x] Fix UI issues on radius filter on minder-search
+
+### Pet-Profile fix
+- [x] Add a pet size section to a pet profile.
 
 ---
 
 ## To Do
 
 ### Booking System (core, must-have) - Harry & Canute
-- [ ] Full booking request flow: owner selects minder → picks date/time → submits request — URF 2.14, 2.15
-- [ ] Attach care instructions to a booking — URF 2.16
-- [ ] Minder views incoming booking requests — URF 3.5
-- [ ] Minder accepts or declines a booking request (with conflict check) — URF 3.6, URF 3.8
-- [ ] Booking confirmation stored in DB and shown in both users' accounts
-- [ ] Owner cancels a booking (≥ 3 days before) — URF 2.17, 2.19
-- [ ] Minder cancels a confirmed booking (≥ 48 h before) — URF 3.7
+- [x] Full booking request flow: owner selects minder → picks date/time → submits request — URF 2.14, 2.15
+- [x] Attach care instructions to a booking — URF 2.16
+- [x] Minder views incoming booking requests — URF 3.5
+- [x] Minder accepts or declines a booking request (with conflict check) — URF 3.6, URF 3.8
+- [x] Booking confirmation stored in DB and shown in both users' accounts
+- [x] Owner cancels a booking (≥ 3 days before) — URF 2.17, 2.19
+- [x] Minder cancels a confirmed booking (≥ 48 h before) — URF 3.7
 - [ ] Owner reschedules a booking before minder confirmation — URF 2.18
 - [ ] Filter minder search results by availability — URF 2.10
 
@@ -69,8 +73,8 @@ Stack: Next.js (React) · Supabase · Vercel
 - [ ] Calculate and display average rating on minder profile — URF 1.14
 
 ### Map / Location Search [Rayyan]
-- [ ] Replace map placeholder with real map showing minder pins — URF 2.9
-- [ ] Location-radius filtering in search results — URF 2.9
+- [x] Replace map placeholder with real map showing minder pins — URF 2.9
+- [x] Location-radius filtering in search results — URF 2.9
 
 ### Admin Panel [Luqman]
 - [ ] Admin view of all registered users — URF 4.1
