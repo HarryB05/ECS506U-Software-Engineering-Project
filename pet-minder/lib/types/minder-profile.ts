@@ -1,3 +1,5 @@
+import type { PetSize } from "@/lib/types/pet-profile";
+
 /**
  * Matches `minder_profiles` in design.md (Supabase).
  */
@@ -6,6 +8,7 @@ export type MinderProfile = {
   user_id: string;
   service_description: string | null;
   supported_pet_types: string[] | null;
+  supported_pet_sizes: PetSize[] | null;
   service_pricing: string | null;
   is_verified: boolean;
   average_rating: number | null;
@@ -21,6 +24,7 @@ export type MinderProfile = {
 export type MinderProfileUpdate = Partial<{
   service_description: string | null;
   supported_pet_types: string[] | null;
+  supported_pet_sizes: PetSize[] | null;
   service_pricing: string | null;
   visible_in_search: boolean;
   location_name: string | null;
@@ -35,6 +39,7 @@ export type PublicMinderListItem = {
   displayName: string;
   serviceDescription: string | null;
   supportedPetTypes: string[];
+  supportedPetSizes: PetSize[];
   servicePricing: string | null;
   isVerified: boolean;
   averageRating: number | null;

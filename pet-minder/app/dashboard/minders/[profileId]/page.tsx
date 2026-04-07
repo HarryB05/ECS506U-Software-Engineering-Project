@@ -17,6 +17,14 @@ import {
   formatMinderPriceLabel,
   minderIntroText,
 } from "@/lib/minder-display";
+import type { PetSize } from "@/lib/types/pet-profile";
+
+const PET_SIZE_LABEL: Record<PetSize, string> = {
+  small: "Small (0-10kg)",
+  medium: "Medium (10-25kg)",
+  large: "Large (25-40kg)",
+  "x-large": "X-large (40+kg)",
+};
 
 function ProfileSkeleton() {
   return (
@@ -74,6 +82,10 @@ async function MinderProfileInner({
     data.supportedPetTypes.length > 0
       ? data.supportedPetTypes.join(", ")
       : "Pet types not specified";
+  const sizesLine =
+    data.supportedPetSizes.length > 0
+      ? data.supportedPetSizes.map((size) => PET_SIZE_LABEL[size]).join(", ")
+      : "Pet sizes not specified";
 
   return (
     <div className="max-w-content mx-auto space-y-6">
@@ -118,6 +130,10 @@ async function MinderProfileInner({
           <div className="border-t border-border pt-4">
             <p className="text-sm text-muted-foreground mb-1">Supports</p>
             <p className="text-foreground">{typesLine}</p>
+          </div>
+          <div className="border-t border-border pt-4">
+            <p className="text-sm text-muted-foreground mb-1">Supported sizes</p>
+            <p className="text-foreground">{sizesLine}</p>
           </div>
           <div className="border-t border-border pt-4">
             <p className="text-sm text-muted-foreground mb-1">Pricing</p>
