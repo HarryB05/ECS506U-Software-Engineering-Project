@@ -56,12 +56,30 @@ export function MainNav({
   const pathname = usePathname();
   const dashboardRole = useOptionalDashboardRole();
 
+  const isAdminOnly = useMemo(() => {
+    if (!dashboardRole) return false;
+    const { allRoleTypes } = dashboardRole;
+    return (
+      allRoleTypes.includes("admin") &&
+      !allRoleTypes.includes("owner") &&
+      !allRoleTypes.includes("minder")
+    );
+  }, [dashboardRole]);
+
   const appNav = useMemo(() => {
     if (!dashboardRole) {
       return ownerNav;
     }
     const { roleTypes, activeRole, allRoleTypes } = dashboardRole;
     const isAdmin = allRoleTypes.includes("admin");
+    // Admin only (no owner/minder roles): show admin workspace only — no owner/minder nav.
+    const isAdminOnly =
+      isAdmin &&
+      !allRoleTypes.includes("owner") &&
+      !allRoleTypes.includes("minder");
+    if (isAdminOnly) {
+      return [adminNavItem];
+    }
     let base: readonly { href: string; label: string; icon: LucideIcon }[];
     if (roleTypes.length === 1) {
       base = roleTypes[0] === "minder" ? minderNav : ownerNav;
@@ -126,17 +144,19 @@ export function MainNav({
           <ThemeToggle />
           {authenticated ? (
             <>
-              <Link
-                href="/dashboard/profile"
-                className={cn(
-                  "inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                  pathname.startsWith("/dashboard/profile") &&
-                    "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300",
-                )}
-                aria-label="Profile"
-              >
-                <User className="size-5" />
-              </Link>
+              {!isAdminOnly ? (
+                <Link
+                  href="/dashboard/profile"
+                  className={cn(
+                    "inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                    pathname.startsWith("/dashboard/profile") &&
+                      "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300",
+                  )}
+                  aria-label="Profile"
+                >
+                  <User className="size-5" />
+                </Link>
+              ) : null}
               <LogoutButton size="sm" variant="outline" />
             </>
           ) : (
