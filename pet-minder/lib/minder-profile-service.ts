@@ -4,9 +4,11 @@ import type {
   MinderProfileUpdate,
   PublicMinderListItem,
 } from "@/lib/types/minder-profile";
+import type { PetSize } from "@/lib/types/pet-profile";
 import { normalizeServicePricing } from "@/lib/minder-display";
 
 const TABLE = "minder_profiles";
+const VALID_PET_SIZES = ["small", "medium", "large", "x-large"] as const;
 
 type UsersJoin = { full_name: string | null } | null;
 
@@ -39,6 +41,15 @@ function mapToPublicItem(
     ? rawTypes.filter((t): t is string => typeof t === "string")
     : [];
 
+  const rawSizes = row.supported_pet_sizes;
+  const supportedPetSizes: PetSize[] = Array.isArray(rawSizes)
+    ? rawSizes.filter(
+        (s): s is PetSize =>
+          typeof s === "string" &&
+          (VALID_PET_SIZES as readonly string[]).includes(s),
+      )
+    : [];
+
   const avg = row.average_rating;
   let averageRating: number | null = null;
   if (typeof avg === "number" && Number.isFinite(avg)) {
@@ -60,6 +71,7 @@ function mapToPublicItem(
         ? row.service_description
         : null,
     supportedPetTypes,
+    supportedPetSizes,
     servicePricing: normalizeServicePricing(row.service_pricing),
     isVerified: row.is_verified === true,
     averageRating,
@@ -150,6 +162,7 @@ export async function getMinderProfileById(
       user_id,
       service_description,
       supported_pet_types,
+      supported_pet_sizes,
       service_pricing,
       is_verified,
       average_rating,
@@ -190,6 +203,9 @@ export async function updateMinderProfile(
   }
   if (fields.supported_pet_types !== undefined) {
     payload.supported_pet_types = fields.supported_pet_types;
+  }
+  if (fields.supported_pet_sizes !== undefined) {
+    payload.supported_pet_sizes = fields.supported_pet_sizes;
   }
   if (fields.service_pricing !== undefined) {
     payload.service_pricing = normalizeServicePricing(fields.service_pricing);
@@ -236,6 +252,7 @@ export async function listPublicMindersForSearch(
       user_id,
       service_description,
       supported_pet_types,
+      supported_pet_sizes,
       service_pricing,
       is_verified,
       average_rating,

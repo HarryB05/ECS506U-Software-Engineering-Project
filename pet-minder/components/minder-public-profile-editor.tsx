@@ -26,6 +26,15 @@ import {
   servicePricingToInputString,
 } from "@/lib/minder-display";
 import { PRESET_PET_TYPES } from "@/lib/pet-types";
+import type { PetSize } from "@/lib/types/pet-profile";
+
+const PET_SIZE_OPTIONS: PetSize[] = ["small", "medium", "large", "x-large"];
+const PET_SIZE_LABEL: Record<PetSize, string> = {
+  small: "Small (0-10kg)",
+  medium: "Medium (10-25kg)",
+  large: "Large (25-40kg)",
+  "x-large": "X-large (40+kg)",
+};
 
 /**
  * Initialise selected chips from existing profile data.
@@ -44,6 +53,12 @@ function initSelectedTypes(types: string[] | null): string[] {
   return [...new Set(result)];
 }
 
+function initSelectedSizes(sizes: PetSize[] | null): PetSize[] {
+  if (!sizes?.length) return [];
+  const allowed = new Set(PET_SIZE_OPTIONS);
+  return [...new Set(sizes.filter((size) => allowed.has(size)))];
+}
+
 type MinderPublicProfileEditorProps = {
   userId: string;
   initialProfile: MinderProfile | null;
@@ -59,6 +74,9 @@ export function MinderPublicProfileEditor({
   );
   const [selectedTypes, setSelectedTypes] = useState<string[]>(() =>
     initSelectedTypes(initialProfile?.supported_pet_types ?? null),
+  );
+  const [selectedSizes, setSelectedSizes] = useState<PetSize[]>(() =>
+    initSelectedSizes(initialProfile?.supported_pet_sizes ?? null),
   );
   const [pricing, setPricing] = useState(() =>
     servicePricingToInputString(initialProfile?.service_pricing),
@@ -79,6 +97,7 @@ export function MinderPublicProfileEditor({
     setProfile(initialProfile);
     setDescription(initialProfile?.service_description ?? "");
     setSelectedTypes(initSelectedTypes(initialProfile?.supported_pet_types ?? null));
+    setSelectedSizes(initSelectedSizes(initialProfile?.supported_pet_sizes ?? null));
     setPricing(servicePricingToInputString(initialProfile?.service_pricing));
     setVisibleInSearch(initialProfile?.visible_in_search ?? false);
     setLocationInput(initialProfile?.location_name ?? "");
@@ -89,6 +108,14 @@ export function MinderPublicProfileEditor({
       current.includes(type)
         ? current.filter((t) => t !== type)
         : [...current, type],
+    );
+  }
+
+  function toggleSize(size: PetSize) {
+    setSelectedSizes((current) =>
+      current.includes(size)
+        ? current.filter((s) => s !== size)
+        : [...current, size],
     );
   }
 
@@ -145,6 +172,7 @@ export function MinderPublicProfileEditor({
       {
         service_description: description.trim() || null,
         supported_pet_types: selectedTypes,
+        supported_pet_sizes: selectedSizes,
         service_pricing: normalizeServicePricing(pricing),
         location_name,
         latitude,
@@ -205,7 +233,7 @@ export function MinderPublicProfileEditor({
         <CardTitle className="text-lg font-medium">Public profile</CardTitle>
         <CardDescription>
           Owners see this information when they search for minders. Keep your
-          description and supported pet types up to date.
+          description, supported pet types, and size preferences up to date.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -290,6 +318,28 @@ export function MinderPublicProfileEditor({
             {selectedTypes.length === 0 && (
               <p className="text-xs text-muted-foreground">
                 Select all pet types you are comfortable caring for.
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Supported pet sizes</Label>
+            <div className="flex flex-wrap gap-2">
+              {PET_SIZE_OPTIONS.map((size) => (
+                <Button
+                  key={size}
+                  type="button"
+                  variant={selectedSizes.includes(size) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleSize(size)}
+                >
+                  {PET_SIZE_LABEL[size]}
+                </Button>
+              ))}
+            </div>
+            {selectedSizes.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Select the sizes you can comfortably care for.
               </p>
             )}
           </div>

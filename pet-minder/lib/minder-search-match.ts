@@ -1,4 +1,5 @@
 import type { PublicMinderListItem } from "@/lib/types/minder-profile";
+import type { PetSize } from "@/lib/types/pet-profile";
 
 /**
  * Case-insensitive overlap check so e.g. filter "dogs" matches stored "dog"
@@ -39,6 +40,16 @@ export function minderMatchesPetTypeFilter(
     return matchesSmallPetsCategory(supportedTypes, serviceDescription);
   }
   return supportedTypes.some((t) => stringsLooselyMatch(t, f));
+}
+
+export function minderMatchesPetSizeFilter(
+  supportedSizes: PetSize[],
+  filter: string,
+): boolean {
+  const f = filter.trim().toLowerCase();
+  if (!f) return true;
+  if (supportedSizes.length === 0) return true;
+  return supportedSizes.some((size) => size === f);
 }
 
 function haystackMatchesToken(haystack: string, token: string): boolean {
@@ -96,6 +107,7 @@ export function filterMindersForOwnerSearch(
   options: {
     search: string;
     petType: string;
+    petSize: string;
     verifiedOnly: boolean;
     nearLocation?: { latitude: number; longitude: number; radiusKm: number } | null;
   },
@@ -109,6 +121,9 @@ export function filterMindersForOwnerSearch(
         m.serviceDescription,
       )
     ) {
+      return false;
+    }
+    if (!minderMatchesPetSizeFilter(m.supportedPetSizes, options.petSize)) {
       return false;
     }
     if (
