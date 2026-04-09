@@ -51,9 +51,11 @@ export function MinderMap({ minders }: MinderMapProps) {
         if (layer instanceof L.Marker) map.removeLayer(layer);
       });
 
-      const pinned = minders.filter(
+      const MAX_PINS = 30;
+      const allPinned = minders.filter(
         (m) => m.latitude !== null && m.longitude !== null,
       );
+      const pinned = allPinned.slice(0, MAX_PINS);
 
       if (pinned.length === 0) {
         map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
@@ -108,9 +110,12 @@ export function MinderMap({ minders }: MinderMapProps) {
     };
   }, []);
 
-  const pinnedCount = minders.filter(
+  const MAX_PINS = 30;
+  const allPinnedCount = minders.filter(
     (m) => m.latitude !== null && m.longitude !== null,
   ).length;
+  const shownCount = Math.min(allPinnedCount, MAX_PINS);
+  const isCapped = allPinnedCount > MAX_PINS;
 
   return (
     <div className="space-y-2">
@@ -120,9 +125,11 @@ export function MinderMap({ minders }: MinderMapProps) {
         aria-label="Map of available minders"
       />
       <p className="text-xs text-muted-foreground">
-        {pinnedCount === 0
+        {allPinnedCount === 0
           ? "No minders in the current results have set a location yet."
-          : `Showing ${pinnedCount} minder${pinnedCount === 1 ? "" : "s"} with a pinned location.`}
+          : isCapped
+            ? `Showing ${shownCount} of ${allPinnedCount} pinned minders (capped at ${MAX_PINS}). Narrow your filters to see more.`
+            : `Showing ${shownCount} minder${shownCount === 1 ? "" : "s"} with a pinned location.`}
       </p>
     </div>
   );
