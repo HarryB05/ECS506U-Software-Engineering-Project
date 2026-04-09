@@ -356,7 +356,7 @@ export async function fetchAdminReviews(
       return { data: [], error: new Error(err2.message) };
     }
 
-    const rowsFb: AdminReviewRow[] = (fallback ?? []).map((row) => ({
+    const rowsFbBase: AdminReviewRow[] = (fallback ?? []).map((row) => ({
       id: row.id as string,
       reviewerId: row.reviewer_id as string,
       revieweeId: row.reviewee_id as string,
@@ -366,14 +366,16 @@ export async function fetchAdminReviews(
           : null,
       comment: (row.comment as string | null) ?? null,
       isModerated: Boolean(row.is_moderated),
+      reportCount: 0,
       createdAt: row.created_at as string,
       reviewerName: "User",
       revieweeName: "User",
     }));
+    const rowsFb = await withReportCounts(supabase, rowsFbBase);
     return { data: rowsFb, error: null };
   }
 
-  const rows: AdminReviewRow[] = (data ?? []).map((row) => ({
+  const rowsBase: AdminReviewRow[] = (data ?? []).map((row) => ({
     id: row.id as string,
     reviewerId: row.reviewer_id as string,
     revieweeId: row.reviewee_id as string,
@@ -383,12 +385,44 @@ export async function fetchAdminReviews(
         : null,
     comment: (row.comment as string | null) ?? null,
     isModerated: Boolean(row.is_moderated),
+    reportCount: 0,
     createdAt: row.created_at as string,
     reviewerName: displayNameFromUsersJoin(row.reviewer, "Reviewer"),
     revieweeName: displayNameFromUsersJoin(row.reviewee, "Reviewee"),
   }));
 
+  const rows = await withReportCounts(supabase, rowsBase);
+
   return { data: rows, error: null };
+}
+
+async function withReportCounts(
+  supabase: SupabaseClient,
+  rows: AdminReviewRow[],
+): Promise<AdminReviewRow[]> {
+  const ids = rows.map((row) => row.id);
+  if (ids.length === 0) return rows;
+
+  const { data, error } = await supabase
+    .from("review_reports")
+    .select("review_id")
+    .in("review_id", ids);
+
+  if (error) {
+    return rows;
+  }
+
+  const counts = new Map<string, number>();
+  for (const row of (data ?? []) as Record<string, unknown>[]) {
+    const reviewId = row.review_id;
+    if (typeof reviewId !== "string") continue;
+    counts.set(reviewId, (counts.get(reviewId) ?? 0) + 1);
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    reportCount: counts.get(row.id) ?? 0,
+  }));
 }
 
 export async function moderateReview(

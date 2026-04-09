@@ -570,6 +570,11 @@ function ReviewsTab({
             ) : (
               <p className="text-xs text-muted-foreground">No comment text.</p>
             )}
+            {r.reportCount > 0 ? (
+              <p className="text-xs text-warning-500">
+                Reported by {r.reportCount} user{r.reportCount === 1 ? "" : "s"}
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               {!r.isModerated ? (
                 <Button

@@ -11,8 +11,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PublicReviewList } from "@/components/public-review-list";
 import { createClient } from "@/lib/supabase/server";
 import { getMinderProfileById } from "@/lib/minder-profile-service";
+import { listPublicReviewsForUser } from "@/lib/reviews-service";
 import {
   formatMinderPriceLabel,
   minderIntroText,
@@ -76,6 +78,12 @@ async function MinderProfileInner({
   if (!data) {
     notFound();
   }
+
+  const { data: reviews } = await listPublicReviewsForUser(
+    supabase,
+    data.userId,
+    { limit: 10 },
+  );
 
   const rating = data.averageRating ?? 0;
   const typesLine =
@@ -152,6 +160,11 @@ async function MinderProfileInner({
           ) : null}
         </CardContent>
       </Card>
+
+      <PublicReviewList
+        title="Recent reviews"
+        reviews={reviews}
+      />
     </div>
   );
 }
