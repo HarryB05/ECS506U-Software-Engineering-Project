@@ -497,6 +497,9 @@ export async function loadBookingRequestDetail(
   const reqPets = row.booking_request_pets as
     | { pet_id?: string }[]
     | null;
+  const requestPetIds = (reqPets ?? [])
+    .map((p) => p.pet_id)
+    .filter((id): id is string => typeof id === "string");
 
   const bookRaw = firstRelationRow(
     row.bookings as Record<string, unknown> | Record<string, unknown>[] | null,
@@ -528,6 +531,7 @@ export async function loadBookingRequestDetail(
       counterpartyName,
       petCount: Array.isArray(reqPets) ? reqPets.length : 0,
       viewerRole: isOwner ? "owner" : "minder",
+      requestPetIds,
       linkedSession,
     },
     error: null,

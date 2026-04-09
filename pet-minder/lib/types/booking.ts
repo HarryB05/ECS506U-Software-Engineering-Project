@@ -78,6 +78,8 @@ export type BookingSessionDetail = {
 export type BookingRequestDetail = BookingRequestListItem & {
   updatedAt: string | null;
   viewerRole: "owner" | "minder";
+  /** Pets currently attached to the request. */
+  requestPetIds: string[];
   /** Populated once the minder has accepted (confirmed session). */
   linkedSession: {
     id: string;
