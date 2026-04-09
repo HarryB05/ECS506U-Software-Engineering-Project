@@ -10,6 +10,14 @@ import { normalizeServicePricing } from "@/lib/minder-display";
 const TABLE = "minder_profiles";
 const VALID_PET_SIZES = ["small", "medium", "large", "x-large"] as const;
 
+/**
+ * Round a coordinate to 2 decimal places (~1 km precision) so that minder
+ * profiles never expose an exact home address.
+ */
+function approxCoord(coord: number): number {
+  return Math.round(coord * 100) / 100;
+}
+
 type UsersJoin = { full_name: string | null } | null;
 
 function usersFromRow(users: unknown): UsersJoin {
@@ -217,10 +225,12 @@ export async function updateMinderProfile(
     payload.location_name = fields.location_name?.trim() || null;
   }
   if (fields.latitude !== undefined) {
-    payload.latitude = fields.latitude;
+    payload.latitude =
+      fields.latitude !== null ? approxCoord(fields.latitude) : null;
   }
   if (fields.longitude !== undefined) {
-    payload.longitude = fields.longitude;
+    payload.longitude =
+      fields.longitude !== null ? approxCoord(fields.longitude) : null;
   }
 
   const { error } = await supabase
