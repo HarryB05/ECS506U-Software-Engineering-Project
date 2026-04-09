@@ -98,12 +98,12 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Admin-only users: only the admin panel under /dashboard (not owner/minder UI).
+  // Admin-only users: redirect the bare /dashboard root to /dashboard/admin.
+  // Sub-paths (owner, minder pages) are allowed so the role slider works.
   if (
     user &&
-    (await isAdminOnlyUser(user.id)) &&
-    pathname.startsWith("/dashboard") &&
-    !pathname.startsWith("/dashboard/admin")
+    pathname === "/dashboard" &&
+    (await isAdminOnlyUser(user.id))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard/admin";

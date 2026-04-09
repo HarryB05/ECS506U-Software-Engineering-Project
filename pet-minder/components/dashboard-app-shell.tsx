@@ -23,10 +23,7 @@ function AdminOnlyRouteGuard({
 
   useEffect(() => {
     if (!isAdminOnly) return;
-    if (
-      pathname.startsWith("/dashboard") &&
-      !pathname.startsWith("/dashboard/admin")
-    ) {
+    if (pathname === "/dashboard") {
       router.replace("/dashboard/admin");
     }
   }, [isAdminOnly, pathname, router]);
