@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { BookingRequestDetailContent } from "@/components/booking-request-detail-content";
 import { createClient } from "@/lib/supabase/server";
 import { loadBookingRequestDetail } from "@/lib/bookings-service";
+import { listPublicReviewsForUser } from "@/lib/reviews-service";
 
 export default async function BookingRequestPage({
   params,
@@ -40,5 +41,16 @@ export default async function BookingRequestPage({
     notFound();
   }
 
-  return <BookingRequestDetailContent detail={data} />;
+  const reviewsRes = data.counterpartyUserId
+    ? await listPublicReviewsForUser(supabase, data.counterpartyUserId, {
+        limit: 8,
+      })
+    : { data: [], error: null };
+
+  return (
+    <BookingRequestDetailContent
+      detail={data}
+      counterpartyReviews={reviewsRes.data}
+    />
+  );
 }

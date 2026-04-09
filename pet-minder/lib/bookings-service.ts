@@ -9,6 +9,10 @@ import type {
   BookingsDashboardPayload,
   OwnerPetOption,
 } from "@/lib/types/booking";
+import {
+  getAverageRatingForUser,
+  getExistingReviewForBooking,
+} from "@/lib/reviews-service";
 
 function displayNameFromUsersJoin(
   users: unknown,
@@ -338,7 +342,7 @@ export async function loadBookingSessionDetail(
       care_instructions,
       owner_id,
       minder_id,
-      minder_profiles ( users ( full_name ) ),
+      minder_profiles ( user_id, users ( full_name ) ),
       users!bookings_owner_id_fkey ( full_name ),
       booking_pets (
         pet_id,
@@ -370,11 +374,13 @@ export async function loadBookingSessionDetail(
   const viewerRole: "owner" | "minder" = ownerId === userId ? "owner" : "minder";
 
   const mp = row.minder_profiles as
-    | { users?: unknown }
-    | { users?: unknown }[]
+    | { user_id?: string; users?: unknown }
+    | { user_id?: string; users?: unknown }[]
     | null;
   const mpOne = Array.isArray(mp) ? mp[0] : mp;
   const minderName = displayNameFromUsersJoin(mpOne?.users, "Pet minder");
+  const minderUserId =
+    mpOne && typeof mpOne.user_id === "string" ? mpOne.user_id : null;
   const ownerName = displayNameFromUsersJoin(row.users, "Pet owner");
 
   const counterpartyName =
@@ -420,6 +426,41 @@ export async function loadBookingSessionDetail(
     };
   }
 
+  const revieweeId = viewerRole === "owner" ? minderUserId : ownerId;
+  const revieweeName = viewerRole === "owner" ? minderName : ownerName;
+
+  let existingReview: BookingSessionDetail["review"]["existing"] = null;
+  const existingReviewRes = await getExistingReviewForBooking(
+    supabase,
+    userId,
+    bookingId,
+  );
+  if (existingReviewRes.error) {
+    return { data: null, error: existingReviewRes.error };
+  }
+  existingReview = existingReviewRes.data;
+
+  const endMs = Date.parse(String(row.end_datetime));
+  const isWindowOpen =
+    !Number.isNaN(endMs) && Date.now() >= endMs && row.cancelled_at == null;
+
+  let reason: string | null = null;
+  if (!revieweeId) {
+    reason = "Cannot review this booking because the counterparty account is unavailable.";
+  } else if (existingReview) {
+    reason = "You have already reviewed this booking.";
+  } else if (row.cancelled_at != null) {
+    reason = "Cancelled bookings cannot be reviewed.";
+  } else if (!isWindowOpen) {
+    reason = "Reviews unlock after the booking end time.";
+  }
+
+  const canSubmit =
+    Boolean(revieweeId) &&
+    existingReview == null &&
+    isWindowOpen &&
+    row.cancelled_at == null;
+
   return {
     data: {
       id: row.id as string,
@@ -436,6 +477,14 @@ export async function loadBookingSessionDetail(
       createdAt: null,
       viewerRole,
       request,
+      review: {
+        revieweeId: revieweeId ?? "",
+        revieweeName,
+        canSubmit,
+        isWindowOpen,
+        reason,
+        existing: existingReview,
+      },
     },
     error: null,
   };
@@ -461,7 +510,7 @@ export async function loadBookingRequestDetail(
       updated_at,
       owner_id,
       minder_id,
-      minder_profiles ( users ( full_name ) ),
+      minder_profiles ( user_id, users ( full_name ) ),
       users!booking_requests_owner_id_fkey ( full_name ),
       booking_request_pets ( pet_id ),
       bookings (
@@ -486,13 +535,16 @@ export async function loadBookingRequestDetail(
   const ownerId = row.owner_id as string;
   const isOwner = ownerId === userId;
   const mp = row.minder_profiles as
-    | { users?: unknown }
-    | { users?: unknown }[]
+    | { user_id?: string; users?: unknown }
+    | { user_id?: string; users?: unknown }[]
     | null;
   const mpOne = Array.isArray(mp) ? mp[0] : mp;
+  const minderUserId =
+    mpOne && typeof mpOne.user_id === "string" ? mpOne.user_id : null;
   const minderName = displayNameFromUsersJoin(mpOne?.users, "Pet minder");
   const ownerName = displayNameFromUsersJoin(row.users, "Pet owner");
   const counterpartyName = isOwner ? minderName : ownerName;
+  const counterpartyUserId = isOwner ? minderUserId : ownerId;
 
   const reqPets = row.booking_request_pets as
     | { pet_id?: string }[]
@@ -513,6 +565,14 @@ export async function loadBookingRequestDetail(
     };
   }
 
+  let counterpartyAverageRating: number | null = null;
+  if (counterpartyUserId) {
+    const avgRes = await getAverageRatingForUser(supabase, counterpartyUserId);
+    if (!avgRes.error) {
+      counterpartyAverageRating = avgRes.data;
+    }
+  }
+
   return {
     data: {
       id: row.id as string,
@@ -528,7 +588,9 @@ export async function loadBookingRequestDetail(
       counterpartyName,
       petCount: Array.isArray(reqPets) ? reqPets.length : 0,
       viewerRole: isOwner ? "owner" : "minder",
+      counterpartyUserId: counterpartyUserId ?? null,
       linkedSession,
+      counterpartyAverageRating,
     },
     error: null,
   };
