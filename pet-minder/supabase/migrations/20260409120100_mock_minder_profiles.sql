@@ -160,180 +160,180 @@ INSERT INTO public.minder_profiles (
   ('00000001-0001-4000-8001-000000000001',
    'Experienced dog and cat sitter based in Hackney. I have looked after pets for over 8 years and treat every animal like my own. Happy to provide updates and photos throughout the day.',
    ARRAY['dog','cat'], ARRAY['small','medium','large','x-large'],
-   '£12/hr', true, 4.8, true, 'Hackney, London', 51.55, -0.06),
+   12, true, 4.8, true, 'Hackney, London', 51.55, -0.06),
 
   -- 02 Ben Carter — Stratford, dogs only, medium+large, unverified
   ('00000001-0002-4000-8001-000000000002',
    'Dog walker and sitter in Stratford. I take dogs on long off-lead walks in the Olympic Park. Only medium and large breeds please.',
    ARRAY['dog'], ARRAY['medium','large'],
-   '£10/hr', false, 4.2, true, 'Stratford, London', 51.54, -0.01),
+   10, false, 4.2, true, 'Stratford, London', 51.54, -0.01),
 
   -- 03 Charlotte Davis — Camden, cats+rabbits, small only, verified, high rating
   ('00000001-0003-4000-8001-000000000003',
    'Cat and small pet specialist in Camden. I am particularly good with anxious or rescue animals and can administer medication if needed.',
    ARRAY['cat','rabbit'], ARRAY['small'],
-   '£15/hr', true, 4.9, true, 'Camden, London', 51.54, -0.14),
+   15, true, 4.9, true, 'Camden, London', 51.54, -0.14),
 
   -- 04 David Wilson — Brixton, dogs+birds, small+medium, low rating
   ('00000001-0004-4000-8001-000000000004',
    'Offering dog sitting and bird care in Brixton. Comfortable with parrots, budgies, and cockatoos. Happy to do overnight stays.',
    ARRAY['dog','bird'], ARRAY['small','medium'],
-   '£8/hr', false, 3.5, true, 'Brixton, London', 51.46, -0.12),
+   8, false, 3.5, true, 'Brixton, London', 51.46, -0.12),
 
   -- 05 Emma Brown — Islington, small pets (hamsters/gerbils), verified
   ('00000001-0005-4000-8001-000000000005',
    'Small animal specialist in Islington. I care for hamsters, gerbils, guinea pigs, and other small mammals. Cage cleaning included.',
    ARRAY['hamster','guinea pig','gerbil','rabbit'], ARRAY['small'],
-   '£10/hr', true, 4.0, true, 'Islington, London', 51.54, -0.10),
+   10, true, 4.0, true, 'Islington, London', 51.54, -0.10),
 
   -- 06 Finn O''Brien — Southwark, dogs+cats, medium+large, verified
   ('00000001-0006-4000-8001-000000000006',
    'Passionate pet carer in Southwark. Dogs get a minimum one-hour walk daily. Cats receive playtime and enrichment. DBS checked.',
    ARRAY['dog','cat'], ARRAY['medium','large'],
-   '£14/hr', true, 4.6, true, 'Southwark, London', 51.50, -0.09),
+   14, true, 4.6, true, 'Southwark, London', 51.50, -0.09),
 
   -- 07 Grace Lee — Greenwich, fish+turtles, empty size array (edge case)
   ('00000001-0007-4000-8001-000000000007',
    'Aquatic and reptile care specialist near Greenwich. I look after freshwater and marine fish tanks, turtles, and tortoises. Tank maintenance included.',
    ARRAY['fish','turtle','tortoise'], ARRAY[]::text[],
-   '£9/hr', false, 3.8, true, 'Greenwich, London', 51.48, 0.00),
+   9, false, 3.8, true, 'Greenwich, London', 51.48, 0.00),
 
   -- 08 Hassan Ali — Lewisham, dogs, all sizes, unverified
   ('00000001-0008-4000-8001-000000000008',
    'Friendly dog sitter in Lewisham. I am available most weekdays and weekends. Experience with high-energy breeds and large dogs.',
    ARRAY['dog'], ARRAY['small','medium','large','x-large'],
-   '£11/hr', false, 4.3, true, 'Lewisham, London', 51.46, -0.01),
+   11, false, 4.3, true, 'Lewisham, London', 51.46, -0.01),
 
   -- 09 Imogen Clark — Wandsworth, cats+guinea pigs, small+medium, verified
   ('00000001-0009-4000-8001-000000000009',
    'Home-based pet carer in Wandsworth. I only take one booking at a time so your pet gets my full attention. References available.',
    ARRAY['cat','guinea pig'], ARRAY['small','medium'],
-   '£13/hr', true, 4.7, true, 'Wandsworth, London', 51.46, -0.18),
+   13, true, 4.7, true, 'Wandsworth, London', 51.46, -0.18),
 
   -- 10 James Martin — Hammersmith, dogs+cats+birds, all sizes, verified, top rating
   ('00000001-0010-4000-8001-000000000010',
    'Professional pet sitter in Hammersmith with 12 years of experience. Qualified in pet first aid. Insured. I care for dogs, cats, and birds of all sizes.',
    ARRAY['dog','cat','bird'], ARRAY['small','medium','large','x-large'],
-   '£20/hr', true, 4.9, true, 'Hammersmith, London', 51.49, -0.23),
+   20, true, 4.9, true, 'Hammersmith, London', 51.49, -0.23),
 
   -- 11 Kate Johnson — Notting Hill, dogs, small+medium, verified, high price
   ('00000001-0011-4000-8001-000000000011',
    'Boutique dog care in Notting Hill. Maximum two dogs at a time. Private garden available. Daily photo updates guaranteed.',
    ARRAY['dog'], ARRAY['small','medium'],
-   '£25/hr', true, 4.5, true, 'Notting Hill, London', 51.51, -0.20),
+   25, true, 4.5, true, 'Notting Hill, London', 51.51, -0.20),
 
   -- 12 Lucas White — Shoreditch, cats+rabbits, small, unverified
   ('00000001-0012-4000-8001-000000000012',
    'Cat and rabbit sitter in Shoreditch. Experienced with indoor cats and house rabbits. Litter trays cleaned daily.',
    ARRAY['cat','rabbit'], ARRAY['small'],
-   '£12/hr', false, 4.1, true, 'Shoreditch, London', 51.52, -0.08),
+   12, false, 4.1, true, 'Shoreditch, London', 51.52, -0.08),
 
   -- 13 Maya Patel — Bethnal Green, dogs+cats, small+medium, verified
   ('00000001-0013-4000-8001-000000000013',
    'Dog and cat minder in Bethnal Green. Grew up with animals my whole life. Happy to follow any feeding or medication schedules.',
    ARRAY['dog','cat'], ARRAY['small','medium'],
-   '£10/hr', true, 3.9, true, 'Bethnal Green, London', 51.53, -0.06),
+   10, true, 3.9, true, 'Bethnal Green, London', 51.53, -0.06),
 
   -- 14 Nathan Scott — Peckham, dogs, large+x-large, unverified, low rating
   ('00000001-0014-4000-8001-000000000014',
    'Big dog specialist in Peckham. I own two large dogs myself so I understand the needs of big breeds. Long daily walks.',
    ARRAY['dog'], ARRAY['large','x-large'],
-   '£9/hr', false, 3.2, true, 'Peckham, London', 51.47, -0.07),
+   9, false, 3.2, true, 'Peckham, London', 51.47, -0.07),
 
   -- 15 Olivia Harris — Tottenham, cats+small pets, small, unverified
   ('00000001-0015-4000-8001-000000000015',
    'Caring for cats and small animals in Tottenham. Particularly patient with shy or rescue animals. Flexible hours including overnight care.',
    ARRAY['cat','hamster','guinea pig'], ARRAY['small'],
-   '£11/hr', false, 4.4, true, 'Tottenham, London', 51.60, -0.07),
+   11, false, 4.4, true, 'Tottenham, London', 51.60, -0.07),
 
   -- 16 Patrick Walsh — Ealing, dogs+cats+lizards, all sizes, verified
   ('00000001-0016-4000-8001-000000000016',
    'Multi-species pet carer in Ealing. Comfortable with reptiles including bearded dragons and leopard geckos, as well as dogs and cats.',
    ARRAY['dog','cat','lizard','gecko'], ARRAY['small','medium','large'],
-   '£16/hr', true, 4.7, true, 'Ealing, London', 51.51, -0.31),
+   16, true, 4.7, true, 'Ealing, London', 51.51, -0.31),
 
   -- 17 Quinn Roberts — Kingston, dogs, medium+large, verified, high rating
   ('00000001-0017-4000-8001-000000000017',
    'Dog sitter with a large private garden in Kingston upon Thames. Ideal for energetic dogs. Trial visits always offered.',
    ARRAY['dog'], ARRAY['medium','large'],
-   '£18/hr', true, 4.8, true, 'Kingston upon Thames', 51.41, -0.31),
+   18, true, 4.8, true, 'Kingston upon Thames', 51.41, -0.31),
 
   -- 18 Rachel Green — Croydon, cats+birds+rabbits, small, unverified, lower rating
   ('00000001-0018-4000-8001-000000000018',
    'Caring for cats, birds, and rabbits in Croydon. Available for short pop-in visits or full day care. Reasonable rates.',
    ARRAY['cat','bird','rabbit'], ARRAY['small'],
-   '£10/hr', false, 3.7, true, 'Croydon, London', 51.38, -0.10),
+   10, false, 3.7, true, 'Croydon, London', 51.38, -0.10),
 
   -- 19 Samuel Turner — Wembley, dogs, small+medium, unverified
   ('00000001-0019-4000-8001-000000000019',
    'Dog sitter near Wembley Stadium. Good with nervous dogs. I will keep your dog calm and comfortable while you are away.',
    ARRAY['dog'], ARRAY['small','medium'],
-   '£12/hr', false, 4.0, true, 'Wembley, London', 51.55, -0.30),
+   12, false, 4.0, true, 'Wembley, London', 51.55, -0.30),
 
   -- 20 Tara Singh — Fulham, cats+guinea pigs, small+medium, verified
   ('00000001-0020-4000-8001-000000000020',
    'Cat and small pet specialist in Fulham. Quiet home environment, no other pets. Ideal for animals that need a calm setting.',
    ARRAY['cat','guinea pig'], ARRAY['small','medium'],
-   '£14/hr', true, 4.6, true, 'Fulham, London', 51.48, -0.19),
+   14, true, 4.6, true, 'Fulham, London', 51.48, -0.19),
 
   -- 21 Uma Foster — Clapham, dogs+cats, medium+large, unverified
   ('00000001-0021-4000-8001-000000000021',
    'Dog and cat sitter in Clapham. I work from home so your pet is never left alone. Daily walks in Clapham Common.',
    ARRAY['dog','cat'], ARRAY['medium','large'],
-   '£15/hr', false, 4.3, true, 'Clapham, London', 51.46, -0.14),
+   15, false, 4.3, true, 'Clapham, London', 51.46, -0.14),
 
   -- 22 Victor Hughes — Battersea, dogs, large+x-large, verified, high price
   ('00000001-0022-4000-8001-000000000022',
    'Premium dog care in Battersea. Specialising in large and giant breeds. Former veterinary nurse. First aid certified.',
    ARRAY['dog'], ARRAY['large','x-large'],
-   '£22/hr', true, 4.8, true, 'Battersea, London', 51.48, -0.15),
+   22, true, 4.8, true, 'Battersea, London', 51.48, -0.15),
 
   -- 23 Willow Chen — Kensington, cats+rabbits, small, verified, highest price
   ('00000001-0023-4000-8001-000000000023',
    'Luxury in-home cat and rabbit sitting in Kensington. Your pet stays in their own home with round-the-clock care. Detailed daily reports.',
    ARRAY['cat','rabbit'], ARRAY['small'],
-   '£30/hr', true, 4.9, true, 'Kensington, London', 51.50, -0.19),
+   30, true, 4.9, true, 'Kensington, London', 51.50, -0.19),
 
   -- 24 Xavier King — Mile End, dogs+birds, small+medium, unverified, lower rating
   ('00000001-0024-4000-8001-000000000024',
    'Dog and bird care in Mile End. Comfortable with parakeets and cockatoos. Happy to combine dog walking with bird feeding visits.',
    ARRAY['dog','bird'], ARRAY['small','medium'],
-   '£11/hr', false, 3.6, true, 'Mile End, London', 51.52, -0.03),
+   11, false, 3.6, true, 'Mile End, London', 51.52, -0.03),
 
   -- 25 Yasmin Ahmed — Woolwich, dogs+cats, small+medium, verified
   ('00000001-0025-4000-8001-000000000025',
    'Friendly and reliable pet carer in Woolwich. Fully insured. Happy to take last-minute bookings when available.',
    ARRAY['dog','cat'], ARRAY['small','medium'],
-   '£9/hr', true, 4.1, true, 'Woolwich, London', 51.49, 0.06),
+   9, true, 4.1, true, 'Woolwich, London', 51.49, 0.06),
 
   -- 26 Zara Collins — Chiswick, dogs, medium+large, unverified
   ('00000001-0026-4000-8001-000000000026',
    'Dog sitter near Chiswick House. Beautiful park walks on offer. I keep a structured routine so your dog feels at home.',
    ARRAY['dog'], ARRAY['medium','large'],
-   '£20/hr', false, 4.7, true, 'Chiswick, London', 51.49, -0.27),
+   20, false, 4.7, true, 'Chiswick, London', 51.49, -0.27),
 
   -- 27 Aaron Mitchell — Balham, cats+snakes+lizards, small, verified, niche specialty
   ('00000001-0027-4000-8001-000000000027',
    'Exotic and reptile specialist in Balham. I keep snakes and lizards myself so I understand their housing, heating, and feeding needs. Also happy to care for cats.',
    ARRAY['cat','snake','lizard'], ARRAY['small'],
-   '£13/hr', true, 4.2, true, 'Balham, London', 51.44, -0.15),
+   13, true, 4.2, true, 'Balham, London', 51.44, -0.15),
 
   -- 28 Beth Taylor — Finsbury Park, dogs, all sizes, unverified, NULL rating (new minder)
   ('00000001-0028-4000-8001-000000000028',
    'New to the platform but experienced with dogs of all sizes. Based near Finsbury Park — great for long off-lead runs.',
    ARRAY['dog'], ARRAY['small','medium','large','x-large'],
-   '£10/hr', false, NULL, true, 'Finsbury Park, London', 51.56, -0.10),
+   10, false, NULL, true, 'Finsbury Park, London', 51.56, -0.10),
 
   -- 29 Chris Anderson — Dalston, dogs+cats+small pets, all sizes, verified
   ('00000001-0029-4000-8001-000000000029',
    'All-round pet carer in Dalston with 6 years of experience. I look after dogs, cats, rabbits, hamsters, and most other small animals. Group walks available.',
    ARRAY['dog','cat','rabbit','hamster'], ARRAY['small','medium','large'],
-   '£12/hr', true, 4.5, true, 'Dalston, London', 51.55, -0.07),
+   12, true, 4.5, true, 'Dalston, London', 51.55, -0.07),
 
   -- 30 Diana Evans — Putney, dogs+cats, small+medium, verified, NULL description (edge case)
   ('00000001-0030-4000-8001-000000000030',
    NULL,
    ARRAY['dog','cat'], ARRAY['small','medium'],
-   '£16/hr', true, 4.4, true, 'Putney, London', 51.46, -0.22)
+   16, true, 4.4, true, 'Putney, London', 51.46, -0.22)
 
 ON CONFLICT (user_id) DO NOTHING;
