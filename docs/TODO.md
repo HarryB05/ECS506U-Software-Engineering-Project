@@ -77,12 +77,12 @@ Stack: Next.js (React) · Supabase · Vercel
 - [x] Location-radius filtering in search results — URF 2.9
 
 ### Admin Panel [Luqman]
-- [ ] Admin view of all registered users — URF 4.1
-- [ ] Suspend / deactivate user accounts — URF 4.2
-- [ ] Verify pet minder profiles before activation — URF 4.3
-- [ ] Resolve booking disputes — URF 4.4
-- [ ] Moderate and remove inappropriate reviews — URF 4.5
-- [ ] Log all admin actions with timestamps — URF 4.6
+- [x] Admin view of all registered users — URF 4.1
+- [x] Suspend / deactivate user accounts — URF 4.2
+- [x] Verify pet minder profiles before activation — URF 4.3
+- [x] Resolve booking disputes — URF 4.4
+- [x] Moderate and remove inappropriate reviews — URF 4.5
+- [x] Log all admin actions with timestamps — URF 4.6
 
 ### Security & Constraints [TO DISCUSS]
 - [ ] Two-factor authentication (2FA) on login — URF 1.4
