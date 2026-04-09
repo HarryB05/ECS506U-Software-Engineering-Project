@@ -46,6 +46,17 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  async function isAccountActive(userId: string): Promise<boolean> {
+    const { data: row, error } = await supabase
+      .from("users")
+      .select("is_active")
+      .eq("id", userId)
+      .maybeSingle();
+    if (error) return true;
+    // Explicit false only — null/undefined treated as active (legacy rows).
+    return row?.is_active !== false;
+  }
+
   async function hasActiveRoles(userId: string): Promise<boolean> {
     const { data: roles } = await supabase
       .from("roles")
@@ -54,6 +65,49 @@ export async function updateSession(request: NextRequest) {
       .is("deleted_at", null)
       .limit(1);
     return Boolean(roles && roles.length > 0);
+  }
+
+  /** Admin only: has `admin` role and no `owner` / `minder` roles. */
+  async function isAdminOnlyUser(userId: string): Promise<boolean> {
+    const { data: roles } = await supabase
+      .from("roles")
+      .select("role_type")
+      .eq("user_id", userId)
+      .is("deleted_at", null);
+    const types = new Set((roles ?? []).map((r) => r.role_type));
+    return types.has("admin") && !types.has("owner") && !types.has("minder");
+  }
+
+  const onSuspendedPage =
+    pathname === "/account-suspended" ||
+    pathname.startsWith("/account-suspended/");
+
+  // Suspension: block dashboard/onboarding only — allow `/`, `/auth/*`, etc., so
+  // "Back to home" works and users can sign out then sign in again.
+  const suspendedBlockedPath =
+    pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding");
+
+  if (
+    user &&
+    suspendedBlockedPath &&
+    !onSuspendedPage &&
+    !(await isAccountActive(user.id))
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/account-suspended";
+    return NextResponse.redirect(url);
+  }
+
+  // Admin-only users: only the admin panel under /dashboard (not owner/minder UI).
+  if (
+    user &&
+    (await isAdminOnlyUser(user.id)) &&
+    pathname.startsWith("/dashboard") &&
+    !pathname.startsWith("/dashboard/admin")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard/admin";
+    return NextResponse.redirect(url);
   }
 
   // Onboarding: require session; send completed users to the dashboard
@@ -83,9 +137,17 @@ export async function updateSession(request: NextRequest) {
     (pathname === "/auth/login" || pathname === "/auth/sign-up")
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = (await hasActiveRoles(user.id))
-      ? "/dashboard"
-      : "/onboarding";
+    if (!(await isAccountActive(user.id))) {
+      url.pathname = "/account-suspended";
+      return NextResponse.redirect(url);
+    }
+    if (await hasActiveRoles(user.id)) {
+      url.pathname = (await isAdminOnlyUser(user.id))
+        ? "/dashboard/admin"
+        : "/dashboard";
+    } else {
+      url.pathname = "/onboarding";
+    }
     return NextResponse.redirect(url);
   }
 
