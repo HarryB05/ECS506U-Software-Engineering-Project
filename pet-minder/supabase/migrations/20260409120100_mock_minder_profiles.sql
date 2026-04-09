@@ -60,39 +60,40 @@ END $$;
 -- Step 2: public.users
 -- (Supabase trigger may auto-create these rows; upsert is idempotent.)
 -- ---------------------------------------------------------------------------
-INSERT INTO public.users (id, full_name, is_active) VALUES
-  ('00000001-0001-4000-8001-000000000001', 'Alice Thompson',  true),
-  ('00000001-0002-4000-8001-000000000002', 'Ben Carter',      true),
-  ('00000001-0003-4000-8001-000000000003', 'Charlotte Davis', true),
-  ('00000001-0004-4000-8001-000000000004', 'David Wilson',    true),
-  ('00000001-0005-4000-8001-000000000005', 'Emma Brown',      true),
-  ('00000001-0006-4000-8001-000000000006', 'Finn O''Brien',   true),
-  ('00000001-0007-4000-8001-000000000007', 'Grace Lee',       true),
-  ('00000001-0008-4000-8001-000000000008', 'Hassan Ali',      true),
-  ('00000001-0009-4000-8001-000000000009', 'Imogen Clark',    true),
-  ('00000001-0010-4000-8001-000000000010', 'James Martin',    true),
-  ('00000001-0011-4000-8001-000000000011', 'Kate Johnson',    true),
-  ('00000001-0012-4000-8001-000000000012', 'Lucas White',     true),
-  ('00000001-0013-4000-8001-000000000013', 'Maya Patel',      true),
-  ('00000001-0014-4000-8001-000000000014', 'Nathan Scott',    true),
-  ('00000001-0015-4000-8001-000000000015', 'Olivia Harris',   true),
-  ('00000001-0016-4000-8001-000000000016', 'Patrick Walsh',   true),
-  ('00000001-0017-4000-8001-000000000017', 'Quinn Roberts',   true),
-  ('00000001-0018-4000-8001-000000000018', 'Rachel Green',    true),
-  ('00000001-0019-4000-8001-000000000019', 'Samuel Turner',   true),
-  ('00000001-0020-4000-8001-000000000020', 'Tara Singh',      true),
-  ('00000001-0021-4000-8001-000000000021', 'Uma Foster',      true),
-  ('00000001-0022-4000-8001-000000000022', 'Victor Hughes',   true),
-  ('00000001-0023-4000-8001-000000000023', 'Willow Chen',     true),
-  ('00000001-0024-4000-8001-000000000024', 'Xavier King',     true),
-  ('00000001-0025-4000-8001-000000000025', 'Yasmin Ahmed',    true),
-  ('00000001-0026-4000-8001-000000000026', 'Zara Collins',    true),
-  ('00000001-0027-4000-8001-000000000027', 'Aaron Mitchell',  true),
-  ('00000001-0028-4000-8001-000000000028', 'Beth Taylor',     true),
-  ('00000001-0029-4000-8001-000000000029', 'Chris Anderson',  true),
-  ('00000001-0030-4000-8001-000000000030', 'Diana Evans',     true)
+INSERT INTO public.users (id, email, full_name, is_active) VALUES
+  ('00000001-0001-4000-8001-000000000001', 'mock.minder.01@example.com', 'Alice Thompson',  true),
+  ('00000001-0002-4000-8001-000000000002', 'mock.minder.02@example.com', 'Ben Carter',      true),
+  ('00000001-0003-4000-8001-000000000003', 'mock.minder.03@example.com', 'Charlotte Davis', true),
+  ('00000001-0004-4000-8001-000000000004', 'mock.minder.04@example.com', 'David Wilson',    true),
+  ('00000001-0005-4000-8001-000000000005', 'mock.minder.05@example.com', 'Emma Brown',      true),
+  ('00000001-0006-4000-8001-000000000006', 'mock.minder.06@example.com', 'Finn O''Brien',   true),
+  ('00000001-0007-4000-8001-000000000007', 'mock.minder.07@example.com', 'Grace Lee',       true),
+  ('00000001-0008-4000-8001-000000000008', 'mock.minder.08@example.com', 'Hassan Ali',      true),
+  ('00000001-0009-4000-8001-000000000009', 'mock.minder.09@example.com', 'Imogen Clark',    true),
+  ('00000001-0010-4000-8001-000000000010', 'mock.minder.10@example.com', 'James Martin',    true),
+  ('00000001-0011-4000-8001-000000000011', 'mock.minder.11@example.com', 'Kate Johnson',    true),
+  ('00000001-0012-4000-8001-000000000012', 'mock.minder.12@example.com', 'Lucas White',     true),
+  ('00000001-0013-4000-8001-000000000013', 'mock.minder.13@example.com', 'Maya Patel',      true),
+  ('00000001-0014-4000-8001-000000000014', 'mock.minder.14@example.com', 'Nathan Scott',    true),
+  ('00000001-0015-4000-8001-000000000015', 'mock.minder.15@example.com', 'Olivia Harris',   true),
+  ('00000001-0016-4000-8001-000000000016', 'mock.minder.16@example.com', 'Patrick Walsh',   true),
+  ('00000001-0017-4000-8001-000000000017', 'mock.minder.17@example.com', 'Quinn Roberts',   true),
+  ('00000001-0018-4000-8001-000000000018', 'mock.minder.18@example.com', 'Rachel Green',    true),
+  ('00000001-0019-4000-8001-000000000019', 'mock.minder.19@example.com', 'Samuel Turner',   true),
+  ('00000001-0020-4000-8001-000000000020', 'mock.minder.20@example.com', 'Tara Singh',      true),
+  ('00000001-0021-4000-8001-000000000021', 'mock.minder.21@example.com', 'Uma Foster',      true),
+  ('00000001-0022-4000-8001-000000000022', 'mock.minder.22@example.com', 'Victor Hughes',   true),
+  ('00000001-0023-4000-8001-000000000023', 'mock.minder.23@example.com', 'Willow Chen',     true),
+  ('00000001-0024-4000-8001-000000000024', 'mock.minder.24@example.com', 'Xavier King',     true),
+  ('00000001-0025-4000-8001-000000000025', 'mock.minder.25@example.com', 'Yasmin Ahmed',    true),
+  ('00000001-0026-4000-8001-000000000026', 'mock.minder.26@example.com', 'Zara Collins',    true),
+  ('00000001-0027-4000-8001-000000000027', 'mock.minder.27@example.com', 'Aaron Mitchell',  true),
+  ('00000001-0028-4000-8001-000000000028', 'mock.minder.28@example.com', 'Beth Taylor',     true),
+  ('00000001-0029-4000-8001-000000000029', 'mock.minder.29@example.com', 'Chris Anderson',  true),
+  ('00000001-0030-4000-8001-000000000030', 'mock.minder.30@example.com', 'Diana Evans',     true)
 ON CONFLICT (id) DO UPDATE
-  SET full_name = EXCLUDED.full_name;
+  SET full_name = EXCLUDED.full_name,
+      email     = EXCLUDED.email;
 
 -- ---------------------------------------------------------------------------
 -- Step 3: public.roles  (minder role for each mock account)
