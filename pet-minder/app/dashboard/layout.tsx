@@ -33,6 +33,16 @@ async function DashboardLayoutInner({
     redirect("/auth/login");
   }
 
+  const { data: userRow } = await supabase
+    .from("users")
+    .select("is_active")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (userRow?.is_active === false) {
+    redirect("/account-suspended");
+  }
+
   const { data: roles } = await supabase
     .from("roles")
     .select("role_type")

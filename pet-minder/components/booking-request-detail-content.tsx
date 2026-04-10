@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ArrowLeft, CalendarRange, Clock, Loader2, PawPrint } from "lucide-react";
+import { ArrowLeft, CalendarRange, Clock, Loader2, PawPrint, Star } from "lucide-react";
 
 import { BookingLifecycleTimeline } from "@/components/booking-lifecycle-timeline";
 import { BookingDatePicker } from "@/components/booking-date-picker";
+import { PublicReviewList } from "@/components/public-review-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/status-badge";
 import { Textarea } from "@/components/ui/textarea";
 import type { BookingRequestDetail, OwnerPetOption } from "@/lib/types/booking";
+import type { PublicReviewItem } from "@/lib/reviews-service";
 import {
   formatBookingInstant,
   formatRequestSchedule,
@@ -152,11 +154,13 @@ function computeDurationMinutes(
 type BookingRequestDetailContentProps = {
   detail: BookingRequestDetail;
   ownerPets: OwnerPetOption[] | null;
+  counterpartyReviews: PublicReviewItem[];
 };
 
 export function BookingRequestDetailContent({
   detail,
   ownerPets,
+  counterpartyReviews,
 }: BookingRequestDetailContentProps) {
   const router = useRouter();
 
@@ -334,6 +338,7 @@ export function BookingRequestDetailContent({
     detail.viewerRole === "minder" && detail.status === "pending";
   const showOwnerCancel =
     detail.viewerRole === "owner" && detail.status === "pending";
+  const counterpartyRating = detail.counterpartyAverageRating;
 
   return (
     <div className="max-w-content mx-auto space-y-8">
@@ -609,6 +614,34 @@ export function BookingRequestDetailContent({
             )}
           </CardContent>
         </Card>
+      ) : null}
+
+      {detail.viewerRole === "minder" ? (
+        <>
+          <Card className="shadow-card border-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium">Owner rating</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                From completed booking reviews.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {counterpartyRating != null ? (
+                <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+                  <Star className="size-4" />
+                  {counterpartyRating.toFixed(1)} / 5
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No ratings yet.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <PublicReviewList
+            title="Owner reviews"
+            reviews={counterpartyReviews}
+          />
+        </>
       ) : null}
 
       <div className="flex flex-wrap gap-2">
