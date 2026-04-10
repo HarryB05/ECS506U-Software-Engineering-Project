@@ -43,7 +43,7 @@ export async function fetchAdminStats(
     { count: userCount, error: uErr },
     { count: minderCount, error: mErr },
     { count: disputeCount, error: dErr },
-    { count: reviewCount, error: rErr },
+    { data: reportRows, error: rErr },
   ] = await Promise.all([
     supabase
       .from("users")
@@ -58,10 +58,7 @@ export async function fetchAdminStats(
       .from("bookings")
       .select("id", { count: "exact", head: true })
       .eq("status", "disputed"),
-    supabase
-      .from("reviews")
-      .select("id", { count: "exact", head: true })
-      .eq("is_moderated", false),
+    supabase.from("review_reports").select("review_id").is("resolved_at", null),
   ]);
 
   const err = uErr || mErr || dErr || rErr;
@@ -71,7 +68,7 @@ export async function fetchAdminStats(
         userCount: 0,
         mindersPendingVerification: 0,
         disputedBookings: 0,
-        unmoderatedReviews: 0,
+        reportedReviews: 0,
       },
       error: new Error(err.message),
     };
@@ -82,7 +79,11 @@ export async function fetchAdminStats(
       userCount: userCount ?? 0,
       mindersPendingVerification: minderCount ?? 0,
       disputedBookings: disputeCount ?? 0,
-      unmoderatedReviews: reviewCount ?? 0,
+      reportedReviews: new Set(
+        (reportRows ?? [])
+          .map((row) => row.review_id)
+          .filter((id): id is string => typeof id === "string"),
+      ).size,
     },
     error: null,
   };
@@ -372,7 +373,7 @@ export async function fetchAdminReviews(
       revieweeName: "User",
     }));
     const rowsFb = await withReportCounts(supabase, rowsFbBase);
-    return { data: rowsFb, error: null };
+    return { data: rowsFb.filter((row) => row.reportCount > 0), error: null };
   }
 
   const rowsBase: AdminReviewRow[] = (data ?? []).map((row) => ({
@@ -393,7 +394,7 @@ export async function fetchAdminReviews(
 
   const rows = await withReportCounts(supabase, rowsBase);
 
-  return { data: rows, error: null };
+  return { data: rows.filter((row) => row.reportCount > 0), error: null };
 }
 
 async function withReportCounts(
@@ -406,6 +407,7 @@ async function withReportCounts(
   const { data, error } = await supabase
     .from("review_reports")
     .select("review_id")
+    .is("resolved_at", null)
     .in("review_id", ids);
 
   if (error) {
@@ -430,13 +432,23 @@ export async function moderateReview(
   adminId: string,
   reviewId: string,
 ): Promise<{ error: Error | null }> {
-  const { error } = await supabase
+  const { error: reportResolveErr } = await supabase
+    .from("review_reports")
+    .update({ resolved_at: new Date().toISOString() })
+    .eq("review_id", reviewId)
+    .is("resolved_at", null);
+
+  if (reportResolveErr) {
+    return { error: new Error(reportResolveErr.message) };
+  }
+
+  const { error: republishErr } = await supabase
     .from("reviews")
     .update({ is_moderated: true })
     .eq("id", reviewId);
 
-  if (error) {
-    return { error: new Error(error.message) };
+  if (republishErr) {
+    // Report has been resolved already; do not fail the action if this follow-up update fails.
   }
 
   try {
@@ -446,8 +458,8 @@ export async function moderateReview(
       "REVIEW_MODERATED",
       `Marked review ${reviewId} as moderated`,
     );
-  } catch (e) {
-    return { error: e instanceof Error ? e : new Error(String(e)) };
+  } catch {
+    // Logging should not fail a completed moderation action.
   }
 
   return { error: null };
@@ -458,10 +470,35 @@ export async function removeReview(
   adminId: string,
   reviewId: string,
 ): Promise<{ error: Error | null }> {
-  const { error } = await supabase.from("reviews").delete().eq("id", reviewId);
+  let { error } = await supabase.from("reviews").delete().eq("id", reviewId);
+
+  if (error?.code === "23503") {
+    // Backward-compatible fallback for environments where review_reports FK may block delete.
+    const { error: reportDeleteErr } = await supabase
+      .from("review_reports")
+      .delete()
+      .eq("review_id", reviewId);
+
+    if (reportDeleteErr) {
+      return { error: new Error(reportDeleteErr.message) };
+    }
+
+    const retry = await supabase.from("reviews").delete().eq("id", reviewId);
+    error = retry.error;
+  }
 
   if (error) {
     return { error: new Error(error.message) };
+  }
+
+  // Clear residual reports for safety in case cascade isn't present in a deployed DB.
+  const { error: cleanupErr } = await supabase
+    .from("review_reports")
+    .delete()
+    .eq("review_id", reviewId);
+
+  if (cleanupErr) {
+    // The review has already been removed; don't fail UI refresh on cleanup issues.
   }
 
   try {
@@ -471,8 +508,8 @@ export async function removeReview(
       "REVIEW_REMOVED",
       `Removed review ${reviewId}`,
     );
-  } catch (e) {
-    return { error: e instanceof Error ? e : new Error(String(e)) };
+  } catch {
+    // Logging should not fail a completed deletion action.
   }
 
   return { error: null };

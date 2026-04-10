@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,57 @@ type PublicReviewListProps = {
 export function PublicReviewList({ title, reviews }: PublicReviewListProps) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
-  const [reported, setReported] = useState<Set<string>>(() => new Set());
+  const [reportedByMe, setReportedByMe] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadReportedByMe() {
+      const ids = reviews.map((review) => review.id).filter(Boolean);
+      if (ids.length === 0) {
+        if (active) setReportedByMe(new Set());
+        return;
+      }
+
+      const supabase = createClient();
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (!active) return;
+      if (authError || !user) {
+        setReportedByMe(new Set());
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("review_reports")
+        .select("review_id")
+        .eq("reporter_id", user.id)
+        .in("review_id", ids);
+
+      if (!active) return;
+      if (error) {
+        setReportedByMe(new Set());
+        return;
+      }
+
+      setReportedByMe(
+        new Set(
+          (data ?? [])
+            .map((row) => row.review_id)
+            .filter((id): id is string => typeof id === "string"),
+        ),
+      );
+    }
+
+    void loadReportedByMe();
+
+    return () => {
+      active = false;
+    };
+  }, [reviews]);
 
   async function handleReport(reviewId: string) {
     setReportError(null);
@@ -56,7 +106,7 @@ export function PublicReviewList({ title, reviews }: PublicReviewListProps) {
       return;
     }
 
-    setReported((prev) => {
+    setReportedByMe((prev) => {
       const next = new Set(prev);
       next.add(reviewId);
       return next;
@@ -104,11 +154,11 @@ export function PublicReviewList({ title, reviews }: PublicReviewListProps) {
                   variant="outline"
                   size="sm"
                   className="gap-1"
-                  disabled={busyId === review.id || reported.has(review.id)}
+                  disabled={busyId === review.id || reportedByMe.has(review.id)}
                   onClick={() => handleReport(review.id)}
                 >
                   <AlertTriangle className="size-3.5" />
-                  {reported.has(review.id) ? "Reported" : "Report"}
+                  {reportedByMe.has(review.id) ? "Reported" : "Report"}
                 </Button>
               </div>
             </div>

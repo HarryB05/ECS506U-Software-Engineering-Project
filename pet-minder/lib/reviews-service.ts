@@ -179,6 +179,7 @@ export async function listPublicReviewsForUser(
     const reportRes = await supabase
       .from("review_reports")
       .select("review_id")
+      .is("resolved_at", null)
       .in("review_id", ids);
     if (!reportRes.error) {
       for (const row of (reportRes.data ?? []) as Record<string, unknown>[]) {
@@ -316,7 +317,7 @@ export async function submitBookingReview(
     booking_id: input.bookingId,
     rating: rounded,
     comment: toCleanComment(input.comment),
-    is_moderated: false,
+    is_moderated: true,
   });
 
   if (error) {
