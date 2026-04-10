@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
 
 import { BookingLifecycleTimeline } from "@/components/booking-lifecycle-timeline";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Textarea } from "@/components/ui/textarea";
 import type { BookingSessionDetail } from "@/lib/types/booking";
+import { submitBookingReview } from "@/lib/reviews-service";
 import {
   formatBookingInstant,
   formatBookingWithPetsTitle,
@@ -89,7 +92,11 @@ export function BookingSessionDetailContent({
 }: BookingSessionDetailContentProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
 
   const timeline = useMemo(() => buildSessionTimeline(detail), [detail]);
 
@@ -114,6 +121,38 @@ export function BookingSessionDetailContent({
     }
     router.refresh();
     router.push("/dashboard/bookings");
+  }
+
+  async function handleSubmitReview() {
+    setReviewError(null);
+    setSubmittingReview(true);
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      setSubmittingReview(false);
+      setReviewError("Sign in again to submit your review.");
+      return;
+    }
+
+    const { error: submitError } = await submitBookingReview(supabase, {
+      bookingId: detail.id,
+      reviewerId: user.id,
+      rating,
+      comment,
+    });
+
+    setSubmittingReview(false);
+    if (submitError) {
+      setReviewError(submitError.message);
+      return;
+    }
+
+    setComment("");
+    router.refresh();
   }
 
   const otherParty =
@@ -203,6 +242,93 @@ export function BookingSessionDetailContent({
                 {detail.request.message}
               </p>
             </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-card border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-medium">Review {detail.review.revieweeName}</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Ratings are unlocked only after the booking end time.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {detail.review.existing ? (
+            <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3 text-sm">
+              <p className="text-foreground">
+                You rated this booking <strong>{detail.review.existing.rating} / 5</strong>.
+              </p>
+              {detail.review.existing.comment ? (
+                <p className="text-muted-foreground leading-relaxed">
+                  {detail.review.existing.comment}
+                </p>
+              ) : null}
+              <p className="text-xs text-muted-foreground">
+                Submitted {formatBookingInstant(detail.review.existing.createdAt)}
+              </p>
+            </div>
+          ) : null}
+
+          {detail.review.canSubmit ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="booking-review-rating">Star rating</Label>
+                <div
+                  id="booking-review-rating"
+                  className="flex flex-wrap items-center gap-2"
+                >
+                  {[1, 2, 3, 4, 5].map((value) => {
+                    const active = value <= rating;
+                    return (
+                      <Button
+                        key={value}
+                        type="button"
+                        variant={active ? "default" : "outline"}
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setRating(value)}
+                      >
+                        <Star className="size-3.5" />
+                        {value}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="booking-review-comment">Written review (optional)</Label>
+                <Textarea
+                  id="booking-review-comment"
+                  placeholder="Share details that could help other users."
+                  value={comment}
+                  onChange={(event) => setComment(event.target.value)}
+                  maxLength={1000}
+                />
+              </div>
+
+              {reviewError ? (
+                <p className="text-sm text-danger-500" role="alert">
+                  {reviewError}
+                </p>
+              ) : null}
+
+              <Button
+                type="button"
+                disabled={submittingReview}
+                onClick={handleSubmitReview}
+              >
+                {submittingReview ? "Submitting..." : "Submit review"}
+              </Button>
+            </div>
+          ) : null}
+
+          {!detail.review.canSubmit && !detail.review.existing ? (
+            <p className="text-sm text-muted-foreground">
+              {detail.review.reason ??
+                "Reviews become available after this booking ends."}
+            </p>
           ) : null}
         </CardContent>
       </Card>

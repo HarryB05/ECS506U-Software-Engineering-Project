@@ -56,6 +56,22 @@ export type BookingDetailRequestSnapshot = {
   durationMinutes: number;
 };
 
+export type BookingSessionReviewSummary = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+};
+
+export type BookingSessionReviewState = {
+  revieweeId: string;
+  revieweeName: string;
+  canSubmit: boolean;
+  isWindowOpen: boolean;
+  reason: string | null;
+  existing: BookingSessionReviewSummary | null;
+};
+
 export type BookingSessionDetail = {
   id: string;
   requestId: string | null;
@@ -73,6 +89,7 @@ export type BookingSessionDetail = {
   createdAt: string | null;
   viewerRole: "owner" | "minder";
   request: BookingDetailRequestSnapshot | null;
+  review: BookingSessionReviewState;
 };
 
 export type BookingRequestDetail = BookingRequestListItem & {
@@ -80,6 +97,7 @@ export type BookingRequestDetail = BookingRequestListItem & {
   viewerRole: "owner" | "minder";
   /** Pets currently attached to the request. */
   requestPetIds: string[];
+  counterpartyUserId: string | null;
   /** Populated once the minder has accepted (confirmed session). */
   linkedSession: {
     id: string;
@@ -88,6 +106,7 @@ export type BookingRequestDetail = BookingRequestListItem & {
     status: BookingRowStatus;
     cancelledAt: string | null;
   } | null;
+  counterpartyAverageRating: number | null;
 };
 
 export type BookingsDashboardPayload = {

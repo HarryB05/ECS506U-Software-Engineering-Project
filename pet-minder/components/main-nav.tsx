@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -11,6 +12,7 @@ import {
   User,
   Home,
   Search,
+  Shield,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
@@ -30,6 +32,12 @@ const minderNav = [
   { href: "/dashboard/minder", label: "Minder", icon: Home },
 ] as const;
 
+const adminNavItem = {
+  href: "/dashboard/admin",
+  label: "Admin",
+  icon: Shield,
+} as const;
+
 function isNavActive(href: string, pathname: string): boolean {
   if (href === "/dashboard") {
     return pathname === "/dashboard";
@@ -48,15 +56,40 @@ export function MainNav({
   const pathname = usePathname();
   const dashboardRole = useOptionalDashboardRole();
 
+  const isAdminOnly = useMemo(() => {
+    if (!dashboardRole) return false;
+    const { allRoleTypes } = dashboardRole;
+    return (
+      allRoleTypes.includes("admin") &&
+      !allRoleTypes.includes("owner") &&
+      !allRoleTypes.includes("minder")
+    );
+  }, [dashboardRole]);
+
   const appNav = useMemo(() => {
     if (!dashboardRole) {
       return ownerNav;
     }
-    const { roleTypes, activeRole } = dashboardRole;
-    if (roleTypes.length === 1) {
-      return roleTypes[0] === "minder" ? minderNav : ownerNav;
+    const { roleTypes, activeRole, allRoleTypes } = dashboardRole;
+    const isAdmin = allRoleTypes.includes("admin");
+    // Admin only (no owner/minder roles): show admin workspace only — no owner/minder nav.
+    const isAdminOnly =
+      isAdmin &&
+      !allRoleTypes.includes("owner") &&
+      !allRoleTypes.includes("minder");
+    if (isAdminOnly) {
+      return [adminNavItem];
     }
-    return activeRole === "minder" ? minderNav : ownerNav;
+    let base: readonly { href: string; label: string; icon: LucideIcon }[];
+    if (roleTypes.length === 1) {
+      base = roleTypes[0] === "minder" ? minderNav : ownerNav;
+    } else {
+      base = activeRole === "minder" ? minderNav : ownerNav;
+    }
+    if (isAdmin) {
+      return [...base, adminNavItem];
+    }
+    return base;
   }, [dashboardRole]);
 
   return (
@@ -111,17 +144,19 @@ export function MainNav({
           <ThemeToggle />
           {authenticated ? (
             <>
-              <Link
-                href="/dashboard/profile"
-                className={cn(
-                  "inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                  pathname.startsWith("/dashboard/profile") &&
-                    "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300",
-                )}
-                aria-label="Profile"
-              >
-                <User className="size-5" />
-              </Link>
+              {!isAdminOnly ? (
+                <Link
+                  href="/dashboard/profile"
+                  className={cn(
+                    "inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                    pathname.startsWith("/dashboard/profile") &&
+                      "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300",
+                  )}
+                  aria-label="Profile"
+                >
+                  <User className="size-5" />
+                </Link>
+              ) : null}
               <LogoutButton size="sm" variant="outline" />
             </>
           ) : (

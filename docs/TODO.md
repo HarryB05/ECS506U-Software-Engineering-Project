@@ -26,7 +26,7 @@ Stack: Next.js (React) · Supabase · Vercel
 - [x] Create and manage minder professional profile (bio, qualifications, service description) — URF 3.1
 - [x] Set supported pet types — URF 3.2
 - [x] Set service pricing — URF 3.3
-- [x] Set availability schedule — URF 3.4
+- [ ] Set availability schedule — URF 3.4
 - [x] Minder workspace with profile editor and public-profile preview
 
 ### Search & Discovery
@@ -57,7 +57,7 @@ Stack: Next.js (React) · Supabase · Vercel
 - [x] Booking confirmation stored in DB and shown in both users' accounts
 - [x] Owner cancels a booking (≥ 3 days before) — URF 2.17, 2.19
 - [x] Minder cancels a confirmed booking (≥ 48 h before) — URF 3.7
-- [ ] Owner reschedules a booking before minder confirmation — URF 2.18
+- [x] Owner reschedules a booking before minder confirmation — URF 2.18
 - [ ] Filter minder search results by availability — URF 2.10
 
 ### Sessions & Live Tracking - [On Hold For Now]
@@ -77,12 +77,12 @@ Stack: Next.js (React) · Supabase · Vercel
 - [x] Location-radius filtering in search results — URF 2.9
 
 ### Admin Panel [Luqman]
-- [ ] Admin view of all registered users — URF 4.1
-- [ ] Suspend / deactivate user accounts — URF 4.2
-- [ ] Verify pet minder profiles before activation — URF 4.3
-- [ ] Resolve booking disputes — URF 4.4
-- [ ] Moderate and remove inappropriate reviews — URF 4.5
-- [ ] Log all admin actions with timestamps — URF 4.6
+- [x] Admin view of all registered users — URF 4.1
+- [x] Suspend / deactivate user accounts — URF 4.2
+- [x] Verify pet minder profiles before activation — URF 4.3
+- [x] Resolve booking disputes — URF 4.4
+- [x] Moderate and remove inappropriate reviews — URF 4.5
+- [x] Log all admin actions with timestamps — URF 4.6
 
 ### Security & Constraints [TO DISCUSS]
 - [ ] Two-factor authentication (2FA) on login — URF 1.4

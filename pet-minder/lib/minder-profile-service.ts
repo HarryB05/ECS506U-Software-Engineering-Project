@@ -6,9 +6,18 @@ import type {
 } from "@/lib/types/minder-profile";
 import type { PetSize } from "@/lib/types/pet-profile";
 import { normalizeServicePricing } from "@/lib/minder-display";
+import { getAverageRatingsForUsers } from "@/lib/reviews-service";
 
 const TABLE = "minder_profiles";
 const VALID_PET_SIZES = ["small", "medium", "large", "x-large"] as const;
+
+/**
+ * Round a coordinate to 2 decimal places (~1 km precision) so that minder
+ * profiles never expose an exact home address.
+ */
+function approxCoord(coord: number): number {
+  return Math.round(coord * 100) / 100;
+}
 
 type UsersJoin = { full_name: string | null } | null;
 
@@ -185,6 +194,15 @@ export async function getMinderProfileById(
     return { data: null, error: null };
   }
   const mapped = mapToPublicItem(data as Record<string, unknown>);
+  if (mapped) {
+    const avgRes = await getAverageRatingsForUsers(supabase, [mapped.userId]);
+    if (!avgRes.error) {
+      const computed = avgRes.data.get(mapped.userId);
+      if (computed != null) {
+        mapped.averageRating = computed;
+      }
+    }
+  }
   return { data: mapped, error: null };
 }
 
@@ -217,10 +235,12 @@ export async function updateMinderProfile(
     payload.location_name = fields.location_name?.trim() || null;
   }
   if (fields.latitude !== undefined) {
-    payload.latitude = fields.latitude;
+    payload.latitude =
+      fields.latitude !== null ? approxCoord(fields.latitude) : null;
   }
   if (fields.longitude !== undefined) {
-    payload.longitude = fields.longitude;
+    payload.longitude =
+      fields.longitude !== null ? approxCoord(fields.longitude) : null;
   }
 
   const { error } = await supabase
@@ -284,5 +304,19 @@ export async function listPublicMindersForSearch(
     const item = mapToPublicItem(row);
     if (item) mapped.push(item);
   }
+
+  const avgRes = await getAverageRatingsForUsers(
+    supabase,
+    mapped.map((m) => m.userId),
+  );
+  if (!avgRes.error) {
+    for (const item of mapped) {
+      const computed = avgRes.data.get(item.userId);
+      if (computed != null) {
+        item.averageRating = computed;
+      }
+    }
+  }
+
   return { data: mapped, error: null };
 }
