@@ -252,7 +252,7 @@ export async function submitBookingReview(
 
   const { data: bookingRow, error: bookingErr } = await supabase
     .from("bookings")
-    .select("id, owner_id, minder_id, end_datetime, cancelled_at, minder_profiles ( user_id )")
+    .select("id, owner_id, minder_id, end_datetime, status, cancelled_at, minder_profiles ( user_id )")
     .eq("id", input.bookingId)
     .maybeSingle();
 
@@ -289,7 +289,8 @@ export async function submitBookingReview(
   }
 
   const endMs = Date.parse(String(bookingRow.end_datetime));
-  if (Number.isNaN(endMs) || Date.now() < endMs) {
+  const bookingCompleted = String(bookingRow.status) === "completed";
+  if (Number.isNaN(endMs) || (Date.now() < endMs && !bookingCompleted)) {
     return {
       error: new Error(
         "Reviews are available only after the booking end time.",
