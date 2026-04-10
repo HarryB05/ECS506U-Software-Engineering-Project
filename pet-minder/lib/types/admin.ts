@@ -58,5 +58,5 @@ export type AdminStats = {
   userCount: number;
   mindersPendingVerification: number;
   disputedBookings: number;
-  unmoderatedReviews: number;
+  reportedReviews: number;
 };

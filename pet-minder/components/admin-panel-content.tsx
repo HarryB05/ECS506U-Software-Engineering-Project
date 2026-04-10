@@ -472,11 +472,13 @@ function ReviewsTab({
   rows,
   adminId,
   onRefresh,
+  onResolveFromQueue,
   pushToast,
 }: {
   rows: AdminReviewRow[];
   adminId: string;
   onRefresh: () => Promise<void>;
+  onResolveFromQueue: (reviewId: string) => void;
   pushToast: (type: "success" | "error", message: string) => void;
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -490,7 +492,8 @@ function ReviewsTab({
       pushToast("error", error.message);
       return;
     }
-    pushToast("success", "Review marked as moderated.");
+    onResolveFromQueue(reviewId);
+    pushToast("success", "Review approved and republished.");
     await onRefresh();
   }
 
@@ -503,6 +506,7 @@ function ReviewsTab({
       pushToast("error", error.message);
       return;
     }
+    onResolveFromQueue(reviewId);
     pushToast("success", "Review removed.");
     await onRefresh();
   }
@@ -513,7 +517,7 @@ function ReviewsTab({
         <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
           <MessageSquare className="size-12 text-muted-foreground" aria-hidden />
           <p className="font-medium text-muted-foreground">
-            No reviews in the system yet.
+            No reported reviews to moderate.
           </p>
         </CardContent>
       </Card>
@@ -538,14 +542,9 @@ function ReviewsTab({
                 </CardDescription>
               </div>
               <span
-                className={cn(
-                  "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium",
-                  r.isModerated
-                    ? "bg-info-100 text-info-500"
-                    : "bg-warning-100 text-warning-500",
-                )}
+                className="inline-flex items-center rounded-md bg-warning-100 px-2 py-1 text-xs font-medium text-warning-500"
               >
-                {r.isModerated ? "Moderated" : "Awaiting moderation"}
+                Reported
               </span>
             </div>
           </CardHeader>
@@ -576,17 +575,15 @@ function ReviewsTab({
               </p>
             ) : null}
             <div className="flex flex-wrap gap-2">
-              {!r.isModerated ? (
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  disabled={busyId === r.id}
-                  onClick={() => handleModerate(r.id)}
-                >
-                  Mark moderated
-                </Button>
-              ) : null}
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                disabled={busyId === r.id}
+                onClick={() => handleModerate(r.id)}
+              >
+                Resolve report (keep review)
+              </Button>
               <Button
                 type="button"
                 variant="outline"
@@ -635,6 +632,17 @@ export function AdminPanelContent() {
   const [minders, setMinders] = useState<AdminMinderRow[]>([]);
   const [disputes, setDisputes] = useState<AdminDisputeBookingRow[]>([]);
   const [reviews, setReviews] = useState<AdminReviewRow[]>([]);
+
+  const handleReviewResolvedFromQueue = useCallback((reviewId: string) => {
+    setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    setStats((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        reportedReviews: Math.max(0, prev.reportedReviews - 1),
+      };
+    });
+  }, []);
 
   const loadAll = useCallback(async () => {
     const supabase = createClient();
@@ -698,7 +706,7 @@ export function AdminPanelContent() {
       userCount: 0,
       mindersPendingVerification: 0,
       disputedBookings: 0,
-      unmoderatedReviews: 0,
+      reportedReviews: 0,
     };
     return [
       {
@@ -724,9 +732,9 @@ export function AdminPanelContent() {
       },
       {
         id: "reviews" as const,
-        label: "Reviews",
-        value: s.unmoderatedReviews,
-        hint: "Reviews not yet moderated",
+        label: "Reported",
+        value: s.reportedReviews,
+        hint: "Reviews awaiting admin action",
         icon: MessageSquare,
       },
     ];
@@ -842,6 +850,7 @@ export function AdminPanelContent() {
             rows={reviews}
             adminId={adminId}
             onRefresh={loadAll}
+            onResolveFromQueue={handleReviewResolvedFromQueue}
             pushToast={pushToast}
           />
         )}
