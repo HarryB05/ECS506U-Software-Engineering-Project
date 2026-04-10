@@ -442,7 +442,9 @@ export async function loadBookingSessionDetail(
 
   const endMs = Date.parse(String(row.end_datetime));
   const isWindowOpen =
-    !Number.isNaN(endMs) && Date.now() >= endMs && row.cancelled_at == null;
+    !Number.isNaN(endMs) &&
+    (Date.now() >= endMs || String(row.status) === "completed") &&
+    row.cancelled_at == null;
 
   let reason: string | null = null;
   if (!revieweeId) {
