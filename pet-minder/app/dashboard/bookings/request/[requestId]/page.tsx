@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { BookingRequestDetailContent } from "@/components/booking-request-detail-content";
 import { createClient } from "@/lib/supabase/server";
+import { listOwnerPetsForBooking } from "@/lib/bookings-service";
 import { loadBookingRequestDetail } from "@/lib/bookings-service";
 import { listPublicReviewsForUser } from "@/lib/reviews-service";
 
@@ -41,6 +42,12 @@ export default async function BookingRequestPage({
     notFound();
   }
 
+  let ownerPets = null;
+  if (data.viewerRole === "owner" && data.status === "pending") {
+    const { data: pets } = await listOwnerPetsForBooking(supabase, user.id);
+    ownerPets = pets;
+  }
+
   const reviewsRes = data.counterpartyUserId
     ? await listPublicReviewsForUser(supabase, data.counterpartyUserId, {
         limit: 8,
@@ -50,6 +57,7 @@ export default async function BookingRequestPage({
   return (
     <BookingRequestDetailContent
       detail={data}
+      ownerPets={ownerPets}
       counterpartyReviews={reviewsRes.data}
     />
   );

@@ -3,17 +3,21 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, CalendarRange, Clock, Loader2, PawPrint, Star } from "lucide-react";
 
 import { BookingLifecycleTimeline } from "@/components/booking-lifecycle-timeline";
+import { BookingDatePicker } from "@/components/booking-date-picker";
 import { PublicReviewList } from "@/components/public-review-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   BookingRequestStatusBadge,
   StatusBadge,
 } from "@/components/ui/status-badge";
-import type { BookingRequestDetail } from "@/lib/types/booking";
+import { Textarea } from "@/components/ui/textarea";
+import type { BookingRequestDetail, OwnerPetOption } from "@/lib/types/booking";
 import type { PublicReviewItem } from "@/lib/reviews-service";
 import {
   formatBookingInstant,
@@ -99,20 +103,109 @@ function buildRequestTimeline(detail: BookingRequestDetail) {
   return steps;
 }
 
+const DURATION_OPTIONS = [30, 60, 90, 120, 180, 240];
+
+type BookingMode = "session" | "range";
+
+function toLocalInputParts(isoInstant: string): { date: string; time: string } {
+  const d = new Date(isoInstant);
+  if (Number.isNaN(d.getTime())) {
+    return { date: "", time: "" };
+  }
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return {
+    date: `${yyyy}-${mm}-${dd}`,
+    time: `${hh}:${min}`,
+  };
+}
+
+function parseDateToLocal(isoDate: string): Date {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function computeDurationMinutes(
+  bookingMode: BookingMode,
+  date: string,
+  time: string,
+  endDate: string,
+  endTime: string,
+  durationMinutes: number,
+): number | null {
+  if (!date || !time) return null;
+  const start = new Date(`${date}T${time}:00`);
+  if (Number.isNaN(start.getTime())) return null;
+
+  if (bookingMode === "session") {
+    return durationMinutes > 0 ? durationMinutes : null;
+  }
+
+  if (!endDate || !endTime) return null;
+  const end = new Date(`${endDate}T${endTime}:00`);
+  if (Number.isNaN(end.getTime()) || end <= start) return null;
+
+  return Math.round((end.getTime() - start.getTime()) / 60_000);
+}
+
 type BookingRequestDetailContentProps = {
   detail: BookingRequestDetail;
+  ownerPets: OwnerPetOption[] | null;
   counterpartyReviews: PublicReviewItem[];
 };
 
 export function BookingRequestDetailContent({
   detail,
+  ownerPets,
   counterpartyReviews,
 }: BookingRequestDetailContentProps) {
   const router = useRouter();
+
+  const isOwnerPending =
+    detail.viewerRole === "owner" && detail.status === "pending";
+  const initialStart = useMemo(
+    () => toLocalInputParts(detail.requestedDatetime),
+    [detail.requestedDatetime],
+  );
+  const initialEnd = useMemo(
+    () =>
+      detail.requestedEndDatetime
+        ? toLocalInputParts(detail.requestedEndDatetime)
+        : { date: "", time: "17:00" },
+    [detail.requestedEndDatetime],
+  );
+
+  const [bookingMode, setBookingMode] = useState<BookingMode>(
+    detail.requestedEndDatetime ? "range" : "session",
+  );
+  const [showRescheduleForm, setShowRescheduleForm] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState(initialStart.date);
+  const [rescheduleTime, setRescheduleTime] = useState(initialStart.time || "09:00");
+  const [rescheduleEndDate, setRescheduleEndDate] = useState(initialEnd.date);
+  const [rescheduleEndTime, setRescheduleEndTime] = useState(initialEnd.time || "17:00");
+  const [rescheduleDuration, setRescheduleDuration] = useState(
+    detail.durationMinutes,
+  );
+  const [rescheduleCareInstructions, setRescheduleCareInstructions] = useState(
+    detail.careInstructions ?? "",
+  );
+  const [selectedPetIds, setSelectedPetIds] = useState<Set<string>>(
+    () => new Set(detail.requestPetIds),
+  );
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const timeline = useMemo(() => buildRequestTimeline(detail), [detail]);
+
+  const minSelectableDate = useMemo(() => new Date(), []);
+  const endDateMin = useMemo(() => {
+    if (!rescheduleDate) return minSelectableDate;
+    return parseDateToLocal(rescheduleDate);
+  }, [minSelectableDate, rescheduleDate]);
 
   async function callRpc(name: string, args: Record<string, string>) {
     setError(null);
@@ -129,8 +222,116 @@ export function BookingRequestDetailContent({
       router.refresh();
       return;
     }
+    if (name === "bookings_reschedule_request") {
+      router.refresh();
+      setShowRescheduleForm(false);
+      return;
+    }
     router.refresh();
     router.push("/dashboard/bookings");
+  }
+
+  function togglePet(id: string) {
+    setSelectedPetIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function setMode(next: BookingMode) {
+    setBookingMode(next);
+    if (next === "range") {
+      setRescheduleEndDate((prev) => prev || rescheduleDate);
+      setRescheduleEndTime((prev) => prev || "17:00");
+    }
+  }
+
+  async function handleRescheduleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!isOwnerPending) return;
+
+    setError(null);
+
+    if (!rescheduleDate || !rescheduleTime) {
+      setError("Choose when care should start.");
+      return;
+    }
+
+    const startIso = new Date(
+      `${rescheduleDate}T${rescheduleTime}:00`,
+    ).toISOString();
+
+    if (Number.isNaN(Date.parse(startIso))) {
+      setError("That start date or time is not valid.");
+      return;
+    }
+
+    let endIso: string | null = null;
+    let durationForRpc = rescheduleDuration;
+
+    if (bookingMode === "range") {
+      if (!rescheduleEndDate || !rescheduleEndTime) {
+        setError("Add when care should end.");
+        return;
+      }
+      endIso = new Date(
+        `${rescheduleEndDate}T${rescheduleEndTime}:00`,
+      ).toISOString();
+
+      if (Number.isNaN(Date.parse(endIso))) {
+        setError("That end date or time is not valid.");
+        return;
+      }
+      if (new Date(endIso) <= new Date(startIso)) {
+        setError("End must be after the start.");
+        return;
+      }
+      durationForRpc = 60;
+    }
+
+    const computedDuration = computeDurationMinutes(
+      bookingMode,
+      rescheduleDate,
+      rescheduleTime,
+      rescheduleEndDate,
+      rescheduleEndTime,
+      rescheduleDuration,
+    );
+
+    if (computedDuration == null || computedDuration <= 0) {
+      setError("Choose a valid time window.");
+      return;
+    }
+
+    if (selectedPetIds.size === 0) {
+      setError("Choose at least one pet for this booking.");
+      return;
+    }
+
+    setBusy(true);
+    const supabase = createClient();
+    const { error: rpcError } = await supabase.rpc("bookings_reschedule_request", {
+      p_request_id: detail.id,
+      p_requested_datetime: startIso,
+      p_duration_minutes: durationForRpc,
+      p_care_instructions: rescheduleCareInstructions.trim() || null,
+      p_pet_ids: Array.from(selectedPetIds),
+      p_requested_end_datetime: bookingMode === "range" ? endIso : null,
+    });
+    setBusy(false);
+
+    if (rpcError) {
+      setError(rpcError.message);
+      return;
+    }
+
+    router.refresh();
+    setShowRescheduleForm(false);
   }
 
   const showMinderActions =
@@ -239,6 +440,182 @@ export function BookingRequestDetailContent({
         </CardContent>
       </Card>
 
+      {isOwnerPending ? (
+        <Card className="shadow-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">Reschedule</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Update this pending request before the minder confirms.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!showRescheduleForm ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowRescheduleForm(true)}
+              >
+                Reschedule
+              </Button>
+            ) : (
+              <form className="space-y-6" onSubmit={handleRescheduleSubmit}>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => setMode("session")}
+                    className={`rounded-lg border px-4 py-3 text-left text-sm transition-all duration-150 ${
+                      bookingMode === "session"
+                        ? "border-teal-600 bg-teal-50 shadow-sm dark:border-teal-500 dark:bg-teal-900/25"
+                        : "border-border bg-card hover:border-teal-300/60"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 font-medium text-foreground">
+                      <Clock className="size-4 text-teal-700 dark:text-teal-300" />
+                      Single visit
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode("range")}
+                    className={`rounded-lg border px-4 py-3 text-left text-sm transition-all duration-150 ${
+                      bookingMode === "range"
+                        ? "border-teal-600 bg-teal-50 shadow-sm dark:border-teal-500 dark:bg-teal-900/25"
+                        : "border-border bg-card hover:border-teal-300/60"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 font-medium text-foreground">
+                      <CalendarRange className="size-4 text-teal-700 dark:text-teal-300" />
+                      Several days
+                    </span>
+                  </button>
+                </div>
+
+                {ownerPets && ownerPets.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <PawPrint className="size-4 text-teal-700 dark:text-teal-300" />
+                      <Label className="text-foreground">Pets included</Label>
+                    </div>
+                    <ul className="space-y-2 rounded-lg border border-border bg-secondary/30 p-3 dark:bg-secondary/20">
+                      {ownerPets.map((pet) => (
+                        <li key={pet.id}>
+                          <label className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors hover:bg-card">
+                            <input
+                              type="checkbox"
+                              checked={selectedPetIds.has(pet.id)}
+                              onChange={() => togglePet(pet.id)}
+                              className="size-4 rounded border-border text-primary focus-visible:ring-2 focus-visible:ring-ring"
+                            />
+                            <span>
+                              <span className="font-medium text-foreground">{pet.name}</span>
+                              {pet.petType ? (
+                                <span className="text-muted-foreground"> · {pet.petType}</span>
+                              ) : null}
+                            </span>
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <BookingDatePicker
+                    id="reschedule-date"
+                    label="Date"
+                    value={rescheduleDate}
+                    onChange={setRescheduleDate}
+                    minDate={minSelectableDate}
+                  />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="reschedule-time">Time</Label>
+                    <Input
+                      id="reschedule-time"
+                      type="time"
+                      value={rescheduleTime}
+                      onChange={(ev) => setRescheduleTime(ev.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {bookingMode === "session" ? (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="reschedule-duration">Duration</Label>
+                    <select
+                      id="reschedule-duration"
+                      value={String(rescheduleDuration)}
+                      onChange={(ev) =>
+                        setRescheduleDuration(Number(ev.target.value))
+                      }
+                      className="border-border bg-background text-foreground h-10 w-full rounded-md border px-3 text-sm shadow-sm"
+                    >
+                      {DURATION_OPTIONS.map((mins) => (
+                        <option key={mins} value={mins}>
+                          {mins} minutes
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <BookingDatePicker
+                      id="reschedule-end-date"
+                      label="End date"
+                      value={rescheduleEndDate}
+                      onChange={setRescheduleEndDate}
+                      minDate={endDateMin}
+                    />
+                    <div className="space-y-1.5">
+                      <Label htmlFor="reschedule-end-time">End time</Label>
+                      <Input
+                        id="reschedule-end-time"
+                        type="time"
+                        value={rescheduleEndTime}
+                        onChange={(ev) => setRescheduleEndTime(ev.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="reschedule-care">Care notes</Label>
+                  <Textarea
+                    id="reschedule-care"
+                    value={rescheduleCareInstructions}
+                    onChange={(ev) => setRescheduleCareInstructions(ev.target.value)}
+                    rows={4}
+                    placeholder="Medication, feeding, routines and safety notes"
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button type="submit" disabled={busy}>
+                    {busy ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        Saving…
+                      </>
+                    ) : (
+                      "Save reschedule"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() => setShowRescheduleForm(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
+
       {detail.viewerRole === "minder" ? (
         <>
           <Card className="shadow-card border-border">
@@ -255,9 +632,7 @@ export function BookingRequestDetailContent({
                   {counterpartyRating.toFixed(1)} / 5
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  No ratings yet.
-                </p>
+                <p className="text-sm text-muted-foreground">No ratings yet.</p>
               )}
             </CardContent>
           </Card>
