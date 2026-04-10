@@ -6,6 +6,7 @@ import type {
 } from "@/lib/types/minder-profile";
 import type { PetSize } from "@/lib/types/pet-profile";
 import { normalizeServicePricing } from "@/lib/minder-display";
+import { getAverageRatingsForUsers } from "@/lib/reviews-service";
 
 const TABLE = "minder_profiles";
 const VALID_PET_SIZES = ["small", "medium", "large", "x-large"] as const;
@@ -193,6 +194,15 @@ export async function getMinderProfileById(
     return { data: null, error: null };
   }
   const mapped = mapToPublicItem(data as Record<string, unknown>);
+  if (mapped) {
+    const avgRes = await getAverageRatingsForUsers(supabase, [mapped.userId]);
+    if (!avgRes.error) {
+      const computed = avgRes.data.get(mapped.userId);
+      if (computed != null) {
+        mapped.averageRating = computed;
+      }
+    }
+  }
   return { data: mapped, error: null };
 }
 
@@ -294,5 +304,19 @@ export async function listPublicMindersForSearch(
     const item = mapToPublicItem(row);
     if (item) mapped.push(item);
   }
+
+  const avgRes = await getAverageRatingsForUsers(
+    supabase,
+    mapped.map((m) => m.userId),
+  );
+  if (!avgRes.error) {
+    for (const item of mapped) {
+      const computed = avgRes.data.get(item.userId);
+      if (computed != null) {
+        item.averageRating = computed;
+      }
+    }
+  }
+
   return { data: mapped, error: null };
 }

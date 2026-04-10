@@ -48,6 +48,7 @@ export type AdminReviewRow = {
   rating: number | null;
   comment: string | null;
   isModerated: boolean;
+  reportCount: number;
   createdAt: string;
   reviewerName: string;
   revieweeName: string;
@@ -57,5 +58,5 @@ export type AdminStats = {
   userCount: number;
   mindersPendingVerification: number;
   disputedBookings: number;
-  unmoderatedReviews: number;
+  reportedReviews: number;
 };
