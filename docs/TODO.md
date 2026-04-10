@@ -26,7 +26,7 @@ Stack: Next.js (React) · Supabase · Vercel
 - [x] Create and manage minder professional profile (bio, qualifications, service description) — URF 3.1
 - [x] Set supported pet types — URF 3.2
 - [x] Set service pricing — URF 3.3
-- [x] Set availability schedule — URF 3.4
+- [ ] Set availability schedule — URF 3.4
 - [x] Minder workspace with profile editor and public-profile preview
 
 ### Search & Discovery
@@ -57,7 +57,7 @@ Stack: Next.js (React) · Supabase · Vercel
 - [x] Booking confirmation stored in DB and shown in both users' accounts
 - [x] Owner cancels a booking (≥ 3 days before) — URF 2.17, 2.19
 - [x] Minder cancels a confirmed booking (≥ 48 h before) — URF 3.7
-- [ ] Owner reschedules a booking before minder confirmation — URF 2.18
+- [x] Owner reschedules a booking before minder confirmation — URF 2.18
 - [ ] Filter minder search results by availability — URF 2.10
 
 ### Sessions & Live Tracking - [On Hold For Now]
