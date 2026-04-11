@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, Star } from "lucide-react";
 
 import { MinderWorkspaceGate } from "@/components/minder-workspace-gate";
-import { PublicReviewList } from "@/components/public-review-list";
+import { MinderReviewsBrowser } from "@/components/minder-reviews-browser";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -86,7 +86,7 @@ async function MinderReviewsInner() {
         </CardContent>
       </Card>
 
-      <PublicReviewList title="All reviews" reviews={reviews} />
+      <MinderReviewsBrowser reviews={reviews} pageSize={6} />
     </div>
   );
 }
