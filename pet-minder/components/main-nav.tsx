@@ -132,7 +132,7 @@ export function MainNav({
         ) : (
           <div className="flex items-center justify-center">
             <Link
-              href="#features"
+              href="/#features"
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               How it works
