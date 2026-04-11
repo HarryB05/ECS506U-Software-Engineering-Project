@@ -67,10 +67,10 @@ Stack: Next.js (React) · Supabase · Vercel
 - [ ] Minder submits session activity log on completion — URF 3.11
 - [ ] Owner views completed activity logs — URF 2.21
 
-### Reviews & Ratings [Lena]
-- [ ] Star rating (1–5) between owner and minder after a booking — URF 1.12
-- [ ] Written review on completed bookings — URF 1.13
-- [ ] Calculate and display average rating on minder profile — URF 1.14
+### Reviews & Ratings
+- [x] Star rating (1–5) between owner and minder after a booking — URF 1.12
+- [x] Written review on completed bookings — URF 1.13
+- [x] Calculate and display average rating on minder profile — URF 1.14
 
 ### Map / Location Search [Rayyan]
 - [x] Replace map placeholder with real map showing minder pins — URF 2.9
