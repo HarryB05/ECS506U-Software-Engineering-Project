@@ -115,7 +115,7 @@ async function MinderProfileInner({
           <div className="flex flex-wrap items-center gap-4">
             <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-sm text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
               <Star className="size-4" />
-              {rating.toFixed(1)} average rating
+              {rating.toFixed(1)}/5 average rating
             </div>
             {data.isVerified ? (
               <span className="inline-flex items-center gap-1.5 text-sm text-success-500">
