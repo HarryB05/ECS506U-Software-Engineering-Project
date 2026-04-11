@@ -355,7 +355,17 @@ export function BookingRequestDetailContent({
               Booking request
             </h1>
             <p className="text-muted-foreground mt-1">
-              With {detail.counterpartyName} · {detail.petCount} pet
+              {detail.viewerRole === "minder" && detail.counterpartyUserId ? (
+                <Link
+                  href={`/dashboard/owners/${detail.counterpartyUserId}`}
+                  className="underline underline-offset-2 hover:text-foreground transition-colors"
+                >
+                  {detail.counterpartyName}
+                </Link>
+              ) : (
+                detail.counterpartyName
+              )}{" "}
+              · {detail.petCount} pet
               {detail.petCount === 1 ? "" : "s"}
             </p>
           </div>
@@ -637,7 +647,7 @@ export function BookingRequestDetailContent({
               {counterpartyRating != null ? (
                 <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
                   <Star className="size-4" />
-                  {counterpartyRating.toFixed(1)} / 5
+                  {counterpartyRating.toFixed(1)}/5
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No ratings yet.</p>
