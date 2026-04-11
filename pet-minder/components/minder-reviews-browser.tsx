@@ -84,8 +84,6 @@ export function MinderReviewsBrowser({
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_14rem]">
       <div className="space-y-4">
-        <PublicReviewList title="All reviews" reviews={pagedReviews} />
-
         {filteredReviews.length > 0 ? (
           <div className="space-y-3">
             <div className="flex items-center justify-center gap-3">
@@ -137,6 +135,8 @@ export function MinderReviewsBrowser({
             </div>
           </div>
         ) : null}
+
+        <PublicReviewList title="All reviews" reviews={pagedReviews} />
       </div>
 
       <aside className="lg:sticky lg:top-20 lg:self-start">
