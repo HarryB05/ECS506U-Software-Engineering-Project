@@ -93,110 +93,112 @@ export function MinderReviewsBrowser({
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_14rem]">
-      <div className="space-y-4">
-        {filteredReviews.length > 0 ? (
-          <div className="space-y-3">
-            <div className="flex items-center justify-center gap-3">
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                aria-label="Previous page"
-                disabled={safePage <= 1}
-                onClick={handlePrevPage}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
+    <div className="space-y-4">
+      {filteredReviews.length > 0 ? (
+        <div className="space-y-3">
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              aria-label="Previous page"
+              disabled={safePage <= 1}
+              onClick={handlePrevPage}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
 
-              <div className="min-w-24 text-center">
-                <p className="text-xl font-semibold text-foreground">{safePage}</p>
-                <p className="text-xs text-muted-foreground">of {totalPages}</p>
-              </div>
-
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                aria-label="Next page"
-                disabled={safePage >= totalPages}
-                onClick={handleNextPage}
-              >
-                <ChevronRight className="size-4" />
-              </Button>
+            <div className="min-w-24 text-center">
+              <p className="text-xl font-semibold text-foreground">{safePage}</p>
+              <p className="text-xs text-muted-foreground">of {totalPages}</p>
             </div>
 
-            <div className="mx-auto flex w-full max-w-xs items-center gap-2">
-              <Input
-                type="number"
-                min={1}
-                max={totalPages}
-                value={jumpPageInput}
-                onChange={(e) => setJumpPageInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleJumpToPage();
-                  }
-                }}
-                placeholder="Page"
-              />
-              <Button type="button" variant="outline" onClick={handleJumpToPage}>
-                Go
-              </Button>
-            </div>
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              aria-label="Next page"
+              disabled={safePage >= totalPages}
+              onClick={handleNextPage}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
           </div>
-        ) : null}
 
-        <PublicReviewList title="All reviews" reviews={pagedReviews} />
-      </div>
+          <div className="mx-auto flex w-full max-w-xs items-center gap-2">
+            <Input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={jumpPageInput}
+              onChange={(e) => setJumpPageInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleJumpToPage();
+                }
+              }}
+              placeholder="Page"
+            />
+            <Button type="button" variant="outline" onClick={handleJumpToPage}>
+              Go
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
-      <aside className="lg:sticky lg:top-20 lg:self-start">
-        <Card className="shadow-card border-border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-medium">Filter by rating</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <label htmlFor="reviews-rating-filter" className="text-xs text-muted-foreground">
-              Rating
-            </label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  id="reviews-rating-filter"
-                  type="button"
-                  className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                >
-                  <span className="truncate text-left">{ratingLabel}</span>
-                  <ChevronDown
-                    className="size-4 shrink-0 text-muted-foreground"
-                    aria-hidden
-                  />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
-              >
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onSelect={() => handleFilterChange(null)}
-                >
-                  All ratings ({reviews.length})
-                </DropdownMenuItem>
-                {RATING_OPTIONS.map((rating) => (
-                  <DropdownMenuItem
-                    key={rating}
-                    className="cursor-pointer"
-                    onSelect={() => handleFilterChange(rating)}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_14rem]">
+        <div>
+          <PublicReviewList title="All reviews" reviews={pagedReviews} />
+        </div>
+
+        <aside className="lg:sticky lg:top-20 lg:self-start">
+          <Card className="shadow-card border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-medium">Filter by rating</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <label htmlFor="reviews-rating-filter" className="text-xs text-muted-foreground">
+                Rating
+              </label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    id="reviews-rating-filter"
+                    type="button"
+                    className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                   >
-                    {rating} / 5 ({ratingCounts.get(rating) ?? 0})
+                    <span className="truncate text-left">{ratingLabel}</span>
+                    <ChevronDown
+                      className="size-4 shrink-0 text-muted-foreground"
+                      aria-hidden
+                    />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+                >
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onSelect={() => handleFilterChange(null)}
+                  >
+                    All ratings ({reviews.length})
                   </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardContent>
-        </Card>
-      </aside>
+                  {RATING_OPTIONS.map((rating) => (
+                    <DropdownMenuItem
+                      key={rating}
+                      className="cursor-pointer"
+                      onSelect={() => handleFilterChange(rating)}
+                    >
+                      {rating} / 5 ({ratingCounts.get(rating) ?? 0})
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CardContent>
+          </Card>
+        </aside>
+      </div>
     </div>
   );
 }
