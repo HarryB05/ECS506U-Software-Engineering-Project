@@ -15,7 +15,17 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useDashboardRole } from "@/components/dashboard-role-context";
-import { ArrowDown, ArrowUp, Loader2, MapPin, Search, ShieldCheck, Star, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  Loader2,
+  MapPin,
+  Search,
+  ShieldCheck,
+  Star,
+  X,
+} from "lucide-react";
 import type { PublicMinderListItem } from "@/lib/types/minder-profile";
 import {
   formatMinderPriceLabel,
@@ -25,6 +35,12 @@ import {
 import { filterMindersForOwnerSearch } from "@/lib/minder-search-match";
 import { PRESET_PET_TYPES, type PresetPetType } from "@/lib/pet-types";
 import type { PetSize } from "@/lib/types/pet-profile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const MinderMap = dynamic(
   () => import("@/components/minder-map").then((m) => m.MinderMap),
@@ -45,6 +61,9 @@ const PET_SIZE_LABEL: Record<PetSize, string> = {
   large: "Large (25-40kg)",
   "x-large": "X-large (40+kg)",
 };
+
+const SELECT_TRIGGER_CLASSES =
+  "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm";
 
 export function SearchPageContent({
   initialMinders,
@@ -250,29 +269,59 @@ export function SearchPageContent({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pet-type-search">Pet type</Label>
-            <select
-              id="pet-type-search"
-              value={petType}
-              onChange={(e) => {
-                const nextPetType = e.target.value as SearchPetTypeValue;
-                setPetType(nextPetType);
-                if (nextPetType !== "Other") {
-                  setOtherPetType("");
-                }
-              }}
-              className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                petType === ""
-                  ? "text-muted-foreground placeholder:text-muted-foreground"
-                  : "text-foreground"
-              }`}
-            >
-              <option value="" className="bg-background text-foreground">Any pet type</option>
-              {PRESET_PET_TYPES.map((type) => (
-                <option key={type} value={type} className="bg-background text-foreground">
-                  {type}
-                </option>
-              ))}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  id="pet-type-search"
+                  type="button"
+                  className={`${SELECT_TRIGGER_CLASSES} ${
+                    petType === ""
+                      ? "text-muted-foreground"
+                      : "text-foreground"
+                  }`}
+                >
+                  <span className="truncate text-left">
+                    {petType === ""
+                      ? "Any pet type"
+                      : petType === "Other"
+                        ? otherPetType.trim() || "Other"
+                        : petType}
+                  </span>
+                  <ChevronDown
+                    className="size-4 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+              >
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => {
+                    setPetType("");
+                    setOtherPetType("");
+                  }}
+                >
+                  Any pet type
+                </DropdownMenuItem>
+                {PRESET_PET_TYPES.map((type) => (
+                  <DropdownMenuItem
+                    key={type}
+                    className="cursor-pointer"
+                    onSelect={() => {
+                      setPetType(type);
+                      if (type !== "Other") {
+                        setOtherPetType("");
+                      }
+                    }}
+                  >
+                    {type}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             {petType === "Other" && (
               <div className="space-y-1.5">
                 <Label htmlFor="pet-type-other-search">Other type</Label>
@@ -288,23 +337,47 @@ export function SearchPageContent({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pet-size-search">Pet size</Label>
-            <select
-              id="pet-size-search"
-              value={petSize}
-              onChange={(e) => setPetSize(e.target.value as SearchPetSizeValue)}
-              className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                petSize === ""
-                  ? "text-muted-foreground placeholder:text-muted-foreground"
-                  : "text-foreground"
-              }`}
-            >
-              <option value="" className="bg-background text-foreground">Any pet size</option>
-              {(Object.keys(PET_SIZE_LABEL) as PetSize[]).map((size) => (
-                <option key={size} value={size} className="bg-background text-foreground">
-                  {PET_SIZE_LABEL[size]}
-                </option>
-              ))}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  id="pet-size-search"
+                  type="button"
+                  className={`${SELECT_TRIGGER_CLASSES} ${
+                    petSize === ""
+                      ? "text-muted-foreground"
+                      : "text-foreground"
+                  }`}
+                >
+                  <span className="truncate text-left">
+                    {petSize === "" ? "Any pet size" : PET_SIZE_LABEL[petSize]}
+                  </span>
+                  <ChevronDown
+                    className="size-4 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+              >
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => setPetSize("")}
+                >
+                  Any pet size
+                </DropdownMenuItem>
+                {(Object.keys(PET_SIZE_LABEL) as PetSize[]).map((size) => (
+                  <DropdownMenuItem
+                    key={size}
+                    className="cursor-pointer"
+                    onSelect={() => setPetSize(size)}
+                  >
+                    {PET_SIZE_LABEL[size]}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <div className="flex items-center md:items-end">
             <div className="flex items-center gap-2 pt-1 md:pb-2">
@@ -336,16 +409,34 @@ export function SearchPageContent({
                 onKeyDown={(e) => { if (e.key === "Enter") handleLocationSearch(); }}
                 disabled={geocoding}
               />
-              <select
-                value={radiusKm}
-                onChange={(e) => setRadiusKm(Number(e.target.value))}
-                className="flex h-9 rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value={5} className="bg-background text-foreground">Within 5 km</option>
-                <option value={10} className="bg-background text-foreground">Within 10 km</option>
-                <option value={25} className="bg-background text-foreground">Within 25 km</option>
-                <option value={50} className="bg-background text-foreground">Within 50 km</option>
-              </select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                  >
+                    <span className="truncate text-left">Within {radiusKm} km</span>
+                    <ChevronDown
+                      className="size-4 shrink-0 text-muted-foreground"
+                      aria-hidden
+                    />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+                >
+                  {[5, 10, 25, 50].map((radius) => (
+                    <DropdownMenuItem
+                      key={radius}
+                      className="cursor-pointer"
+                      onSelect={() => setRadiusKm(radius)}
+                    >
+                      Within {radius} km
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button
                 type="button"
                 variant="outline"
