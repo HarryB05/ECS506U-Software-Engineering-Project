@@ -139,7 +139,7 @@ export async function getExistingReviewForBooking(
   return {
     data: {
       id: data.id as string,
-      rating,
+      rating: Math.round(rating),
       comment: (data.comment as string | null) ?? null,
       createdAt: data.created_at as string,
     },
@@ -200,7 +200,7 @@ export async function listPublicReviewsForUser(
     if (typeof id !== "string" || rating == null) continue;
     rows.push({
       id,
-      rating,
+      rating: Math.round(rating),
       comment: (row.comment as string | null) ?? null,
       createdAt: String(row.created_at),
       reporterCount: reportCountByReview.get(id) ?? 0,
