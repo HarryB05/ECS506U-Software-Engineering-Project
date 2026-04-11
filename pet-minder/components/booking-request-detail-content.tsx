@@ -415,6 +415,14 @@ export function BookingRequestDetailContent({
           <CardTitle className="text-base font-medium">Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
+          {detail.serviceType ? (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">
+                Type of care
+              </p>
+              <p className="text-foreground">{detail.serviceType}</p>
+            </div>
+          ) : null}
           <div>
             <p className="text-xs font-medium text-muted-foreground">Schedule</p>
             <p className="text-foreground">{formatRequestSchedule(detail)}</p>
