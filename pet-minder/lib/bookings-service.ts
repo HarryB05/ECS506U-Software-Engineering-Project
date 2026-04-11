@@ -389,6 +389,8 @@ export async function loadBookingSessionDetail(
 
   const counterpartyName =
     viewerRole === "owner" ? minderName : ownerName;
+  const counterpartyUserId =
+    viewerRole === "owner" ? minderUserId : ownerId;
 
   const pets = row.booking_pets as
     | {
@@ -478,6 +480,7 @@ export async function loadBookingSessionDetail(
       cancelledAt: (row.cancelled_at as string | null) ?? null,
       careInstructions: (row.care_instructions as string | null) ?? null,
       counterpartyName,
+      counterpartyUserId,
       petCount: Array.isArray(pets) ? pets.length : 0,
       petNames,
       createdAt: null,

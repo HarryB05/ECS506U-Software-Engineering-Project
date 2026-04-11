@@ -13,6 +13,7 @@ import {
 export type DashboardRole = "owner" | "minder";
 
 type DashboardRoleContextValue = {
+  userId?: string;
   roleTypes: DashboardRole[];
   /** All role_type values from the database (e.g. includes `admin` for navigation). */
   allRoleTypes: string[];
@@ -44,9 +45,11 @@ function initialActiveRole(roles: DashboardRole[]): DashboardRole {
 
 export function DashboardRoleProvider({
   roleTypes,
+  userId,
   children,
 }: {
   roleTypes: string[];
+  userId?: string;
   children: ReactNode;
 }) {
   const allRoleTypes = useMemo(
@@ -97,13 +100,14 @@ export function DashboardRoleProvider({
 
   const value = useMemo<DashboardRoleContextValue>(
     () => ({
+      userId,
       roleTypes: roles,
       allRoleTypes,
       activeRole,
       setActiveRole,
       isDualRole,
     }),
-    [roles, allRoleTypes, activeRole, setActiveRole, isDualRole],
+    [userId, roles, allRoleTypes, activeRole, setActiveRole, isDualRole],
   );
 
   const hasShellRoles = roles.length > 0 || allRoleTypes.includes("admin");
