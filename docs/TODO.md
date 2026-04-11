@@ -83,6 +83,7 @@ Stack: Next.js (React) · Supabase · Vercel
 - [x] Resolve booking disputes — URF 4.4
 - [x] Moderate and remove inappropriate reviews — URF 4.5
 - [x] Log all admin actions with timestamps — URF 4.6
+- [ ] Auto-review system for user verification
 
 ### Security & Constraints [TO DISCUSS]
 - [ ] Two-factor authentication (2FA) on login — URF 1.4
