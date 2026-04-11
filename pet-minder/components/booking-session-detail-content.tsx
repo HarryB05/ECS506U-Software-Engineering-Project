@@ -257,7 +257,7 @@ export function BookingSessionDetailContent({
           {detail.review.existing ? (
             <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3 text-sm">
               <p className="text-foreground">
-                You rated this booking <strong>{detail.review.existing.rating} / 5</strong>.
+                You rated this booking <strong>{Math.round(detail.review.existing.rating)} / 5</strong>.
               </p>
               {detail.review.existing.comment ? (
                 <p className="text-muted-foreground leading-relaxed">
