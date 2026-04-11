@@ -84,6 +84,7 @@ export type BookingSessionDetail = {
   cancelledAt: string | null;
   careInstructions: string | null;
   counterpartyName: string;
+  counterpartyUserId: string | null;
   petCount: number;
   /** Resolved from booking pets; may be empty if names are not readable. */
   petNames: string[];

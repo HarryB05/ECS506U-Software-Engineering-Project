@@ -176,9 +176,21 @@ export function BookingSessionDetailContent({
               )}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {detail.viewerRole === "owner"
-                ? `Minder: ${detail.counterpartyName}`
-                : `Owner: ${detail.counterpartyName}`}
+              {detail.viewerRole === "minder" && detail.counterpartyUserId ? (
+                <>
+                  Owner:{" "}
+                  <Link
+                    href={`/dashboard/owners/${detail.counterpartyUserId}`}
+                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    {detail.counterpartyName}
+                  </Link>
+                </>
+              ) : (
+                detail.viewerRole === "owner"
+                  ? `Minder: ${detail.counterpartyName}`
+                  : `Owner: ${detail.counterpartyName}`
+              )}
             </p>
           </div>
           <StatusBadge status={sessionBadgeStatus(detail)} />
@@ -257,7 +269,11 @@ export function BookingSessionDetailContent({
           {detail.review.existing ? (
             <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3 text-sm">
               <p className="text-foreground">
-                You rated this booking <strong>{Math.round(detail.review.existing.rating)} / 5</strong>.
+                You rated this booking{" "}
+                <strong>
+                  {detail.review.existing.rating.toFixed(1)}/5.0
+                </strong>
+                .
               </p>
               {detail.review.existing.comment ? (
                 <p className="text-muted-foreground leading-relaxed">
