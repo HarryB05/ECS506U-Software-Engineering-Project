@@ -7,7 +7,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/lib/supabase/server";
 import {
   Footprints,
-  MapPin,
   ShieldCheck,
 } from "lucide-react";
 
@@ -63,7 +62,7 @@ export default function Home() {
             Find trusted pet care, near you
           </h1>
           <p className="text-base text-muted-foreground max-w-xl sm:text-lg">
-            Book verified minders for walks, sitting and day care. See where your pet is with live tracking when a session is in progress.
+            Book verified minders for walks, sitting and day care. Browse profiles, set dates, and book in minutes.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Suspense fallback={<HeroCTAFallback />}>
@@ -74,7 +73,7 @@ export default function Home() {
 
         <div
           id="features"
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20 md:mt-28 scroll-mt-20"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-20 md:mt-28 scroll-mt-20"
         >
           <article className="bg-card rounded-lg shadow-card p-6 transition-all duration-150 hover:shadow-card-hover hover:border-teal-300 border border-transparent">
             <div className="flex items-center gap-3 mb-4">
@@ -86,20 +85,7 @@ export default function Home() {
               </h2>
             </div>
             <p className="text-base text-muted-foreground">
-              Choose from local minders, set dates and which pets are included. Confirm and pay in one place.
-            </p>
-          </article>
-          <article className="bg-card rounded-lg shadow-card p-6 transition-all duration-150 hover:shadow-card-hover hover:border-teal-300 border border-transparent">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="rounded-lg bg-teal-50 p-2.5 dark:bg-teal-900/30">
-                <MapPin className="size-6 text-teal-700 dark:text-teal-300" />
-              </div>
-              <h2 className="text-xl font-medium text-foreground">
-                Live tracking
-              </h2>
-            </div>
-            <p className="text-base text-muted-foreground">
-              When a walk or session is in progress, see your pet&apos;s location on a map. Status is always visible.
+              Choose from local minders, set dates and which pets are included. Confirm in one place.
             </p>
           </article>
           <article className="bg-card rounded-lg shadow-card p-6 transition-all duration-150 hover:shadow-card-hover hover:border-teal-300 border border-transparent">
