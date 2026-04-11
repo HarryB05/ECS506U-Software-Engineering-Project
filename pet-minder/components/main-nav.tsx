@@ -129,16 +129,7 @@ export function MainNav({
               );
             })}
           </nav>
-        ) : (
-          <div className="flex items-center justify-center">
-            <Link
-              href="/#features"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              How it works
-            </Link>
-          </div>
-        )}
+        ) : null}
 
         <div className="flex shrink-0 items-center justify-end gap-1">
           <ThemeToggle />
