@@ -162,6 +162,7 @@ export async function listPublicReviewsForUser(
     .select("id, rating, comment, created_at")
     .eq("reviewee_id", revieweeId)
     .eq("is_moderated", true)
+    .is("deleted_at", null)
     .not("rating", "is", null)
     .order("created_at", { ascending: false })
     .limit(limit);

@@ -22,12 +22,11 @@ import {
   fetchAdminStats,
   fetchAdminUsers,
   fetchDisputedBookings,
-  moderateReview,
-  removeReview,
   resolveBookingDispute,
   setMinderVerified,
   setUserSuspended,
 } from "@/lib/admin";
+import { serverRemoveReview, serverModerateReview } from "@/app/actions/moderate-review";
 import type {
   AdminDisputeBookingRow,
   AdminMinderRow,
@@ -483,13 +482,12 @@ function ReviewsTab({
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  async function handleModerate(reviewId: string) {
+  async function handleModerate(reviewId: string, revieweeId: string) {
     setBusyId(reviewId);
-    const supabase = createClient();
-    const { error } = await moderateReview(supabase, adminId, reviewId);
+    const { error } = await serverModerateReview(adminId, reviewId, revieweeId);
     setBusyId(null);
     if (error) {
-      pushToast("error", error.message);
+      pushToast("error", error);
       return;
     }
     onResolveFromQueue(reviewId);
@@ -497,13 +495,12 @@ function ReviewsTab({
     await onRefresh();
   }
 
-  async function handleRemove(reviewId: string) {
+  async function handleRemove(reviewId: string, revieweeId: string) {
     setBusyId(reviewId);
-    const supabase = createClient();
-    const { error } = await removeReview(supabase, adminId, reviewId);
+    const { error } = await serverRemoveReview(adminId, reviewId, revieweeId);
     setBusyId(null);
     if (error) {
-      pushToast("error", error.message);
+      pushToast("error", error);
       return;
     }
     onResolveFromQueue(reviewId);
@@ -580,7 +577,7 @@ function ReviewsTab({
                 variant="default"
                 size="sm"
                 disabled={busyId === r.id}
-                onClick={() => handleModerate(r.id)}
+                onClick={() => handleModerate(r.id, r.revieweeId)}
               >
                 Resolve report (keep review)
               </Button>
@@ -589,7 +586,7 @@ function ReviewsTab({
                 variant="outline"
                 size="sm"
                 disabled={busyId === r.id}
-                onClick={() => handleRemove(r.id)}
+                onClick={() => handleRemove(r.id, r.revieweeId)}
               >
                 Remove review
               </Button>

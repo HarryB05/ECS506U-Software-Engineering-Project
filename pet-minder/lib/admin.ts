@@ -331,10 +331,12 @@ export async function fetchAdminReviews(
       comment,
       is_moderated,
       created_at,
+      deleted_at,
       reviewer:users!reviews_reviewer_id_fkey ( full_name, email ),
       reviewee:users!reviews_reviewee_id_fkey ( full_name, email )
     `,
     )
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -348,9 +350,11 @@ export async function fetchAdminReviews(
         rating,
         comment,
         is_moderated,
-        created_at
+        created_at,
+        deleted_at
       `,
       )
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (err2) {
