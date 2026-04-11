@@ -97,6 +97,17 @@ async function BookMinderInner({ profileId }: { profileId: string }) {
         </p>
       </div>
 
+      {minder.availabilityNote ? (
+        <div className="rounded-lg border border-border bg-secondary/40 px-4 py-3 text-sm dark:bg-secondary/20">
+          <p className="font-medium text-foreground mb-0.5">
+            {minder.displayName}&apos;s availability
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            {minder.availabilityNote}
+          </p>
+        </div>
+      ) : null}
+
       <BookMinderRequestForm
         minderProfileId={minder.profileId}
         minderDisplayName={minder.displayName}

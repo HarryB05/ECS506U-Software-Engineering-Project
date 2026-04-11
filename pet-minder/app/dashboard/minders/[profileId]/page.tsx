@@ -149,6 +149,12 @@ async function MinderProfileInner({
               {formatMinderPriceLabel(data.servicePricing)}
             </p>
           </div>
+          {data.availabilityNote ? (
+            <div className="border-t border-border pt-4">
+              <p className="text-sm text-muted-foreground mb-1">Availability</p>
+              <p className="text-foreground leading-relaxed">{data.availabilityNote}</p>
+            </div>
+          ) : null}
           {canBookAsOwner && data.userId !== user.id ? (
             <div className="border-t border-border pt-4">
               <Button asChild className="w-full sm:w-auto">

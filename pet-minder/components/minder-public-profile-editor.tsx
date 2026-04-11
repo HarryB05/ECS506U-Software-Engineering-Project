@@ -84,6 +84,9 @@ export function MinderPublicProfileEditor({
   const [visibleInSearch, setVisibleInSearch] = useState(
     initialProfile?.visible_in_search ?? false,
   );
+  const [availabilityNote, setAvailabilityNote] = useState(
+    initialProfile?.availability_note ?? "",
+  );
   const [locationInput, setLocationInput] = useState(
     initialProfile?.location_name ?? "",
   );
@@ -100,6 +103,7 @@ export function MinderPublicProfileEditor({
     setSelectedSizes(initSelectedSizes(initialProfile?.supported_pet_sizes ?? null));
     setPricing(servicePricingToInputString(initialProfile?.service_pricing));
     setVisibleInSearch(initialProfile?.visible_in_search ?? false);
+    setAvailabilityNote(initialProfile?.availability_note ?? "");
     setLocationInput(initialProfile?.location_name ?? "");
   }, [initialProfile]);
 
@@ -174,6 +178,7 @@ export function MinderPublicProfileEditor({
         supported_pet_types: selectedTypes,
         supported_pet_sizes: selectedSizes,
         service_pricing: normalizeServicePricing(pricing),
+        availability_note: availabilityNote.trim() || null,
         location_name,
         latitude,
         longitude,
@@ -188,6 +193,7 @@ export function MinderPublicProfileEditor({
     if (next) {
       setProfile(next);
       setPricing(servicePricingToInputString(next.service_pricing));
+      setAvailabilityNote(next.availability_note ?? "");
       setLocationInput(next.location_name ?? "");
     }
   }
@@ -356,6 +362,21 @@ export function MinderPublicProfileEditor({
               placeholder="e.g. 18"
               autoComplete="off"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="minder-availability">Availability (optional)</Label>
+            <Textarea
+              id="minder-availability"
+              value={availabilityNote}
+              onChange={(e) => setAvailabilityNote(e.target.value)}
+              placeholder="e.g. Mon–Fri 8am–6pm, weekends on request. Not available bank holidays."
+              rows={2}
+            />
+            <p className="text-xs text-muted-foreground">
+              Shown to owners when they view your profile and before they book.
+              This helps prevent requests outside your available hours.
+            </p>
           </div>
 
           <div className="space-y-1.5 max-w-xs">
