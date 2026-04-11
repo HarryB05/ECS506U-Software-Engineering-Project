@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { Clock, Home, ShieldCheck } from "lucide-react";
+import { Clock, EyeOff, Home, ShieldCheck } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -74,6 +74,19 @@ async function MinderWorkspaceInner() {
                 </p>
               </CardContent>
             </Card>
+          )}
+          {minderProfile && !minderProfile.visible_in_search && (
+            <div className="mb-4 flex items-start gap-3 rounded-lg border border-warning-500/40 bg-warning-100/60 px-4 py-3 dark:bg-warning-900/20">
+              <EyeOff className="mt-0.5 size-5 shrink-0 text-warning-500" />
+              <div>
+                <p className="text-sm font-medium text-warning-700 dark:text-warning-400">
+                  Your profile is hidden from owner search
+                </p>
+                <p className="text-xs text-warning-600 dark:text-warning-500 mt-0.5">
+                  Owners cannot find you until you enable &ldquo;Listed in owner search&rdquo; in your public profile below.
+                </p>
+              </div>
+            </div>
           )}
           <MinderPublicProfileEditor
             userId={user.id}
