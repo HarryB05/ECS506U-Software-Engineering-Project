@@ -561,7 +561,7 @@ function ReviewsTab({
             </div>
             {r.rating != null ? (
               <p className="text-xs text-muted-foreground">
-                Rating: {r.rating} / 5
+                Rating: {Math.round(r.rating)} / 5
               </p>
             ) : null}
             {r.comment ? (
