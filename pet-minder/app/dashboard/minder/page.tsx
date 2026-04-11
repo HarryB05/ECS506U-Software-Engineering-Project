@@ -93,9 +93,9 @@ async function MinderWorkspaceInner() {
             initialProfile={minderProfile}
           />
         </div>
-        <Card className="shadow-card">
+        <Card className="shadow-card md:col-span-2 xl:col-span-3">
           <CardHeader>
-            <div className="mb-2 inline-flex rounded-lg bg-teal-50 p-2.5 dark:bg-teal-900/30">
+            <div className="mb-2 inline-flex rounded-lg bg-teal-50 p-2.5 dark:bg-teal-900/30 w-full">
               <Clock className="size-5 text-teal-700 dark:text-teal-300" />
             </div>
             <CardTitle className="text-lg font-medium">Availability</CardTitle>
@@ -105,37 +105,6 @@ async function MinderWorkspaceInner() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">Coming soon.</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardHeader>
-            <div className="mb-2 inline-flex rounded-lg bg-teal-50 p-2.5 dark:bg-teal-900/30">
-              <ShieldCheck className="size-5 text-teal-700 dark:text-teal-300" />
-            </div>
-            <CardTitle className="text-lg font-medium">Verification</CardTitle>
-            <CardDescription>
-              Verification status and reviews from completed bookings.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Coming soon.</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card opacity-80">
-          <CardHeader>
-            <div className="mb-2 inline-flex rounded-lg bg-teal-50 p-2.5 dark:bg-teal-900/30">
-              <Home className="size-5 text-teal-700 dark:text-teal-300" />
-            </div>
-            <CardTitle className="text-lg font-medium">Quick tips</CardTitle>
-            <CardDescription>
-              Clear pricing and pet types help owners book with confidence.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Use the profile card above to describe your services. Availability
-              scheduling will appear here in a future update.
-            </p>
           </CardContent>
         </Card>
       </div>
