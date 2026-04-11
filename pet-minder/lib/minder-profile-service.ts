@@ -110,11 +110,18 @@ export async function getMinderProfileByUserId(
   }
   const row = data as Record<string, unknown>;
   const profile = data as MinderProfile;
+  const hydrated: MinderProfile = {
+    ...profile,
+    service_pricing: normalizeServicePricing(row.service_pricing),
+  };
+
+  const avgRes = await getAverageRatingsForUsers(supabase, [userId]);
+  if (!avgRes.error) {
+    hydrated.average_rating = avgRes.data.get(userId) ?? null;
+  }
+
   return {
-    data: {
-      ...profile,
-      service_pricing: normalizeServicePricing(row.service_pricing),
-    },
+    data: hydrated,
     error: null,
   };
 }
