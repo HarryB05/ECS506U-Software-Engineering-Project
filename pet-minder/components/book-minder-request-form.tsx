@@ -25,6 +25,15 @@ type BookMinderRequestFormProps = {
 
 const DURATION_OPTIONS = [30, 60, 90, 120, 180, 240];
 
+const SERVICE_TYPE_OPTIONS = [
+  "Dog Walking",
+  "Pet Sitting",
+  "Drop-in Visit",
+  "Day Care",
+  "Overnight Care",
+  "Grooming",
+] as const;
+
 type BookingMode = "session" | "range";
 
 function todayLocalISODate(): string {
@@ -132,6 +141,7 @@ export function BookMinderRequestForm({
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("17:00");
   const [durationMinutes, setDurationMinutes] = useState(60);
+  const [serviceType, setServiceType] = useState<string>("Pet Sitting");
   const [message, setMessage] = useState("");
   const [careInstructions, setCareInstructions] = useState("");
   const [showOptionalDetails, setShowOptionalDetails] = useState(false);
@@ -234,6 +244,11 @@ export function BookMinderRequestForm({
       return;
     }
 
+    if (new Date(requestedDatetime) <= new Date()) {
+      setError("Start time must be in the future.");
+      return;
+    }
+
     let requestedEndDatetime: string | null = null;
     let durationForRpc = durationMinutes;
 
@@ -268,6 +283,7 @@ export function BookMinderRequestForm({
         p_care_instructions: careInstructions.trim() || null,
         p_pet_ids: Array.from(selectedPetIds),
         p_requested_end_datetime: requestedEndDatetime,
+        p_service_type: serviceType,
       },
     );
 
@@ -319,6 +335,24 @@ export function BookMinderRequestForm({
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-2">
+              <Label htmlFor="booking-service-type" className="text-foreground">
+                Type of care
+              </Label>
+              <select
+                id="booking-service-type"
+                value={serviceType}
+                onChange={(ev) => setServiceType(ev.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {SERVICE_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="space-y-3">
               <Label className="text-foreground">Booking type</Label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
