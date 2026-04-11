@@ -1,12 +1,20 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useDashboardRole } from "@/components/dashboard-role-context";
+import type { DashboardRole } from "@/components/dashboard-role-context";
 
 export function RoleModeSwitch() {
+  const router = useRouter();
   const { isDualRole, activeRole, setActiveRole } = useDashboardRole();
 
   if (!isDualRole) return null;
+
+  function handleRoleChange(role: DashboardRole) {
+    setActiveRole(role);
+    router.push("/dashboard");
+  }
 
   return (
     <div
@@ -17,12 +25,12 @@ export function RoleModeSwitch() {
       <ModeButton
         label="Owner"
         selected={activeRole === "owner"}
-        onClick={() => setActiveRole("owner")}
+        onClick={() => handleRoleChange("owner")}
       />
       <ModeButton
         label="Minder"
         selected={activeRole === "minder"}
-        onClick={() => setActiveRole("minder")}
+        onClick={() => handleRoleChange("minder")}
       />
     </div>
   );
@@ -54,4 +62,3 @@ function ModeButton({
     </button>
   );
 }
-
