@@ -21,10 +21,12 @@ import {
   fetchAdminReviews,
   fetchAdminStats,
   fetchAdminUsers,
+  fetchAdminVerifications,
   fetchDisputedBookings,
   moderateReview,
   removeReview,
   resolveBookingDispute,
+  revokeUserVerification,
   setMinderVerified,
   setUserSuspended,
 } from "@/lib/admin";
@@ -35,6 +37,7 @@ import type {
   AdminStats,
   AdminTab,
   AdminUserRow,
+  AdminVerificationRow,
 } from "@/lib/types/admin";
 import { Button } from "@/components/ui/button";
 import {
@@ -618,6 +621,109 @@ function AdminPanelSkeleton() {
   );
 }
 
+function VerificationsTab({
+  verifications,
+  adminId,
+  pushToast,
+}: {
+  verifications: AdminVerificationRow[];
+  adminId: string | null;
+  pushToast: (type: "success" | "error", message: string) => void;
+}) {
+  const [revoking, setRevoking] = useState<string | null>(null);
+
+  const handleRevoke = async (userId: string) => {
+    if (!adminId) return;
+
+    setRevoking(userId);
+    const supabase = createClient();
+    const { error } = await revokeUserVerification(supabase, adminId, userId, "Admin revoked");
+
+    if (error) {
+      pushToast("error", error.message);
+    } else {
+      pushToast("success", "Verification revoked successfully");
+      // Refresh the page to update the list
+      window.location.reload();
+    }
+    setRevoking(null);
+  };
+
+  const getStatusBadge = (status: string, revokedAt: string | null) => {
+    if (revokedAt) {
+      return <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300"><X className="size-3.5" />Revoked</span>;
+    }
+
+    switch (status) {
+      case 'verified':
+        return <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-300"><CheckCircle2 className="size-3.5" />Verified</span>;
+      case 'pending':
+        return <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2 py-1 text-xs text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"><Clock className="size-3.5" />Pending</span>;
+      default:
+        return <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-1 text-xs text-gray-700 dark:bg-gray-900/30 dark:text-gray-300"><X className="size-3.5" />Unverified</span>;
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Verification Records</h2>
+        <span className="text-sm text-muted-foreground">
+          {verifications.length} total records
+        </span>
+      </div>
+
+      <div className="space-y-2">
+        {verifications.map((verification) => (
+          <Card key={verification.id} className="shadow-card">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{verification.fullName}</span>
+                    {getStatusBadge(verification.status, verification.revokedAt)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{verification.email}</p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span>Type: {verification.type}</span>
+                    <span>Created: {format(parseISO(verification.createdAt), "MMM d, yyyy")}</span>
+                    {verification.verifiedAt && (
+                      <span>Verified: {format(parseISO(verification.verifiedAt), "MMM d, yyyy")}</span>
+                    )}
+                    {verification.revokedAt && (
+                      <span>Revoked: {format(parseISO(verification.revokedAt), "MMM d, yyyy")}</span>
+                    )}
+                  </div>
+                  {verification.revokedReason && (
+                    <p className="text-xs text-red-600">Reason: {verification.revokedReason}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {verification.status === 'verified' && !verification.revokedAt && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleRevoke(verification.userId)}
+                      disabled={revoking === verification.userId}
+                    >
+                      {revoking === verification.userId ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Ban className="size-3" />
+                      )}
+                      Revoke
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AdminPanelContent() {
   const router = useRouter();
   const { toasts, pushToast, dismiss } = useAdminToasts();
@@ -630,6 +736,7 @@ export function AdminPanelContent() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [minders, setMinders] = useState<AdminMinderRow[]>([]);
+  const [verifications, setVerifications] = useState<AdminVerificationRow[]>([]);
   const [disputes, setDisputes] = useState<AdminDisputeBookingRow[]>([]);
   const [reviews, setReviews] = useState<AdminReviewRow[]>([]);
 
@@ -671,10 +778,11 @@ export function AdminPanelContent() {
     setAdminId(user.id);
     setForbidden(false);
 
-    const [sRes, uRes, mRes, dRes, rRes] = await Promise.all([
+    const [sRes, uRes, mRes, vRes, dRes, rRes] = await Promise.all([
       fetchAdminStats(supabase),
       fetchAdminUsers(supabase),
       fetchAdminMinders(supabase),
+      fetchAdminVerifications(supabase),
       fetchDisputedBookings(supabase),
       fetchAdminReviews(supabase),
     ]);
@@ -687,6 +795,9 @@ export function AdminPanelContent() {
 
     if (mRes.error) pushToast("error", mRes.error.message);
     setMinders(mRes.data);
+
+    if (vRes.error) pushToast("error", vRes.error.message);
+    setVerifications(vRes.data);
 
     if (dRes.error) pushToast("error", dRes.error.message);
     setDisputes(dRes.data);
@@ -717,10 +828,10 @@ export function AdminPanelContent() {
         icon: Users,
       },
       {
-        id: "minders" as const,
+        id: "verifications" as const,
         label: "Verify",
-        value: s.mindersPendingVerification,
-        hint: "Minders pending verification",
+        value: verifications.filter(v => v.status === 'verified' && !v.revokedAt).length,
+        hint: "Active verifications",
         icon: ShieldCheck,
       },
       {
@@ -836,6 +947,12 @@ export function AdminPanelContent() {
             rows={minders}
             adminId={adminId}
             onRefresh={loadAll}
+            pushToast={pushToast}
+          />
+        ) : tab === "verifications" ? (
+          <VerificationsTab
+            verifications={verifications}
+            adminId={adminId}
             pushToast={pushToast}
           />
         ) : tab === "disputes" ? (

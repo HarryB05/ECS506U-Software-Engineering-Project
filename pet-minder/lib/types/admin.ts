@@ -1,4 +1,4 @@
-export type AdminTab = "users" | "minders" | "disputes" | "reviews";
+export type AdminTab = "users" | "minders" | "verifications" | "disputes" | "reviews";
 
 export type AdminLogAction =
   | "USER_SUSPENDED"
@@ -52,6 +52,19 @@ export type AdminReviewRow = {
   createdAt: string;
   reviewerName: string;
   revieweeName: string;
+};
+
+export type AdminVerificationRow = {
+  id: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  type: string;
+  status: string;
+  verifiedAt: string | null;
+  revokedAt: string | null;
+  revokedReason: string | null;
+  createdAt: string;
 };
 
 export type AdminStats = {

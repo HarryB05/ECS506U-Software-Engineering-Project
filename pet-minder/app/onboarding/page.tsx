@@ -73,7 +73,7 @@ export default function OnboardingPage() {
         if (minderError) throw minderError;
       }
 
-      router.push("/dashboard");
+      router.push("/verify");
       router.refresh();
     } catch (err: unknown) {
       setError(

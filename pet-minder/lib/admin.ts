@@ -6,6 +6,7 @@ import type {
   AdminReviewRow,
   AdminStats,
   AdminUserRow,
+  AdminVerificationRow,
 } from "@/lib/types/admin";
 
 export async function logAction(
@@ -510,6 +511,98 @@ export async function removeReview(
     );
   } catch {
     // Logging should not fail a completed deletion action.
+  }
+
+  return { error: null };
+}
+
+export async function fetchAdminVerifications(
+  supabase: SupabaseClient,
+): Promise<{ data: AdminVerificationRow[]; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("verification_records")
+    .select(
+      `
+      id,
+      user_id,
+      type,
+      status,
+      verified_at,
+      revoked_at,
+      revoked_reason,
+      created_at,
+      users ( full_name, email )
+    `,
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return { data: [], error: new Error(error.message) };
+  }
+
+  const rows: AdminVerificationRow[] = (data ?? []).map((row) => {
+    const u = row.users as
+      | { full_name?: string | null; email?: string | null }
+      | { full_name?: string | null; email?: string | null }[]
+      | null;
+    const uOne = Array.isArray(u) ? u[0] : u;
+    return {
+      id: row.id as string,
+      userId: row.user_id as string,
+      fullName: displayNameFromUsersJoin(uOne, "Unknown"),
+      email: typeof uOne?.email === "string" ? uOne.email : "",
+      type: String(row.type),
+      status: String(row.status),
+      verifiedAt: (row.verified_at as string | null) ?? null,
+      revokedAt: (row.revoked_at as string | null) ?? null,
+      revokedReason: (row.revoked_reason as string | null) ?? null,
+      createdAt: row.created_at as string,
+    };
+  });
+
+  return { data: rows, error: null };
+}
+
+export async function revokeUserVerification(
+  supabase: SupabaseClient,
+  adminId: string,
+  userId: string,
+  reason?: string,
+): Promise<{ error: Error | null }> {
+  // Update verification record to mark as revoked
+  const { error: updateError } = await supabase
+    .from('verification_records')
+    .update({
+      status: 'revoked',
+      revoked_at: new Date().toISOString(),
+      revoked_reason: reason
+    })
+    .eq('user_id', userId)
+    .eq('status', 'verified');
+
+  if (updateError) {
+    return { error: new Error(updateError.message) };
+  }
+
+  // Update minder profile to mark as unverified
+  const { error: profileError } = await supabase
+    .from('minder_profiles')
+    .update({ is_verified: false })
+    .eq('user_id', userId);
+
+  if (profileError) {
+    return { error: new Error(profileError.message) };
+  }
+
+  try {
+    await logAction(
+      supabase,
+      adminId,
+      "MINDER_UNVERIFIED",
+      `Revoked verification for user ${userId}${reason ? `: ${reason}` : ''}`,
+    );
+  } catch (e) {
+    return { error: e instanceof Error ? e : new Error(String(e)) };
   }
 
   return { error: null };

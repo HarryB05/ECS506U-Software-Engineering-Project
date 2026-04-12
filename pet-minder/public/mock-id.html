@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Government ID - Pet Minder Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .id-card {
+            width: 400px;
+            height: 250px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .id-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></svg>');
+            opacity: 0.1;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .flag {
+            width: 40px;
+            height: 25px;
+            background: #dc2626;
+            border-radius: 3px;
+            position: relative;
+        }
+        .flag::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 20px solid #dc2626;
+            border-top: 12.5px solid transparent;
+            border-bottom: 12.5px solid transparent;
+        }
+        .gov-text {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .photo-area {
+            display: flex;
+            gap: 20px;
+        }
+        .photo {
+            width: 80px;
+            height: 100px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            border: 2px solid white;
+        }
+        .info {
+            flex: 1;
+        }
+        .info h2 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .barcode {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            height: 40px;
+            background: #000;
+            opacity: 0.8;
+        }
+        .hologram {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+        .download-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .download-btn:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #1f2937;">Mock Government ID Generator</h1>
+    <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">
+        Generate a mock ID for testing Pet Minder verification. This will be accepted by the AI verification system.
+    </p>
+
+    <div class="id-card">
+        <div class="header">
+            <div class="flag"></div>
+            <div class="gov-text">GOVERNMENT OF<br>UNITED KINGDOM</div>
+        </div>
+
+        <div class="photo-area">
+            <div class="photo"></div>
+            <div class="info">
+                <h2>JOHN DOE</h2>
+                <p><strong>ID Number:</strong> UK123456789</p>
+                <p><strong>DOB:</strong> 01/01/1990</p>
+                <p><strong>Issue Date:</strong> 01/01/2024</p>
+                <p><strong>Expiry:</strong> 01/01/2030</p>
+                <p><strong>Address:</strong> 123 Test Street, London</p>
+            </div>
+        </div>
+
+        <div class="barcode"></div>
+        <div class="hologram"></div>
+    </div>
+
+    <button class="download-btn" onclick="downloadID()">Download as PNG for Testing</button>
+
+    <script>
+        async function downloadID() {
+            // Use html2canvas to capture the ID card
+            const { default: html2canvas } = await import('https://html2canvas.hertzen.com/dist/html2canvas.min.js');
+
+            const idCard = document.querySelector('.id-card');
+            const canvas = await html2canvas(idCard, {
+                backgroundColor: '#f5f5f5',
+                scale: 2,
+                width: 400,
+                height: 250
+            });
+
+            // Convert to blob and download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mock-government-id.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+    </script>
+</body>
+</html>
