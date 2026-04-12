@@ -29,7 +29,7 @@ const ownerNav = [
 const minderNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/bookings", label: "Bookings", icon: CalendarCheck },
-  { href: "/dashboard/minder", label: "Minder", icon: Home },
+  { href: "/dashboard/minder", label: "Profile", icon: Home },
 ] as const;
 
 const adminNavItem = {

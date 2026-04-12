@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BookMinderRequestForm } from "@/components/book-minder-request-form";
 import { createClient } from "@/lib/supabase/server";
 import { getMinderProfileById } from "@/lib/minder-profile-service";
+import { getMinderAvailability } from "@/lib/availability-service";
 import { listOwnerPetsForBooking } from "@/lib/bookings-service";
 
 function BookSkeleton() {
@@ -61,10 +62,11 @@ async function BookMinderInner({ profileId }: { profileId: string }) {
     notFound();
   }
 
-  const { data: pets, error: petsError } = await listOwnerPetsForBooking(
-    supabase,
-    user.id,
-  );
+  const [{ data: pets, error: petsError }, { data: availabilitySlots }] =
+    await Promise.all([
+      listOwnerPetsForBooking(supabase, user.id),
+      getMinderAvailability(supabase, minder.profileId),
+    ]);
 
   if (petsError) {
     return (
@@ -113,6 +115,7 @@ async function BookMinderInner({ profileId }: { profileId: string }) {
         minderDisplayName={minder.displayName}
         servicePricing={minder.servicePricing}
         pets={pets}
+        availabilitySlots={availabilitySlots ?? []}
       />
     </div>
   );
