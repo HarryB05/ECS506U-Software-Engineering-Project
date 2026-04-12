@@ -75,9 +75,11 @@ async function OwnerProfileInner({ userId }: { userId: string }) {
         <CardHeader className="space-y-2">
           <div className="flex flex-wrap items-center gap-4">
             {avgRating != null ? (
-              <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-sm text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+              <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-sm text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
                 <Star className="size-4" />
-                {avgRating.toFixed(1)}/5.0 average rating
+                {avgRating !== null
+                  ? `${avgRating.toFixed(1)} average from ${reviews.length} review${reviews.length === 1 ? "" : "s"}`
+                  : "No reviews yet"}
               </div>
             ) : (
               <span className="text-sm text-muted-foreground">No ratings yet</span>
