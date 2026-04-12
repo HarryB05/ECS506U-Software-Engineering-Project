@@ -15,17 +15,47 @@ import {
   formatMinderPriceLabel,
 } from "@/lib/minder-display";
 import type { OwnerPetOption } from "@/lib/types/booking";
+import type { MinderAvailabilitySlot } from "@/lib/types/availability";
+import { toDisplayTime } from "@/lib/availability-service";
 
 type BookMinderRequestFormProps = {
   minderProfileId: string;
   minderDisplayName: string;
   servicePricing: string | null;
   pets: OwnerPetOption[];
+  availabilitySlots?: MinderAvailabilitySlot[];
 };
 
 const DURATION_OPTIONS = [30, 60, 90, 120, 180, 240];
 
+const SERVICE_TYPE_OPTIONS = [
+  "Dog Walking",
+  "Pet Sitting",
+  "Drop-in Visit",
+  "Day Care",
+  "Overnight Care",
+  "Grooming",
+] as const;
+
 type BookingMode = "session" | "range";
+
+const ISO_DAY_TO_DOW = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+] as const;
+
+/** Returns "monday" … "sunday" for a "YYYY-MM-DD" string, parsed in local time. */
+function isoDateToDayOfWeek(isoDate: string): string | null {
+  if (!isoDate) return null;
+  const [y, m, d] = isoDate.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return ISO_DAY_TO_DOW[new Date(y, m - 1, d).getDay()] ?? null;
+}
 
 function todayLocalISODate(): string {
   const d = new Date();
@@ -107,6 +137,7 @@ export function BookMinderRequestForm({
   minderDisplayName,
   servicePricing,
   pets,
+  availabilitySlots = [],
 }: BookMinderRequestFormProps) {
   const router = useRouter();
   const minSelectableIso = useMemo(() => todayLocalISODate(), []);
@@ -132,6 +163,7 @@ export function BookMinderRequestForm({
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("17:00");
   const [durationMinutes, setDurationMinutes] = useState(60);
+  const [serviceType, setServiceType] = useState<string>("Pet Sitting");
   const [message, setMessage] = useState("");
   const [careInstructions, setCareInstructions] = useState("");
   const [showOptionalDetails, setShowOptionalDetails] = useState(false);
@@ -204,6 +236,13 @@ export function BookMinderRequestForm({
     [servicePricing],
   );
 
+  const dayOfWeek = useMemo(() => isoDateToDayOfWeek(date), [date]);
+
+  const slotsForSelectedDay = useMemo(() => {
+    if (!dayOfWeek || availabilitySlots.length === 0) return [];
+    return availabilitySlots.filter((s) => s.day_of_week === dayOfWeek);
+  }, [availabilitySlots, dayOfWeek]);
+
   const selectedPetNames = useMemo(() => {
     const names = pets
       .filter((p) => selectedPetIds.has(p.id))
@@ -231,6 +270,11 @@ export function BookMinderRequestForm({
 
     if (Number.isNaN(Date.parse(requestedDatetime))) {
       setError("That start date or time is not valid.");
+      return;
+    }
+
+    if (new Date(requestedDatetime) <= new Date()) {
+      setError("Start time must be in the future.");
       return;
     }
 
@@ -268,6 +312,7 @@ export function BookMinderRequestForm({
         p_care_instructions: careInstructions.trim() || null,
         p_pet_ids: Array.from(selectedPetIds),
         p_requested_end_datetime: requestedEndDatetime,
+        p_service_type: serviceType,
       },
     );
 
@@ -319,6 +364,24 @@ export function BookMinderRequestForm({
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-2">
+              <Label htmlFor="booking-service-type" className="text-foreground">
+                Type of care
+              </Label>
+              <select
+                id="booking-service-type"
+                value={serviceType}
+                onChange={(ev) => setServiceType(ev.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {SERVICE_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="space-y-3">
               <Label className="text-foreground">Booking type</Label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -412,6 +475,49 @@ export function BookMinderRequestForm({
                   />
                 </div>
               </div>
+
+              {availabilitySlots.length > 0 && (
+                <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Available times
+                    {dayOfWeek ? ` on ${dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1)}` : ""}
+                  </p>
+                  {slotsForSelectedDay.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {slotsForSelectedDay.map((slot) => {
+                        const slotStart = toDisplayTime(slot.start_time);
+                        const slotEnd = toDisplayTime(slot.end_time);
+                        const isSelected = time === slotStart;
+                        return (
+                          <button
+                            key={slot.id}
+                            type="button"
+                            onClick={() => {
+                              setTime(slotStart);
+                              if (bookingMode === "range") {
+                                setEndDate(date);
+                                setEndTime(slotEnd);
+                              }
+                            }}
+                            className={`rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150 tabular-nums ${
+                              isSelected
+                                ? "border-teal-600 bg-teal-50 text-teal-700 shadow-sm dark:border-teal-500 dark:bg-teal-900/25 dark:text-teal-300"
+                                : "border-border bg-card text-foreground hover:border-teal-300/60 hover:bg-teal-50/50 dark:hover:bg-teal-900/10"
+                            }`}
+                          >
+                            {slotStart}–{slotEnd}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      {minderDisplayName} has no set hours for this day. You can
+                      still enter a time above — they will confirm availability.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {bookingMode === "range" ? (

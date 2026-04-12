@@ -84,6 +84,8 @@ function mapToPublicItem(
     servicePricing: normalizeServicePricing(row.service_pricing),
     isVerified: row.is_verified === true,
     averageRating,
+    availabilityNote:
+      typeof row.availability_note === "string" ? row.availability_note : null,
     locationName:
       typeof row.location_name === "string" ? row.location_name : null,
     latitude: typeof lat === "number" && Number.isFinite(lat) ? lat : null,
@@ -182,6 +184,7 @@ export async function getMinderProfileById(
       service_pricing,
       is_verified,
       average_rating,
+      availability_note,
       location_name,
       latitude,
       longitude,
@@ -238,6 +241,9 @@ export async function updateMinderProfile(
   if (fields.visible_in_search !== undefined) {
     payload.visible_in_search = fields.visible_in_search;
   }
+  if (fields.availability_note !== undefined) {
+    payload.availability_note = fields.availability_note?.trim() || null;
+  }
   if (fields.location_name !== undefined) {
     payload.location_name = fields.location_name?.trim() || null;
   }
@@ -283,6 +289,7 @@ export async function listPublicMindersForSearch(
       service_pricing,
       is_verified,
       average_rating,
+      availability_note,
       location_name,
       latitude,
       longitude,

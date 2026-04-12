@@ -429,8 +429,13 @@ export function SearchPageContent({
           </p>
           {filtered.length === 0 ? (
             <Card className="shadow-card border-border">
-              <CardContent className="p-6 text-center text-muted-foreground sm:p-8 md:p-10">
-                No minders match your current filters. Try widening your search.
+              <CardContent className="p-6 text-center sm:p-8 md:p-10 space-y-2">
+                <p className="text-muted-foreground">
+                  No minders match your current filters.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Try widening your search or clearing filters. Minders must enable &ldquo;Listed in owner search&rdquo; in their workspace to appear here.
+                </p>
               </CardContent>
             </Card>
           ) : (
