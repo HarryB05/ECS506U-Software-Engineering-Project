@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { Clock, EyeOff, Home, ShieldCheck } from "lucide-react";
+import { EyeOff } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,20 +14,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/server";
 import { ensureMinderProfileForUser } from "@/lib/minder-profile-service";
 
-function MinderWorkspaceSkeleton() {
+function MinderProfileSkeleton() {
   return (
-    <div className="max-w-content mx-auto space-y-8">
+    <div className="max-w-content mx-auto space-y-6">
       <Skeleton className="h-10 w-64" />
-      <Skeleton className="h-48 w-full" />
-      <div className="grid gap-4 md:grid-cols-2">
-        <Skeleton className="h-40 w-full" />
-        <Skeleton className="h-40 w-full" />
-      </div>
+      <Skeleton className="h-96 w-full" />
     </div>
   );
 }
 
-async function MinderWorkspaceInner() {
+async function MinderProfileInner() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -41,113 +37,65 @@ async function MinderWorkspaceInner() {
     await ensureMinderProfileForUser(supabase, user.id);
 
   return (
-    <div className="max-w-content mx-auto space-y-8">
+    <div className="max-w-content mx-auto space-y-6">
       <div>
         <h1 className="font-display text-2xl text-foreground mb-1 sm:text-3xl">
-          Minder workspace
+          Minder profile
         </h1>
         <p className="text-muted-foreground">
           Manage how owners find and book you.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <div className="md:col-span-2 xl:col-span-3">
-          {profileEnsureError && (
-            <Card className="shadow-card border-border mb-4">
-              <CardHeader>
-                <CardTitle className="text-lg font-medium">
-                  Could not restore minder profile
-                </CardTitle>
-                <CardDescription>
-                  {profileEnsureError.message}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Check that your Supabase project allows inserts on{" "}
-                  <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                    minder_profiles
-                  </code>{" "}
-                  for users with the minder role, or add a row manually in the
-                  Table Editor with your user ID.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-          {minderProfile && !minderProfile.visible_in_search && (
-            <div className="mb-4 flex items-start gap-3 rounded-lg border border-warning-500/40 bg-warning-100/60 px-4 py-3 dark:bg-warning-900/20">
-              <EyeOff className="mt-0.5 size-5 shrink-0 text-warning-500" />
-              <div>
-                <p className="text-sm font-medium text-warning-700 dark:text-warning-400">
-                  Your profile is hidden from owner search
-                </p>
-                <p className="text-xs text-warning-600 dark:text-warning-500 mt-0.5">
-                  Owners cannot find you until you enable &ldquo;Listed in owner search&rdquo; in your public profile below.
-                </p>
-              </div>
-            </div>
-          )}
-          <MinderPublicProfileEditor
-            userId={user.id}
-            initialProfile={minderProfile}
-          />
-        </div>
-        <Card className="shadow-card">
+      {profileEnsureError && (
+        <Card className="shadow-card border-border">
           <CardHeader>
-            <div className="mb-2 inline-flex rounded-lg bg-teal-50 p-2.5 dark:bg-teal-900/30">
-              <Clock className="size-5 text-teal-700 dark:text-teal-300" />
-            </div>
-            <CardTitle className="text-lg font-medium">Availability</CardTitle>
-            <CardDescription>
-              Set weekly hours when you are available for bookings.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Coming soon.</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardHeader>
-            <div className="mb-2 inline-flex rounded-lg bg-teal-50 p-2.5 dark:bg-teal-900/30">
-              <ShieldCheck className="size-5 text-teal-700 dark:text-teal-300" />
-            </div>
-            <CardTitle className="text-lg font-medium">Verification</CardTitle>
-            <CardDescription>
-              Verification status and reviews from completed bookings.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Coming soon.</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card opacity-80">
-          <CardHeader>
-            <div className="mb-2 inline-flex rounded-lg bg-teal-50 p-2.5 dark:bg-teal-900/30">
-              <Home className="size-5 text-teal-700 dark:text-teal-300" />
-            </div>
-            <CardTitle className="text-lg font-medium">Quick tips</CardTitle>
-            <CardDescription>
-              Clear pricing and pet types help owners book with confidence.
-            </CardDescription>
+            <CardTitle className="text-lg font-medium">
+              Could not restore minder profile
+            </CardTitle>
+            <CardDescription>{profileEnsureError.message}</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Use the profile card above to describe your services. Availability
-              scheduling will appear here in a future update.
+              Check that your Supabase project allows inserts on{" "}
+              <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                minder_profiles
+              </code>{" "}
+              for users with the minder role, or add a row manually in the
+              Table Editor with your user ID.
             </p>
           </CardContent>
         </Card>
-      </div>
+      )}
+
+      {minderProfile && !minderProfile.visible_in_search && (
+        <div className="flex items-start gap-3 rounded-lg border border-warning-500/40 bg-warning-100/60 px-4 py-3 dark:bg-warning-900/20">
+          <EyeOff className="mt-0.5 size-5 shrink-0 text-warning-500" />
+          <div>
+            <p className="text-sm font-medium text-warning-700 dark:text-warning-400">
+              Your profile is hidden from owner search
+            </p>
+            <p className="text-xs text-warning-600 dark:text-warning-500 mt-0.5">
+              Owners cannot find you until you enable &ldquo;Listed in owner
+              search&rdquo; in your public profile below.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <MinderPublicProfileEditor
+        userId={user.id}
+        initialProfile={minderProfile}
+      />
     </div>
   );
 }
 
-export default function MinderWorkspacePage() {
+export default function MinderProfilePage() {
   return (
     <MinderWorkspaceGate>
-      <Suspense fallback={<MinderWorkspaceSkeleton />}>
-        <MinderWorkspaceInner />
+      <Suspense fallback={<MinderProfileSkeleton />}>
+        <MinderProfileInner />
       </Suspense>
     </MinderWorkspaceGate>
   );

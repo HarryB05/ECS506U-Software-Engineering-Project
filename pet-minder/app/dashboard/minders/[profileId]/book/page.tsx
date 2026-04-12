@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BookMinderRequestForm } from "@/components/book-minder-request-form";
 import { createClient } from "@/lib/supabase/server";
 import { getMinderProfileById } from "@/lib/minder-profile-service";
+import { getMinderAvailability } from "@/lib/availability-service";
 import { listOwnerPetsForBooking } from "@/lib/bookings-service";
 
 function BookSkeleton() {
@@ -61,10 +62,11 @@ async function BookMinderInner({ profileId }: { profileId: string }) {
     notFound();
   }
 
-  const { data: pets, error: petsError } = await listOwnerPetsForBooking(
-    supabase,
-    user.id,
-  );
+  const [{ data: pets, error: petsError }, { data: availabilitySlots }] =
+    await Promise.all([
+      listOwnerPetsForBooking(supabase, user.id),
+      getMinderAvailability(supabase, minder.profileId),
+    ]);
 
   if (petsError) {
     return (
@@ -97,11 +99,23 @@ async function BookMinderInner({ profileId }: { profileId: string }) {
         </p>
       </div>
 
+      {minder.availabilityNote ? (
+        <div className="rounded-lg border border-border bg-secondary/40 px-4 py-3 text-sm dark:bg-secondary/20">
+          <p className="font-medium text-foreground mb-0.5">
+            {minder.displayName}&apos;s availability
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            {minder.availabilityNote}
+          </p>
+        </div>
+      ) : null}
+
       <BookMinderRequestForm
         minderProfileId={minder.profileId}
         minderDisplayName={minder.displayName}
         servicePricing={minder.servicePricing}
         pets={pets}
+        availabilitySlots={availabilitySlots ?? []}
       />
     </div>
   );
