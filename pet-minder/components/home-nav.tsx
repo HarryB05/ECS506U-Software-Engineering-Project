@@ -20,7 +20,7 @@ export async function HomeNav() {
     const roleTypes = (roles ?? []).map((r) => String(r.role_type));
 
     return (
-      <DashboardRoleProvider roleTypes={roleTypes}>
+      <DashboardRoleProvider roleTypes={roleTypes} userId={user.id}>
         <MainNav authenticated />
       </DashboardRoleProvider>
     );
