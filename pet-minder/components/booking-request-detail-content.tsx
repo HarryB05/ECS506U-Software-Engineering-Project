@@ -251,6 +251,14 @@ export function BookingRequestDetailContent({
     }
   }
 
+  const [showLateRescheduleWarning, setShowLateRescheduleWarning] = useState(false);
+
+  function isWithin48Hours(isoDatetime: string): boolean {
+    const ms = Date.parse(isoDatetime);
+    if (Number.isNaN(ms)) return false;
+    return ms - Date.now() < 48 * 60 * 60 * 1000;
+  }
+
   async function handleRescheduleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!isOwnerPending) return;
@@ -261,6 +269,13 @@ export function BookingRequestDetailContent({
       setError("Choose when care should start.");
       return;
     }
+
+    // Warn if the original booking is within 48 hours and user hasn't confirmed
+    if (isWithin48Hours(detail.requestedDatetime) && !showLateRescheduleWarning) {
+      setShowLateRescheduleWarning(true);
+      return;
+    }
+    setShowLateRescheduleWarning(false);
 
     const startIso = new Date(
       `${rescheduleDate}T${rescheduleTime}:00`,
@@ -355,7 +370,17 @@ export function BookingRequestDetailContent({
               Booking request
             </h1>
             <p className="text-muted-foreground mt-1">
-              With {detail.counterpartyName} · {detail.petCount} pet
+              {detail.viewerRole === "minder" && detail.counterpartyUserId ? (
+                <Link
+                  href={`/dashboard/owners/${detail.counterpartyUserId}`}
+                  className="underline underline-offset-2 hover:text-foreground transition-colors"
+                >
+                  {detail.counterpartyName}
+                </Link>
+              ) : (
+                detail.counterpartyName
+              )}{" "}
+              · {detail.petCount} pet
               {detail.petCount === 1 ? "" : "s"}
             </p>
           </div>
@@ -415,6 +440,14 @@ export function BookingRequestDetailContent({
           <CardTitle className="text-base font-medium">Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
+          {detail.serviceType ? (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">
+                Type of care
+              </p>
+              <p className="text-foreground">{detail.serviceType}</p>
+            </div>
+          ) : null}
           <div>
             <p className="text-xs font-medium text-muted-foreground">Schedule</p>
             <p className="text-foreground">{formatRequestSchedule(detail)}</p>
@@ -590,6 +623,19 @@ export function BookingRequestDetailContent({
                   />
                 </div>
 
+                {showLateRescheduleWarning ? (
+                  <div className="rounded-lg border border-warning-500/40 bg-warning-100/60 px-4 py-3 text-sm dark:bg-warning-900/20">
+                    <p className="font-medium text-warning-700 dark:text-warning-400">
+                      Within 48-hour window
+                    </p>
+                    <p className="text-warning-600 dark:text-warning-500 mt-1">
+                      The original booking is less than 48 hours away. Late
+                      changes may incur a deposit penalty agreed with the minder.
+                      Submit anyway?
+                    </p>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-wrap gap-2">
                   <Button type="submit" disabled={busy}>
                     {busy ? (
@@ -597,6 +643,8 @@ export function BookingRequestDetailContent({
                         <Loader2 className="size-4 animate-spin" />
                         Saving…
                       </>
+                    ) : showLateRescheduleWarning ? (
+                      "Confirm reschedule"
                     ) : (
                       "Save reschedule"
                     )}
@@ -605,7 +653,10 @@ export function BookingRequestDetailContent({
                     type="button"
                     variant="outline"
                     disabled={busy}
-                    onClick={() => setShowRescheduleForm(false)}
+                    onClick={() => {
+                      setShowRescheduleForm(false);
+                      setShowLateRescheduleWarning(false);
+                    }}
                   >
                     Close
                   </Button>
@@ -629,7 +680,7 @@ export function BookingRequestDetailContent({
               {counterpartyRating != null ? (
                 <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
                   <Star className="size-4" />
-                  {counterpartyRating.toFixed(1)} / 5
+                  {counterpartyRating.toFixed(1)}/5
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No ratings yet.</p>

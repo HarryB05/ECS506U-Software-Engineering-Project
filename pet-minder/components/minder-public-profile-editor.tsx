@@ -84,6 +84,9 @@ export function MinderPublicProfileEditor({
   const [visibleInSearch, setVisibleInSearch] = useState(
     initialProfile?.visible_in_search ?? false,
   );
+  const [availabilityNote, setAvailabilityNote] = useState(
+    initialProfile?.availability_note ?? "",
+  );
   const [locationInput, setLocationInput] = useState(
     initialProfile?.location_name ?? "",
   );
@@ -100,6 +103,7 @@ export function MinderPublicProfileEditor({
     setSelectedSizes(initSelectedSizes(initialProfile?.supported_pet_sizes ?? null));
     setPricing(servicePricingToInputString(initialProfile?.service_pricing));
     setVisibleInSearch(initialProfile?.visible_in_search ?? false);
+    setAvailabilityNote(initialProfile?.availability_note ?? "");
     setLocationInput(initialProfile?.location_name ?? "");
   }, [initialProfile]);
 
@@ -174,6 +178,7 @@ export function MinderPublicProfileEditor({
         supported_pet_types: selectedTypes,
         supported_pet_sizes: selectedSizes,
         service_pricing: normalizeServicePricing(pricing),
+        availability_note: availabilityNote.trim() || null,
         location_name,
         latitude,
         longitude,
@@ -188,6 +193,7 @@ export function MinderPublicProfileEditor({
     if (next) {
       setProfile(next);
       setPricing(servicePricingToInputString(next.service_pricing));
+      setAvailabilityNote(next.availability_note ?? "");
       setLocationInput(next.location_name ?? "");
     }
   }
@@ -357,6 +363,7 @@ export function MinderPublicProfileEditor({
               autoComplete="off"
             />
           </div>
+
 
           <div className="space-y-1.5 max-w-xs">
             <Label htmlFor="minder-location" className="flex items-center gap-1.5">

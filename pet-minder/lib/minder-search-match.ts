@@ -14,7 +14,11 @@ export function stringsLooselyMatch(a: string, b: string): boolean {
 
 /** Broad match for the "Small pets" quick filter and similar wording. */
 const SMALL_PET_PATTERN =
-  /\b(rabbit|bunny|bunnies|hamster|hamsters|guinea\s*pig|guinea\s*pigs|gerbil|gerbils|mouse|mice|rat|rats|ferret|ferrets|chinchilla|hedgehog|gecko|geckos|turtle|turtles|tortoise|tortoises|snake|snakes|lizard|lizards|parakeet|budgie|budgies|parrot|parrots|cockatiel|cockatiels|bird|birds|fish)\b/i;
+  /\b(rabbit|bunny|bunnies|hamster|hamsters|guinea\s*pig|guinea\s*pigs|gerbil|gerbils|mouse|mice|rat|rats|ferret|ferrets|chinchilla|hedgehog)\b/i;
+
+/** Broad match for the "Reptile" quick filter. */
+const REPTILE_PATTERN =
+  /\b(reptile|reptiles|gecko|geckos|lizard|lizards|snake|snakes|bearded\s*dragon|iguana|chameleon|turtle|turtles|tortoise|tortoises)\b/i;
 
 export function matchesSmallPetsCategory(
   supportedTypes: string[],
@@ -23,6 +27,15 @@ export function matchesSmallPetsCategory(
   const desc = serviceDescription ?? "";
   if (SMALL_PET_PATTERN.test(desc)) return true;
   return supportedTypes.some((t) => SMALL_PET_PATTERN.test(t));
+}
+
+export function matchesReptileCategory(
+  supportedTypes: string[],
+  serviceDescription: string | null,
+): boolean {
+  const desc = serviceDescription ?? "";
+  if (REPTILE_PATTERN.test(desc)) return true;
+  return supportedTypes.some((t) => REPTILE_PATTERN.test(t));
 }
 
 /**
@@ -38,6 +51,9 @@ export function minderMatchesPetTypeFilter(
   if (!f) return true;
   if (f === "small pets" || f === "small pet") {
     return matchesSmallPetsCategory(supportedTypes, serviceDescription);
+  }
+  if (f === "reptile" || f === "reptiles") {
+    return matchesReptileCategory(supportedTypes, serviceDescription);
   }
   return supportedTypes.some((t) => stringsLooselyMatch(t, f));
 }
