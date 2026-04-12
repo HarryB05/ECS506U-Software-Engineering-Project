@@ -129,7 +129,7 @@ export function MainNav({
               );
             })}
           </nav>
-        ) : null}
+        ) : <div />}
 
         <div className="flex shrink-0 items-center justify-end gap-1">
           <ThemeToggle />
