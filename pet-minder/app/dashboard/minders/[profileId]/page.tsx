@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Clock, ShieldCheck, Star } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,10 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PublicReviewList } from "@/components/public-review-list";
-import { MinderAvailabilityDisplay } from "@/components/minder-availability-display";
 import { createClient } from "@/lib/supabase/server";
 import { getMinderProfileById } from "@/lib/minder-profile-service";
-import { getMinderAvailability } from "@/lib/availability-service";
 import { listPublicReviewsForUser } from "@/lib/reviews-service";
 import {
   formatMinderPriceLabel,
@@ -87,11 +85,6 @@ async function MinderProfileInner({
     { limit: 10 },
   );
 
-  const { data: availabilitySlots } = await getMinderAvailability(
-    supabase,
-    data.profileId,
-  );
-
   const rating = data.averageRating ?? 0;
   const typesLine =
     data.supportedPetTypes.length > 0
@@ -156,12 +149,6 @@ async function MinderProfileInner({
               {formatMinderPriceLabel(data.servicePricing)}
             </p>
           </div>
-          {data.availabilityNote ? (
-            <div className="border-t border-border pt-4">
-              <p className="text-sm text-muted-foreground mb-1">Availability</p>
-              <p className="text-foreground leading-relaxed">{data.availabilityNote}</p>
-            </div>
-          ) : null}
           {canBookAsOwner && data.userId !== user.id ? (
             <div className="border-t border-border pt-4">
               <Button asChild className="w-full sm:w-auto">
@@ -171,21 +158,6 @@ async function MinderProfileInner({
               </Button>
             </div>
           ) : null}
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-card border-border">
-        <CardHeader>
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="size-4 text-teal-700 dark:text-teal-300" />
-            <CardTitle className="text-xl font-medium">Availability</CardTitle>
-          </div>
-          <CardDescription>
-            Weekly hours when {data.displayName} accepts bookings.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <MinderAvailabilityDisplay slots={availabilitySlots ?? []} />
         </CardContent>
       </Card>
 

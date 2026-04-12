@@ -13,7 +13,6 @@ export type MinderProfile = {
   is_verified: boolean;
   average_rating: number | null;
   visible_in_search: boolean;
-  availability_note: string | null;
   location_name: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -28,7 +27,6 @@ export type MinderProfileUpdate = Partial<{
   supported_pet_sizes: PetSize[] | null;
   service_pricing: string | null;
   visible_in_search: boolean;
-  availability_note: string | null;
   location_name: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -45,7 +43,6 @@ export type PublicMinderListItem = {
   servicePricing: string | null;
   isVerified: boolean;
   averageRating: number | null;
-  availabilityNote: string | null;
   locationName: string | null;
   latitude: number | null;
   longitude: number | null;

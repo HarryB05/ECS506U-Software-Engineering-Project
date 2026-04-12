@@ -251,14 +251,6 @@ export function BookingRequestDetailContent({
     }
   }
 
-  const [showLateRescheduleWarning, setShowLateRescheduleWarning] = useState(false);
-
-  function isWithin48Hours(isoDatetime: string): boolean {
-    const ms = Date.parse(isoDatetime);
-    if (Number.isNaN(ms)) return false;
-    return ms - Date.now() < 48 * 60 * 60 * 1000;
-  }
-
   async function handleRescheduleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!isOwnerPending) return;
@@ -269,13 +261,6 @@ export function BookingRequestDetailContent({
       setError("Choose when care should start.");
       return;
     }
-
-    // Warn if the original booking is within 48 hours and user hasn't confirmed
-    if (isWithin48Hours(detail.requestedDatetime) && !showLateRescheduleWarning) {
-      setShowLateRescheduleWarning(true);
-      return;
-    }
-    setShowLateRescheduleWarning(false);
 
     const startIso = new Date(
       `${rescheduleDate}T${rescheduleTime}:00`,
@@ -623,19 +608,6 @@ export function BookingRequestDetailContent({
                   />
                 </div>
 
-                {showLateRescheduleWarning ? (
-                  <div className="rounded-lg border border-warning-500/40 bg-warning-100/60 px-4 py-3 text-sm dark:bg-warning-900/20">
-                    <p className="font-medium text-warning-700 dark:text-warning-400">
-                      Within 48-hour window
-                    </p>
-                    <p className="text-warning-600 dark:text-warning-500 mt-1">
-                      The original booking is less than 48 hours away. Late
-                      changes may incur a deposit penalty agreed with the minder.
-                      Submit anyway?
-                    </p>
-                  </div>
-                ) : null}
-
                 <div className="flex flex-wrap gap-2">
                   <Button type="submit" disabled={busy}>
                     {busy ? (
@@ -643,8 +615,6 @@ export function BookingRequestDetailContent({
                         <Loader2 className="size-4 animate-spin" />
                         Saving…
                       </>
-                    ) : showLateRescheduleWarning ? (
-                      "Confirm reschedule"
                     ) : (
                       "Save reschedule"
                     )}
@@ -653,10 +623,7 @@ export function BookingRequestDetailContent({
                     type="button"
                     variant="outline"
                     disabled={busy}
-                    onClick={() => {
-                      setShowRescheduleForm(false);
-                      setShowLateRescheduleWarning(false);
-                    }}
+                    onClick={() => setShowRescheduleForm(false)}
                   >
                     Close
                   </Button>
