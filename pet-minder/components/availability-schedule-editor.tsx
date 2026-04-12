@@ -182,6 +182,8 @@ export function AvailabilityScheduleEditor({
                     <Input
                       id={`start-${day}`}
                       type="time"
+                      min="00:00"
+                      max="23:59"
                       value={addForm.start}
                       onChange={(e) =>
                         setAddForm((f) => ({
@@ -199,6 +201,8 @@ export function AvailabilityScheduleEditor({
                     <Input
                       id={`end-${day}`}
                       type="time"
+                      min="00:00"
+                      max="23:59"
                       value={addForm.end}
                       onChange={(e) =>
                         setAddForm((f) => ({
