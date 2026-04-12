@@ -364,20 +364,6 @@ export function MinderPublicProfileEditor({
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="minder-availability">Availability (optional)</Label>
-            <Textarea
-              id="minder-availability"
-              value={availabilityNote}
-              onChange={(e) => setAvailabilityNote(e.target.value)}
-              placeholder="e.g. Mon–Fri 8am–6pm, weekends on request. Not available bank holidays."
-              rows={2}
-            />
-            <p className="text-xs text-muted-foreground">
-              Shown to owners when they view your profile and before they book.
-              This helps prevent requests outside your available hours.
-            </p>
-          </div>
 
           <div className="space-y-1.5 max-w-xs">
             <Label htmlFor="minder-location" className="flex items-center gap-1.5">
