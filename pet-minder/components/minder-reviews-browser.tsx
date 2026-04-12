@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { PublicReviewList } from "@/components/public-review-list";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { PublicReviewItem } from "@/lib/reviews-service";
 
 const RATING_OPTIONS = [1, 2, 3, 4, 5] as const;
@@ -54,6 +60,11 @@ export function MinderReviewsBrowser({
   const safePage = Math.min(currentPage, totalPages);
   const start = (safePage - 1) * pageSize;
   const pagedReviews = filteredReviews.slice(start, start + pageSize);
+
+  const ratingLabel =
+    selectedRating === null
+      ? `All ratings (${reviews.length})`
+      : `${selectedRating} / 5 (${ratingCounts.get(selectedRating) ?? 0})`;
 
   function handleFilterChange(rating: number | null) {
     setSelectedRating(rating);
@@ -148,28 +159,41 @@ export function MinderReviewsBrowser({
             <label htmlFor="reviews-rating-filter" className="text-xs text-muted-foreground">
               Rating
             </label>
-            <select
-              id="reviews-rating-filter"
-              value={selectedRating === null ? "" : String(selectedRating)}
-              onChange={(e) => {
-                const value = e.target.value;
-                handleFilterChange(value === "" ? null : Number(value));
-              }}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <option value="" className="bg-background text-foreground">
-                All ratings ({reviews.length})
-              </option>
-              {RATING_OPTIONS.map((rating) => (
-                <option
-                  key={rating}
-                  value={rating}
-                  className="bg-background text-foreground"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  id="reviews-rating-filter"
+                  type="button"
+                  className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                 >
-                  {rating} / 5 ({ratingCounts.get(rating) ?? 0})
-                </option>
-              ))}
-            </select>
+                  <span className="truncate text-left">{ratingLabel}</span>
+                  <ChevronDown
+                    className="size-4 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
+              >
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => handleFilterChange(null)}
+                >
+                  All ratings ({reviews.length})
+                </DropdownMenuItem>
+                {RATING_OPTIONS.map((rating) => (
+                  <DropdownMenuItem
+                    key={rating}
+                    className="cursor-pointer"
+                    onSelect={() => handleFilterChange(rating)}
+                  >
+                    {rating} / 5 ({ratingCounts.get(rating) ?? 0})
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardContent>
         </Card>
       </aside>
