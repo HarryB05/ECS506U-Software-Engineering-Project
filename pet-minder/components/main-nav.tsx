@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   CalendarCheck,
   PawPrint,
+  UserRound,
   User,
   Home,
   Search,
@@ -70,7 +71,7 @@ export function MainNav({
     if (!dashboardRole) {
       return ownerNav;
     }
-    const { roleTypes, activeRole, allRoleTypes } = dashboardRole;
+    const { roleTypes, activeRole, allRoleTypes, userId } = dashboardRole;
     const isAdmin = allRoleTypes.includes("admin");
     // Admin only (no owner/minder roles): show admin workspace only — no owner/minder nav.
     const isAdminOnly =
@@ -85,6 +86,16 @@ export function MainNav({
       base = roleTypes[0] === "minder" ? minderNav : ownerNav;
     } else {
       base = activeRole === "minder" ? minderNav : ownerNav;
+    }
+    if (activeRole === "owner" && userId) {
+      base = [
+        ...base,
+        {
+          href: `/dashboard/owners/${userId}`,
+          label: "Profile",
+          icon: UserRound,
+        },
+      ];
     }
     if (isAdmin) {
       return [...base, adminNavItem];

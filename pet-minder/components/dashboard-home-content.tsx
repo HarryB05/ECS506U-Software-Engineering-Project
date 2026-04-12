@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarCheck, Clock, Home, PawPrint, Search } from "lucide-react";
+import { CalendarCheck, Clock, Home, PawPrint, Search, UserRound } from "lucide-react";
 import { useDashboardRole } from "@/components/dashboard-role-context";
 
 const cardClass =
@@ -11,7 +11,7 @@ const iconWrapClass =
   "rounded-lg bg-teal-50 p-3 dark:bg-teal-900/30 shrink-0";
 
 export function DashboardHomeContent() {
-  const { activeRole } = useDashboardRole();
+  const { activeRole, userId } = useDashboardRole();
 
   if (activeRole === "minder") {
     return (
@@ -92,6 +92,22 @@ export function DashboardHomeContent() {
           </p>
         </div>
       </Link>
+      {userId ? (
+        <Link
+          href={`/dashboard/owners/${userId}`}
+          className="flex flex-col items-start gap-4 rounded-lg border border-border bg-card p-5 sm:flex-row sm:items-center sm:p-6 shadow-card transition-all duration-150 hover:shadow-card-hover hover:border-teal-300"
+        >
+          <div className="rounded-lg bg-teal-50 p-3 dark:bg-teal-900/30">
+            <UserRound className="size-6 text-teal-700 dark:text-teal-300" />
+          </div>
+          <div>
+            <h2 className="text-xl font-medium text-foreground">Your profile</h2>
+            <p className="text-sm text-muted-foreground">
+              See how owners view your details
+            </p>
+          </div>
+        </Link>
+      ) : null}
     </div>
   );
 }

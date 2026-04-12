@@ -1,8 +1,6 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -10,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PublicReviewList } from "@/components/public-review-list";
+import { MinderReviewsBrowser } from "@/components/minder-reviews-browser";
 import { createClient } from "@/lib/supabase/server";
 import {
   getAverageRatingForUser,
@@ -56,7 +54,7 @@ async function OwnerProfileInner({ userId }: { userId: string }) {
 
   // Fetch reviews and average rating
   const [{ data: reviews }, { data: avgRating }] = await Promise.all([
-    listPublicReviewsForUser(supabase, userId, { limit: 10 }),
+    listPublicReviewsForUser(supabase, userId, { limit: 200 }),
     getAverageRatingForUser(supabase, userId),
   ]);
 
@@ -67,12 +65,6 @@ async function OwnerProfileInner({ userId }: { userId: string }) {
   return (
     <div className="max-w-content mx-auto space-y-6">
       <div>
-        <Button asChild variant="ghost" className="mb-4 -ml-2 gap-2">
-          <Link href="/dashboard/bookings">
-            <ArrowLeft className="size-4" />
-            Back to bookings
-          </Link>
-        </Button>
         <h1 className="font-display text-3xl text-foreground mb-1">
           {ownerName}
         </h1>
@@ -83,9 +75,11 @@ async function OwnerProfileInner({ userId }: { userId: string }) {
         <CardHeader className="space-y-2">
           <div className="flex flex-wrap items-center gap-4">
             {avgRating != null ? (
-              <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-sm text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+              <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-sm text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
                 <Star className="size-4" />
-                {avgRating.toFixed(1)}/5 average rating
+                {avgRating !== null
+                  ? `${avgRating.toFixed(1)} average from ${reviews.length} review${reviews.length === 1 ? "" : "s"}`
+                  : "No reviews yet"}
               </div>
             ) : (
               <span className="text-sm text-muted-foreground">No ratings yet</span>
@@ -118,7 +112,7 @@ async function OwnerProfileInner({ userId }: { userId: string }) {
         </CardContent>
       </Card>
 
-      <PublicReviewList title="Reviews received" reviews={reviews ?? []} />
+      <MinderReviewsBrowser reviews={reviews ?? []} pageSize={6} />
     </div>
   );
 }
