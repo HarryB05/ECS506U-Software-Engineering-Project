@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Clock, Home, ShieldCheck } from "lucide-react";
 import {
@@ -8,11 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { MinderWorkspaceGate } from "@/components/minder-workspace-gate";
 import { MinderPublicProfileEditor } from "@/components/minder-public-profile-editor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/server";
 import { ensureMinderProfileForUser } from "@/lib/minder-profile-service";
+import { getMinderAvailability } from "@/lib/availability-service";
+import { DAYS_OF_WEEK, DAY_LABEL } from "@/lib/types/availability";
 
 function MinderWorkspaceSkeleton() {
   return (
@@ -39,6 +43,14 @@ async function MinderWorkspaceInner() {
 
   const { data: minderProfile, error: profileEnsureError } =
     await ensureMinderProfileForUser(supabase, user.id);
+
+  const { data: availabilitySlots } = minderProfile
+    ? await getMinderAvailability(supabase, minderProfile.id)
+    : { data: [] };
+
+  const daysWithSlots = DAYS_OF_WEEK.filter((day) =>
+    (availabilitySlots ?? []).some((s) => s.day_of_week === day),
+  );
 
   return (
     <div className="max-w-content mx-auto space-y-8">
@@ -90,8 +102,26 @@ async function MinderWorkspaceInner() {
               Set weekly hours when you are available for bookings.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Coming soon.</p>
+          <CardContent className="space-y-4">
+            {daysWithSlots.length > 0 ? (
+              <ul className="space-y-1 text-sm text-foreground">
+                {daysWithSlots.map((day) => (
+                  <li key={day} className="text-muted-foreground">
+                    {DAY_LABEL[day]}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No availability set yet.
+              </p>
+            )}
+            <Button asChild variant="outline" size="sm" className="gap-2">
+              <Link href="/dashboard/minder/availability">
+                <Clock className="size-3.5" />
+                Manage availability
+              </Link>
+            </Button>
           </CardContent>
         </Card>
         <Card className="shadow-card">
@@ -120,8 +150,8 @@ async function MinderWorkspaceInner() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Use the profile card above to describe your services. Availability
-              scheduling will appear here in a future update.
+              Use the profile card above to describe your services and the
+              availability card to set your weekly hours.
             </p>
           </CardContent>
         </Card>
