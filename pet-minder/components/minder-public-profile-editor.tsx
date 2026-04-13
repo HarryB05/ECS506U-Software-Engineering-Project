@@ -257,7 +257,7 @@ export function MinderPublicProfileEditor({
             className="inline-flex items-center gap-1 text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
             <Star className="size-4 text-teal-600 dark:text-teal-400" />
-            {rating !== null ? `${rating.toFixed(1)} average` : "No reviews yet"}
+            {rating !== null ? `${rating.toFixed(1)}/5.0 average` : "No reviews yet"}
           </Link>
         </div>
 

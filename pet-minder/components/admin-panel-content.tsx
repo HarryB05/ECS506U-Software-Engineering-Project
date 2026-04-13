@@ -561,7 +561,7 @@ function ReviewsTab({
             </div>
             {r.rating != null ? (
               <p className="text-xs text-muted-foreground">
-                Rating: {r.rating.toFixed(1)}/5
+                Rating: {r.rating.toFixed(0)}/5
               </p>
             ) : null}
             {r.comment ? (

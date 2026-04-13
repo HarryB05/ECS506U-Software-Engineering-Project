@@ -71,7 +71,7 @@ export function MinderMap({ minders }: MinderMapProps) {
 
         const ratingLine =
           minder.averageRating !== null
-            ? `<span>⭐ ${minder.averageRating.toFixed(1)}</span>`
+            ? `<span>⭐ ${minder.averageRating.toFixed(1)}/5.0</span>`
             : "";
         const priceLine = minder.servicePricing
           ? `<span>${minder.servicePricing}</span>`
