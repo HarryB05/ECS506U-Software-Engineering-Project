@@ -73,7 +73,7 @@ function haystackMatchesToken(haystack: string, token: string): boolean {
   if (!t) return true;
   if (haystack.includes(t)) return true;
   const words = haystack.split(/[^a-z0-9]+/).filter(Boolean);
-  return words.some((w) => stringsLooselyMatch(w, t));
+  return words.some((w) => w.includes(t));
 }
 
 /**
@@ -98,6 +98,32 @@ export function minderMatchesKeywordQuery(
     .toLowerCase();
 
   return tokens.every((token) => haystackMatchesToken(haystack, token));
+}
+
+export function getSimpleMinderSearchRank(
+  minder: Pick<PublicMinderListItem, "displayName" | "serviceDescription" | "supportedPetTypes">,
+  query: string,
+): number {
+  const raw = query.trim().toLowerCase();
+  if (!raw) return 0;
+  const tokens = raw.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return 0;
+
+  const name = minder.displayName.trim().toLowerCase();
+  if (name === raw) return 4;
+  if (tokens.some((token) => name.startsWith(token))) return 3;
+  if (tokens.every((token) => name.includes(token))) return 2;
+  if (
+    minderMatchesKeywordQuery(
+      minder.displayName,
+      minder.serviceDescription,
+      minder.supportedPetTypes,
+      query,
+    )
+  ) {
+    return 1;
+  }
+  return 0;
 }
 
 /** Haversine great-circle distance in kilometres. */
