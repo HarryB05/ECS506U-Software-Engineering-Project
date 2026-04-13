@@ -39,7 +39,7 @@ async function MinderProfileInner() {
   const { data: minderProfile, error: profileEnsureError } =
     await ensureMinderProfileForUser(supabase, user.id);
   const checklistRes = minderProfile
-    ? await getMinderVerificationChecklist(supabase, minderProfile.id)
+    ? await getMinderVerificationChecklist(supabase, minderProfile.id, user.id)
     : { data: null };
 
   return (

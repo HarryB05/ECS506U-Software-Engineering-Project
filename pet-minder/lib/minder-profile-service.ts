@@ -339,6 +339,7 @@ export async function listPublicMindersForSearch(
 export async function getMinderVerificationChecklist(
   supabase: SupabaseClient,
   profileId: string,
+  userId: string,
 ): Promise<{ data: MinderVerificationChecklist | null; error: Error | null }> {
   const { data, error } = await supabase.rpc(
     "get_minder_verification_checklist",
@@ -357,6 +358,16 @@ export async function getMinderVerificationChecklist(
   }
 
   const raw = row as Record<string, unknown>;
+
+  // The stored average_rating on minder_profiles may be stale or null if the
+  // review trigger has not yet run for this profile. Compute it live from the
+  // reviews table so the checklist always reflects the real current value.
+  const avgRes = await getAverageRatingsForUsers(supabase, [userId]);
+  const liveRating = avgRes.error ? null : (avgRes.data.get(userId) ?? null);
+  const averageRating =
+    liveRating !== null ? liveRating : raw.average_rating == null ? null : Number(raw.average_rating);
+  const ratingOk = averageRating !== null && averageRating >= 4.0;
+
   return {
     data: {
       minder_profile_id: String(raw.minder_profile_id ?? ""),
@@ -364,7 +375,7 @@ export async function getMinderVerificationChecklist(
       email_confirmed: raw.email_confirmed === true,
       profile_complete: raw.profile_complete === true,
       account_age_ok: raw.account_age_ok === true,
-      rating_ok: raw.rating_ok === true,
+      rating_ok: ratingOk,
       completed_bookings_ok: raw.completed_bookings_ok === true,
       recent_cancellations_ok: raw.recent_cancellations_ok === true,
       visible_in_search_ok: raw.visible_in_search_ok === true,
@@ -372,8 +383,7 @@ export async function getMinderVerificationChecklist(
       recent_minder_cancellations_count: Number(
         raw.recent_minder_cancellations_count ?? 0,
       ),
-      average_rating:
-        raw.average_rating == null ? null : Number(raw.average_rating),
+      average_rating: averageRating,
     },
     error: null,
   };
