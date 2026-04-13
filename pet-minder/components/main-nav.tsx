@@ -10,7 +10,7 @@ import {
   CalendarCheck,
   PawPrint,
   UserRound,
-  User,
+  Cog,
   Home,
   Search,
   Shield,
@@ -156,7 +156,7 @@ export function MainNav({
                   )}
                   aria-label="Profile"
                 >
-                  <User className="size-5" />
+                  <Cog className="size-5" />
                 </Link>
               ) : null}
               <LogoutButton size="sm" variant="outline" />

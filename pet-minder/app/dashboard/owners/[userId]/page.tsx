@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import { Star } from "lucide-react";
 import {
   Card,
@@ -7,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MinderReviewsBrowser } from "@/components/minder-reviews-browser";
 import { createClient } from "@/lib/supabase/server";
@@ -85,7 +87,12 @@ async function OwnerProfileInner({ userId }: { userId: string }) {
               <span className="text-sm text-muted-foreground">No ratings yet</span>
             )}
           </div>
-          <CardTitle className="text-xl font-medium">Pets</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="text-xl font-medium">Pets</CardTitle>
+            <Button type="button" variant="outline" asChild>
+              <Link href="/dashboard/pets">My Pets</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {visiblePets.length === 0 ? (
