@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   MinderProfile,
+  MinderVerificationChecklist,
   MinderProfileUpdate,
   PublicMinderListItem,
 } from "@/lib/types/minder-profile";
@@ -333,4 +334,47 @@ export async function listPublicMindersForSearch(
   }
 
   return { data: mapped, error: null };
+}
+
+export async function getMinderVerificationChecklist(
+  supabase: SupabaseClient,
+  profileId: string,
+): Promise<{ data: MinderVerificationChecklist | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc(
+    "get_minder_verification_checklist",
+    {
+      p_minder_profile_id: profileId,
+    },
+  );
+
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row || typeof row !== "object") {
+    return { data: null, error: null };
+  }
+
+  const raw = row as Record<string, unknown>;
+  return {
+    data: {
+      minder_profile_id: String(raw.minder_profile_id ?? ""),
+      is_verified: raw.is_verified === true,
+      email_confirmed: raw.email_confirmed === true,
+      profile_complete: raw.profile_complete === true,
+      account_age_ok: raw.account_age_ok === true,
+      rating_ok: raw.rating_ok === true,
+      completed_bookings_ok: raw.completed_bookings_ok === true,
+      recent_cancellations_ok: raw.recent_cancellations_ok === true,
+      visible_in_search_ok: raw.visible_in_search_ok === true,
+      completed_bookings_count: Number(raw.completed_bookings_count ?? 0),
+      recent_minder_cancellations_count: Number(
+        raw.recent_minder_cancellations_count ?? 0,
+      ),
+      average_rating:
+        raw.average_rating == null ? null : Number(raw.average_rating),
+    },
+    error: null,
+  };
 }
