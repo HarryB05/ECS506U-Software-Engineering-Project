@@ -112,7 +112,7 @@ $$;
 drop trigger if exists trg_review_verification_change on public.reviews;
 
 create trigger trg_review_verification_change
-after insert
+after insert or update of reviewee_id, rating, is_moderated
 on public.reviews
 for each row
 execute function public.on_review_verification_change();
