@@ -25,6 +25,11 @@ async function BookingsInner() {
     redirect("/auth/login");
   }
 
+  // Flush any pending requests that have been waiting more than 24 hours
+  // before loading the list, so the page always reflects current state.
+  // Errors are intentionally ignored — the cron job is the safety net.
+  await supabase.rpc("bookings_apply_auto_reject").catch(() => null);
+
   const { data, error } = await loadBookingsDashboard(supabase, user.id);
 
   return (
