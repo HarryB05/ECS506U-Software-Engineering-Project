@@ -130,7 +130,7 @@ export function PublicReviewList({ title, reviews }: PublicReviewListProps) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-xs text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
                   <Star className="size-3.5" />
-                  {review.rating} / 5
+                  {review.rating.toFixed(1)}/5
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {formatWhen(review.createdAt)}

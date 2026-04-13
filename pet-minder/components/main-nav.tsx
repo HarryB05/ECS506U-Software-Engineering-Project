@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   CalendarCheck,
   PawPrint,
+  UserRound,
   User,
   Home,
   Search,
@@ -29,7 +30,7 @@ const ownerNav = [
 const minderNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/bookings", label: "Bookings", icon: CalendarCheck },
-  { href: "/dashboard/minder", label: "Minder", icon: Home },
+  { href: "/dashboard/minder", label: "Profile", icon: Home },
 ] as const;
 
 const adminNavItem = {
@@ -70,7 +71,7 @@ export function MainNav({
     if (!dashboardRole) {
       return ownerNav;
     }
-    const { roleTypes, activeRole, allRoleTypes } = dashboardRole;
+    const { roleTypes, activeRole, allRoleTypes, userId } = dashboardRole;
     const isAdmin = allRoleTypes.includes("admin");
     // Admin only (no owner/minder roles): show admin workspace only — no owner/minder nav.
     const isAdminOnly =
@@ -85,6 +86,16 @@ export function MainNav({
       base = roleTypes[0] === "minder" ? minderNav : ownerNav;
     } else {
       base = activeRole === "minder" ? minderNav : ownerNav;
+    }
+    if (activeRole === "owner" && userId) {
+      base = [
+        ...base,
+        {
+          href: `/dashboard/owners/${userId}`,
+          label: "Profile",
+          icon: UserRound,
+        },
+      ];
     }
     if (isAdmin) {
       return [...base, adminNavItem];
@@ -129,16 +140,7 @@ export function MainNav({
               );
             })}
           </nav>
-        ) : (
-          <div className="flex items-center justify-center">
-            <Link
-              href="#features"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              How it works
-            </Link>
-          </div>
-        )}
+        ) : <div />}
 
         <div className="flex shrink-0 items-center justify-end gap-1">
           <ThemeToggle />

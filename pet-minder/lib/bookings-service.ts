@@ -103,6 +103,7 @@ export async function loadBookingsDashboard(
       duration_minutes,
       message,
       care_instructions,
+      service_type,
       status,
       created_at,
       minder_profiles (
@@ -139,6 +140,7 @@ export async function loadBookingsDashboard(
         durationMinutes: row.duration_minutes as number,
         message: (row.message as string | null) ?? null,
         careInstructions: (row.care_instructions as string | null) ?? null,
+        serviceType: (row.service_type as string | null) ?? null,
         status: mapRequestStatus(String(row.status)),
         createdAt: row.created_at as string,
         counterpartyName: displayNameFromUsersJoin(
@@ -213,6 +215,7 @@ export async function loadBookingsDashboard(
         duration_minutes,
         message,
         care_instructions,
+        service_type,
         status,
         created_at,
         users!booking_requests_owner_id_fkey ( full_name ),
@@ -241,6 +244,7 @@ export async function loadBookingsDashboard(
         durationMinutes: row.duration_minutes as number,
         message: (row.message as string | null) ?? null,
         careInstructions: (row.care_instructions as string | null) ?? null,
+        serviceType: (row.service_type as string | null) ?? null,
         status: mapRequestStatus(String(row.status)),
         createdAt: row.created_at as string,
         counterpartyName: displayNameFromUsersJoin(row.users, "Pet owner"),
@@ -385,6 +389,8 @@ export async function loadBookingSessionDetail(
 
   const counterpartyName =
     viewerRole === "owner" ? minderName : ownerName;
+  const counterpartyUserId =
+    viewerRole === "owner" ? minderUserId : ownerId;
 
   const pets = row.booking_pets as
     | {
@@ -474,6 +480,7 @@ export async function loadBookingSessionDetail(
       cancelledAt: (row.cancelled_at as string | null) ?? null,
       careInstructions: (row.care_instructions as string | null) ?? null,
       counterpartyName,
+      counterpartyUserId,
       petCount: Array.isArray(pets) ? pets.length : 0,
       petNames,
       createdAt: null,
@@ -507,6 +514,7 @@ export async function loadBookingRequestDetail(
       duration_minutes,
       message,
       care_instructions,
+      service_type,
       status,
       created_at,
       updated_at,
@@ -587,6 +595,7 @@ export async function loadBookingRequestDetail(
       durationMinutes: row.duration_minutes as number,
       message: (row.message as string | null) ?? null,
       careInstructions: (row.care_instructions as string | null) ?? null,
+      serviceType: (row.service_type as string | null) ?? null,
       status: mapRequestStatus(String(row.status)),
       createdAt: row.created_at as string,
       updatedAt: (row.updated_at as string | null) ?? null,

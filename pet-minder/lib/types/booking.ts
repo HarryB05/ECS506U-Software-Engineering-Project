@@ -24,6 +24,8 @@ export type BookingRequestListItem = {
   durationMinutes: number;
   message: string | null;
   careInstructions: string | null;
+  /** Type of care requested, e.g. "Dog Walking", "Pet Sitting". */
+  serviceType: string | null;
   status: BookingRequestStatus;
   createdAt: string;
   counterpartyName: string;
@@ -82,6 +84,7 @@ export type BookingSessionDetail = {
   cancelledAt: string | null;
   careInstructions: string | null;
   counterpartyName: string;
+  counterpartyUserId: string | null;
   petCount: number;
   /** Resolved from booking pets; may be empty if names are not readable. */
   petNames: string[];

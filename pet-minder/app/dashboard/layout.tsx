@@ -56,7 +56,9 @@ async function DashboardLayoutInner({
   const roleTypes = roles.map((r) => r.role_type);
 
   return (
-    <DashboardAppShell roleTypes={roleTypes}>{children}</DashboardAppShell>
+    <DashboardAppShell roleTypes={roleTypes} userId={user.id}>
+      {children}
+    </DashboardAppShell>
   );
 }
 

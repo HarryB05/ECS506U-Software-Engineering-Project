@@ -33,13 +33,15 @@ function AdminOnlyRouteGuard({
 
 export function DashboardAppShell({
   roleTypes,
+  userId,
   children,
 }: {
   roleTypes: string[];
+  userId: string;
   children: ReactNode;
 }) {
   return (
-    <DashboardRoleProvider roleTypes={roleTypes}>
+    <DashboardRoleProvider roleTypes={roleTypes} userId={userId}>
       <AdminOnlyRouteGuard roleTypes={roleTypes}>
         <div className="min-h-screen bg-background">
           <MainNav authenticated />
