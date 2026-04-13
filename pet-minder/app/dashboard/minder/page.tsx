@@ -12,7 +12,10 @@ import { MinderWorkspaceGate } from "@/components/minder-workspace-gate";
 import { MinderPublicProfileEditor } from "@/components/minder-public-profile-editor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/server";
-import { ensureMinderProfileForUser } from "@/lib/minder-profile-service";
+import {
+  ensureMinderProfileForUser,
+  getMinderVerificationChecklist,
+} from "@/lib/minder-profile-service";
 
 function MinderProfileSkeleton() {
   return (
@@ -35,6 +38,9 @@ async function MinderProfileInner() {
 
   const { data: minderProfile, error: profileEnsureError } =
     await ensureMinderProfileForUser(supabase, user.id);
+  const checklistRes = minderProfile
+    ? await getMinderVerificationChecklist(supabase, minderProfile.id)
+    : { data: null };
 
   return (
     <div className="max-w-content mx-auto space-y-6">
@@ -86,6 +92,7 @@ async function MinderProfileInner() {
       <MinderPublicProfileEditor
         userId={user.id}
         initialProfile={minderProfile}
+        verificationChecklist={checklistRes.data}
       />
     </div>
   );

@@ -34,6 +34,21 @@ export type MinderProfileUpdate = Partial<{
   longitude: number | null;
 }>;
 
+export type MinderVerificationChecklist = {
+  minder_profile_id: string;
+  is_verified: boolean;
+  email_confirmed: boolean;
+  profile_complete: boolean;
+  account_age_ok: boolean;
+  rating_ok: boolean;
+  completed_bookings_ok: boolean;
+  recent_cancellations_ok: boolean;
+  visible_in_search_ok: boolean;
+  completed_bookings_count: number;
+  recent_minder_cancellations_count: number;
+  average_rating: number | null;
+};
+
 /** Row joined with `users` for owner search and public cards. */
 export type PublicMinderListItem = {
   profileId: string;
