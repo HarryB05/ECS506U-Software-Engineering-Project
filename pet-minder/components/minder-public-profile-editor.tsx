@@ -7,7 +7,10 @@ import {
   getMinderProfileByUserId,
   updateMinderProfile,
 } from "@/lib/minder-profile-service";
-import type { MinderProfile } from "@/lib/types/minder-profile";
+import type {
+  MinderProfile,
+  MinderVerificationChecklist,
+} from "@/lib/types/minder-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +22,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Star, ShieldCheck, Eye, EyeOff, MapPin } from "lucide-react";
+import {
+  Star,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  MapPin,
+  CheckCircle2,
+  Circle,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   normalizeServicePricing,
@@ -62,11 +73,13 @@ function initSelectedSizes(sizes: PetSize[] | null): PetSize[] {
 type MinderPublicProfileEditorProps = {
   userId: string;
   initialProfile: MinderProfile | null;
+  verificationChecklist: MinderVerificationChecklist | null;
 };
 
 export function MinderPublicProfileEditor({
   userId,
   initialProfile,
+  verificationChecklist,
 }: MinderPublicProfileEditorProps) {
   const [profile, setProfile] = useState<MinderProfile | null>(initialProfile);
   const [description, setDescription] = useState(
@@ -260,6 +273,78 @@ export function MinderPublicProfileEditor({
             {rating !== null ? `${rating.toFixed(1)}/5.0 average` : "No reviews yet"}
           </Link>
         </div>
+
+        {verificationChecklist && (
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-sm font-medium">Verification checklist</p>
+            <div className="mt-3 space-y-2 text-xs">
+              {[
+                {
+                  key: "email",
+                  ok: verificationChecklist.email_confirmed,
+                  label: "Confirmed email address",
+                  hint: "Verify your account email.",
+                },
+                {
+                  key: "profile",
+                  ok: verificationChecklist.profile_complete,
+                  label: "Profile complete",
+                  hint: "Add description, supported pet types, and hourly rate.",
+                },
+                {
+                  key: "age",
+                  ok: verificationChecklist.account_age_ok,
+                  label: "Account age is at least 6 months",
+                  hint: "This unlocks automatically over time.",
+                },
+                {
+                  key: "rating",
+                  ok: verificationChecklist.rating_ok,
+                  label: "Average review rating is at least 4.0",
+                  hint: `Current average: ${
+                    verificationChecklist.average_rating == null
+                      ? "none"
+                      : verificationChecklist.average_rating.toFixed(2)
+                  }`,
+                },
+                {
+                  key: "completed",
+                  ok: verificationChecklist.completed_bookings_ok,
+                  label: "At least 20 completed bookings",
+                  hint: `Completed bookings: ${verificationChecklist.completed_bookings_count}/20`,
+                },
+                {
+                  key: "cancellations",
+                  ok: verificationChecklist.recent_cancellations_ok,
+                  label: "Fewer than 3 minder cancellations in 90 days",
+                  hint: `Recent minder cancellations: ${verificationChecklist.recent_minder_cancellations_count}`,
+                },
+                {
+                  key: "visibility",
+                  ok: verificationChecklist.visible_in_search_ok,
+                  label: "Profile visible in owner search",
+                  hint: "Enable the visibility toggle below.",
+                },
+              ].map((item) => (
+                <div key={item.key} className="flex items-start gap-2">
+                  {item.ok ? (
+                    <CheckCircle2 className="mt-0.5 size-4 text-success-500" />
+                  ) : (
+                    <Circle className="mt-0.5 size-4 text-muted-foreground" />
+                  )}
+                  <div>
+                    <p className={item.ok ? "text-success-500" : "text-muted-foreground"}>
+                      {item.label}
+                    </p>
+                    {!item.ok && (
+                      <p className="text-muted-foreground">{item.hint}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-start gap-3 rounded-lg border border-border p-4">
           <Checkbox
