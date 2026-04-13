@@ -579,7 +579,7 @@ function MinderSearchCard({ minder }: { minder: PublicMinderListItem }) {
           </div>
           <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-xs text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
             <Star className="size-3.5" />
-            {rating.toFixed(1)}
+            {rating.toFixed(1)}/5.0
           </div>
         </div>
         {minder.isVerified ? (
