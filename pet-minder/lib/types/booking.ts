@@ -26,6 +26,8 @@ export type BookingRequestListItem = {
   careInstructions: string | null;
   /** Type of care requested, e.g. "Dog Walking", "Pet Sitting". */
   serviceType: string | null;
+  shortNoticeWarning: boolean;
+  autoRejectedAt: string | null;
   status: BookingRequestStatus;
   createdAt: string;
   counterpartyName: string;

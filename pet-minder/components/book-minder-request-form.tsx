@@ -14,6 +14,7 @@ import {
   estimateBookingCost,
   formatMinderPriceLabel,
 } from "@/lib/minder-display";
+import { assessBookingLeadTime } from "@/lib/booking-lead-time";
 import type { OwnerPetOption } from "@/lib/types/booking";
 import type { MinderAvailabilitySlot } from "@/lib/types/availability";
 import { toDisplayTime } from "@/lib/availability-service";
@@ -169,6 +170,7 @@ export function BookMinderRequestForm({
   const [showOptionalDetails, setShowOptionalDetails] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [acknowledgeShortNotice, setAcknowledgeShortNotice] = useState(false);
 
   useEffect(() => {
     if (pets.length === 1) {
@@ -251,6 +253,26 @@ export function BookMinderRequestForm({
     return names.join(", ");
   }, [pets, selectedPetIds]);
 
+  const requestedDatetimeIso = useMemo(() => {
+    if (!date || !time) return null;
+    const requested = new Date(`${date}T${time}:00`).toISOString();
+    if (Number.isNaN(Date.parse(requested))) return null;
+    return requested;
+  }, [date, time]);
+
+  const leadTimeAssessment = useMemo(() => {
+    if (!requestedDatetimeIso) return null;
+    return assessBookingLeadTime(serviceType, requestedDatetimeIso);
+  }, [serviceType, requestedDatetimeIso]);
+
+  const showShortNoticeWarning = leadTimeAssessment?.showWarning === true;
+
+  useEffect(() => {
+    if (!showShortNoticeWarning) {
+      setAcknowledgeShortNotice(false);
+    }
+  }, [showShortNoticeWarning]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -275,6 +297,21 @@ export function BookMinderRequestForm({
 
     if (new Date(requestedDatetime) <= new Date()) {
       setError("Start time must be in the future.");
+      return;
+    }
+
+    const leadTime = assessBookingLeadTime(serviceType, requestedDatetime);
+    if (leadTime?.isBelowMinimum) {
+      setError(
+        `${leadTime.rule.label} requires at least ${leadTime.rule.minimumNoticeHours} hours notice.`,
+      );
+      return;
+    }
+
+    if (leadTime?.showWarning && !acknowledgeShortNotice) {
+      setError(
+        "Please acknowledge the short-notice warning before sending this request.",
+      );
       return;
     }
 
@@ -629,6 +666,29 @@ export function BookMinderRequestForm({
               <p className="text-sm text-danger-500" role="alert">
                 {error}
               </p>
+            ) : null}
+
+            {showShortNoticeWarning ? (
+              <div className="space-y-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
+                <p className="text-sm font-medium">Short-notice request</p>
+                <p className="text-sm leading-relaxed">
+                  This {serviceType.toLowerCase()} booking starts within 48 hours.
+                  The minder may be unavailable and there is no guarantee they
+                  will accept.
+                </p>
+                <label className="flex items-start gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={acknowledgeShortNotice}
+                    onChange={(ev) => setAcknowledgeShortNotice(ev.target.checked)}
+                    className="mt-0.5 size-4 rounded border-amber-500 text-amber-700 focus-visible:ring-2 focus-visible:ring-amber-500"
+                  />
+                  <span>
+                    I understand this is short notice and I am proceeding at my
+                    own risk.
+                  </span>
+                </label>
+              </div>
             ) : null}
 
             <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-end">

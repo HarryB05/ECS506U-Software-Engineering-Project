@@ -74,15 +74,19 @@ function buildRequestTimeline(detail: BookingRequestDetail) {
       break;
     case "declined":
       steps.push({
-        id: "declined",
-        title: "Declined",
+        id: detail.autoRejectedAt ? "expired" : "declined",
+        title: detail.autoRejectedAt ? "Request expired" : "Declined",
         timestamp: detail.updatedAt
           ? formatBookingInstant(detail.updatedAt)
           : undefined,
         body:
-          detail.viewerRole === "minder"
-            ? "You declined this request. No session was created."
-            : `${name} declined. No session was created. Try another minder or different dates.`,
+          detail.autoRejectedAt
+            ? detail.viewerRole === "minder"
+              ? "This request expired after 24 hours with no response."
+              : "This request was automatically declined after 24 hours with no response. Try another minder or different dates."
+            : detail.viewerRole === "minder"
+              ? "You declined this request. No session was created."
+              : `${name} declined. No session was created. Try another minder or different dates.`,
       });
       break;
     case "cancelled":
@@ -384,7 +388,14 @@ export function BookingRequestDetailContent({
               {detail.petCount === 1 ? "" : "s"}
             </p>
           </div>
-          <BookingRequestStatusBadge status={detail.status} />
+          <div className="text-right">
+            <BookingRequestStatusBadge status={detail.status} />
+            {detail.autoRejectedAt ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Auto-declined after 24 hours with no response.
+              </p>
+            ) : null}
+          </div>
         </div>
       </div>
 
