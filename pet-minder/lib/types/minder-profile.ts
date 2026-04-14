@@ -1,4 +1,5 @@
 import type { PetSize } from "@/lib/types/pet-profile";
+import type { MinderAvailabilitySlot } from "@/lib/types/availability";
 
 /**
  * Matches `minder_profiles` in design.md (Supabase).
@@ -64,4 +65,6 @@ export type PublicMinderListItem = {
   locationName: string | null;
   latitude: number | null;
   longitude: number | null;
+  /** Weekly availability slots — populated by listPublicMindersForSearch. */
+  availabilitySlots: MinderAvailabilitySlot[];
 };

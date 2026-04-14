@@ -37,6 +37,7 @@ export type BookingDatePickerProps = {
   minDate?: Date;
   placeholder?: string;
   className?: string;
+  triggerClassName?: string;
 };
 
 export function BookingDatePicker({
@@ -47,6 +48,7 @@ export function BookingDatePicker({
   minDate,
   placeholder = "Choose date",
   className,
+  triggerClassName,
 }: BookingDatePickerProps) {
   const [open, setOpen] = useState(false);
   const selected = parseIsoDate(value);
@@ -64,6 +66,7 @@ export function BookingDatePicker({
             className={cn(
               "h-10 w-full justify-start text-left font-normal shadow-sm",
               !value && "text-muted-foreground",
+              triggerClassName,
             )}
             aria-expanded={open}
             aria-haspopup="dialog"
@@ -76,7 +79,7 @@ export function BookingDatePicker({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-2" align="start">
           <Calendar
             mode="single"
             locale={enGB}

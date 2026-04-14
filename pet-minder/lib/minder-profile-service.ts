@@ -6,6 +6,7 @@ import type {
   PublicMinderListItem,
 } from "@/lib/types/minder-profile";
 import type { PetSize } from "@/lib/types/pet-profile";
+import type { MinderAvailabilitySlot } from "@/lib/types/availability";
 import { normalizeServicePricing } from "@/lib/minder-display";
 import { getAverageRatingsForUsers } from "@/lib/reviews-service";
 
@@ -91,6 +92,7 @@ function mapToPublicItem(
       typeof row.location_name === "string" ? row.location_name : null,
     latitude: typeof lat === "number" && Number.isFinite(lat) ? lat : null,
     longitude: typeof lng === "number" && Number.isFinite(lng) ? lng : null,
+    availabilitySlots: [],
   };
 }
 
@@ -329,6 +331,29 @@ export async function listPublicMindersForSearch(
       const computed = avgRes.data.get(item.userId);
       if (computed != null) {
         item.averageRating = computed;
+      }
+    }
+  }
+
+  // Batch-fetch availability slots for all returned minder profiles.
+  if (mapped.length > 0) {
+    const profileIds = mapped.map((m) => m.profileId);
+    const { data: slotRows } = await supabase
+      .from("minder_availability")
+      .select("*")
+      .in("minder_id", profileIds)
+      .order("day_of_week")
+      .order("start_time");
+
+    if (slotRows) {
+      const slotsByProfile = new Map<string, MinderAvailabilitySlot[]>();
+      for (const slot of slotRows as MinderAvailabilitySlot[]) {
+        const list = slotsByProfile.get(slot.minder_id) ?? [];
+        list.push(slot);
+        slotsByProfile.set(slot.minder_id, list);
+      }
+      for (const item of mapped) {
+        item.availabilitySlots = slotsByProfile.get(item.profileId) ?? [];
       }
     }
   }

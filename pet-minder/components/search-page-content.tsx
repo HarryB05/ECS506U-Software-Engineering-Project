@@ -14,11 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { BookingDatePicker } from "@/components/booking-date-picker";
 import { useDashboardRole } from "@/components/dashboard-role-context";
 import {
   ArrowDown,
   ArrowUp,
+  Calendar,
   ChevronDown,
+  Clock,
   Loader2,
   MapPin,
   Search,
@@ -44,6 +47,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 const MinderMap = dynamic(
   () => import("@/components/minder-map").then((m) => m.MinderMap),
@@ -81,6 +85,11 @@ export function SearchPageContent({
   const [sortBy, setSortBy] = useState<"rating" | "price">("rating");
   // desc = highest first for rating, highest first for price
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+
+  // Availability date/time filter state
+  const [availabilityDate, setAvailabilityDate] = useState("");
+  const [availabilityStartTime, setAvailabilityStartTime] = useState("");
+  const [availabilityEndTime, setAvailabilityEndTime] = useState("");
 
   // Location proximity filter state
   const [locationInput, setLocationInput] = useState("");
@@ -153,6 +162,9 @@ export function SearchPageContent({
       petSize,
       verifiedOnly,
       nearLocation: activeNearLocation,
+      availabilityDate: availabilityDate || undefined,
+      availabilityStartTime: availabilityStartTime || undefined,
+      availabilityEndTime: availabilityEndTime || undefined,
     });
 
     return [...results].sort((a, b) => {
@@ -178,7 +190,7 @@ export function SearchPageContent({
         sensitivity: "base",
       });
     });
-  }, [initialMinders, otherPetType, petSize, petType, search, sortBy, sortDir, verifiedOnly, activeNearLocation?.latitude, activeNearLocation?.longitude, activeNearLocation?.radiusKm]);
+  }, [initialMinders, otherPetType, petSize, petType, search, sortBy, sortDir, verifiedOnly, activeNearLocation?.latitude, activeNearLocation?.longitude, activeNearLocation?.radiusKm, availabilityDate, availabilityStartTime, availabilityEndTime]);
 
   if (activeRole === "minder") {
     return (
@@ -400,6 +412,85 @@ export function SearchPageContent({
                 Verified minders only
               </Label>
             </div>
+          </div>
+        </CardContent>
+
+        {/* Availability date/time filter row */}
+        <CardContent className="pt-0">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5 text-sm">
+              <Calendar className="size-3.5 text-muted-foreground" />
+              Available on date
+            </Label>
+            <div className="flex flex-wrap items-end gap-2">
+              <BookingDatePicker
+                id="availability-date"
+                label="Date"
+                value={availabilityDate}
+                onChange={setAvailabilityDate}
+                minDate={new Date()}
+                className="min-w-[220px]"
+                triggerClassName={cn(
+                  SELECT_TRIGGER_CLASSES,
+                  "justify-start font-normal",
+                  !availabilityDate && "text-muted-foreground",
+                )}
+              />
+              {availabilityDate && (
+                <>
+                  <div className="space-y-1">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="size-3" />
+                      From (optional)
+                    </span>
+                    <Input
+                      type="time"
+                      className="h-9 w-auto"
+                      value={availabilityStartTime}
+                      onChange={(e) => setAvailabilityStartTime(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="size-3" />
+                      Until (optional)
+                    </span>
+                    <Input
+                      type="time"
+                      className="h-9 w-auto"
+                      value={availabilityEndTime}
+                      onChange={(e) => setAvailabilityEndTime(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 text-muted-foreground self-end"
+                    onClick={() => {
+                      setAvailabilityDate("");
+                      setAvailabilityStartTime("");
+                      setAvailabilityEndTime("");
+                    }}
+                  >
+                    <X className="size-3.5" />
+                    <span className="ml-1">Clear</span>
+                  </Button>
+                </>
+              )}
+            </div>
+            {availabilityDate && (
+              <p className="text-xs text-success-500">
+                Showing minders available on{" "}
+                {new Date(`${availabilityDate}T12:00:00`).toLocaleDateString(
+                  undefined,
+                  { weekday: "long", month: "short", day: "numeric" },
+                )}
+                {availabilityStartTime ? ` from ${availabilityStartTime}` : ""}
+                {availabilityEndTime ? ` until ${availabilityEndTime}` : ""}
+                {". Minders without a configured schedule are also shown."}
+              </p>
+            )}
           </div>
         </CardContent>
 
