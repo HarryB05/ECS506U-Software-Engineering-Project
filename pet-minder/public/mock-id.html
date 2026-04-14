@@ -146,33 +146,86 @@
         <div class="hologram"></div>
     </div>
 
+    <button class="download-btn" onclick="generateMockId()">Generate New Mock ID</button>
     <button class="download-btn" onclick="downloadID()">Download as PNG for Testing</button>
 
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
-        async function downloadID() {
-            // Use html2canvas to capture the ID card
-            const { default: html2canvas } = await import('https://html2canvas.hertzen.com/dist/html2canvas.min.js');
-
-            const idCard = document.querySelector('.id-card');
-            const canvas = await html2canvas(idCard, {
-                backgroundColor: '#f5f5f5',
-                scale: 2,
-                width: 400,
-                height: 250
-            });
-
-            // Convert to blob and download
-            canvas.toBlob(function(blob) {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'mock-government-id.png';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            });
+        function randomDigits(length) {
+            return Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
         }
+
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function generateMockId() {
+            const names = [
+                "JOHN DOE", "JANE SMITH", "ALEX TAYLOR", "EMMA BROWN", "SAM WILSON",
+                "LEWIS CLARKE", "OLIVIA JONES", "NOAH WALKER"
+            ];
+            const streets = [
+                "Test Street", "Minder Road", "Paw Lane", "Park Avenue", "Bridge Close"
+            ];
+            const cities = ["London", "Manchester", "Birmingham", "Leeds", "Bristol"];
+
+            const fullName = names[Math.floor(Math.random() * names.length)];
+            const idNumber = `UK${randomDigits(9)}`;
+            const birthYear = 1980 + Math.floor(Math.random() * 23);
+            const dob = new Date(birthYear, Math.floor(Math.random() * 12), 1 + Math.floor(Math.random() * 28));
+            const issueDate = new Date(2022 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 12), 1 + Math.floor(Math.random() * 28));
+            const expiryDate = new Date(issueDate);
+            expiryDate.setFullYear(issueDate.getFullYear() + 6);
+            const address = `${1 + Math.floor(Math.random() * 300)} ${streets[Math.floor(Math.random() * streets.length)]}, ${cities[Math.floor(Math.random() * cities.length)]}`;
+
+            document.querySelector('.info h2').textContent = fullName;
+            document.querySelector('.info p:nth-of-type(1)').innerHTML = `<strong>ID Number:</strong> ${idNumber}`;
+            document.querySelector('.info p:nth-of-type(2)').innerHTML = `<strong>DOB:</strong> ${formatDate(dob)}`;
+            document.querySelector('.info p:nth-of-type(3)').innerHTML = `<strong>Issue Date:</strong> ${formatDate(issueDate)}`;
+            document.querySelector('.info p:nth-of-type(4)').innerHTML = `<strong>Expiry:</strong> ${formatDate(expiryDate)}`;
+            document.querySelector('.info p:nth-of-type(5)').innerHTML = `<strong>Address:</strong> ${address}`;
+        }
+
+        async function downloadID() {
+            const idCard = document.querySelector('.id-card');
+            if (!window.html2canvas) {
+                alert("Could not load image renderer. Check internet connection and refresh.");
+                return;
+            }
+
+            try {
+                const canvas = await window.html2canvas(idCard, {
+                    backgroundColor: '#f5f5f5',
+                    scale: 2,
+                    width: 400,
+                    height: 250
+                });
+
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        alert("Could not generate image blob.");
+                        return;
+                    }
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'mock-government-id.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            } catch (err) {
+                console.error(err);
+                alert("Failed to export image. Please try again.");
+            }
+        }
+
+        // Generate one immediately when page loads
+        generateMockId();
     </script>
 </body>
 </html>

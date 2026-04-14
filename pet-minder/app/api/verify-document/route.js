@@ -1,185 +1,211 @@
-// app/api/verify-document/route.ts
-// Accepts a multipart upload, saves the file to Supabase Storage,
-// sends it to Gemini for analysis, then writes the result back to
-// id_verifications. No Stripe in this flow — Stripe Identity can be
-// wired in later as an optional gate before this endpoint is called.
-
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import {
-  insertPendingVerification,
-  updateVerificationResult,
-} from "@/lib/id-verification";
-import type { IdVerificationDocType } from "@/lib/types/id-verification";
+import { createClient as createServerSupabase } from "@/lib/supabase/server";
+import { insertPendingVerification, updateVerificationResult } from "@/lib/id-verification";
 
-// Service-role client — bypasses RLS for server-side writes
-function serviceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+]);
+
+function sanitizeFileName(name) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
 }
 
-// ---------------------------------------------------------------------------
-// Gemini prompts
-// ---------------------------------------------------------------------------
-const IDENTITY_PROMPT = `You are an ID verification assistant for a pet-minder platform.
+function createAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceRoleKey) return null;
+  return createSupabaseAdmin(url, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
 
-Examine the uploaded document and decide whether it is a valid, readable
-government-issued photo ID (passport, driver's licence, national ID card,
-or state ID card).
+const IDENTITY_PROMPT = `You are a document verification assistant for a pet-minder platform.
+Check if the uploaded file is a valid, readable government-issued photo ID.
+Reply in exactly this format:
+STATUS: approved|rejected
+REASON: one short sentence`;
 
-Approve if:
-- The document is clearly a government-issued photo ID
-- It is readable and not heavily obscured
-- It does not appear to be a screenshot of another screen
+const CERTIFICATE_PROMPT = `You are a document verification assistant for a pet-minder platform.
+Check if the uploaded file is a professional certificate relevant to pet care.
+This environment allows mock/demo/training certificates for testing.
+Approve when it is clearly certificate-like and related to pet care or safety, even if it is labelled "mock", "sample", "demo", or "training".
+Reject only when it is clearly not a certificate (for example an unrelated photo, chat screenshot, random form, or blank page).
+Reply in exactly this format:
+STATUS: approved|rejected
+REASON: one short sentence`;
 
-Reject if:
-- It is a selfie, personal photo, or non-ID document
-- It is a novelty, fake, or clearly expired ID
-- It is too blurry or cropped to assess
-- It is a non-government card (library card, gym pass, etc.)
+const GEMINI_MODEL_CANDIDATES = [
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
+  "gemini-1.5-flash-latest",
+  "gemini-1.5-flash",
+];
 
-Reply in EXACTLY this format — no other text:
-STATUS: approved
-REASON: one sentence confirming this is a valid government ID
-
-OR:
-STATUS: rejected
-REASON: one sentence explaining why this does not qualify`;
-
-const CERTIFICATE_PROMPT = `You are a professional-certificate verification assistant for a pet-minder platform.
-
-Examine the uploaded document and decide whether it is a legitimate
-professional or safety certificate relevant to animal / child care, such as:
-- DBS Enhanced Disclosure (UK background check)
-- Animal First Aid Certificate
-- Animal Training / Behaviour Certification
-- Safeguarding Level 1 or 2 Certificate
-- Animal Welfare or Pet Care Licence
-- Any official certification from a recognised body
-
-Approve if:
-- The document clearly shows an organisation name, a certificate or
-  disclosure number, and issue/expiry dates
-- It looks like an official printed or digital certificate
-- It is relevant to animal care, safety, or background checks
-
-Reject if:
-- It is a personal photo, CV, or unrelated qualification
-- It is clearly expired
-- It has no issuing body, number, or date
-- It is too blurry or cropped to assess
-
-Reply in EXACTLY this format — no other text:
-STATUS: approved
-REASON: one sentence confirming this is a valid relevant certificate
-
-OR:
-STATUS: rejected
-REASON: one sentence explaining why this does not qualify`;
-
-// ---------------------------------------------------------------------------
-// POST /api/verify-document
-// Body: FormData with fields:
-//   file     File
-//   userId   string
-//   docType  "identity" | "certificate"
-// ---------------------------------------------------------------------------
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const userId = formData.get("userId") as string | null;
-    const docType = (formData.get("docType") as IdVerificationDocType) || "identity";
+    const supabase = await createServerSupabase();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    // ---- basic validation ------------------------------------------------
-    if (!file || !userId) {
-      return Response.json({ error: "Missing file or userId" }, { status: 400 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
-    if (!ALLOWED_MIME.includes(file.type)) {
-      return Response.json(
-        { error: "Only JPEG, PNG, WEBP, or PDF files are accepted" },
-        { status: 400 },
+    const formData = await req.formData();
+    const file = formData.get("file");
+    const userId = String(formData.get("userId") ?? "");
+    const rawDocType = String(formData.get("docType") ?? "");
+
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: "Missing file" }, { status: 400 });
+    }
+
+    if (userId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    if (rawDocType !== "identity" && rawDocType !== "certificate") {
+      return NextResponse.json({ error: "Invalid document type" }, { status: 400 });
+    }
+    const docType = rawDocType;
+
+    const { data: roleRows } = await supabase
+      .from("roles")
+      .select("role_type")
+      .eq("user_id", user.id)
+      .is("deleted_at", null);
+    const isMinder = (roleRows ?? []).some((row) => row.role_type === "minder");
+
+    if (docType === "certificate" && !isMinder) {
+      return NextResponse.json(
+        { error: "Only minders can submit certificate verification." },
+        { status: 403 },
       );
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      return Response.json({ error: "File must be under 10 MB" }, { status: 400 });
+    if (!ALLOWED_TYPES.has(file.type)) {
+      return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: "File must be smaller than 10MB" }, { status: 400 });
     }
 
-    const supabase = serviceClient();
+    const admin = createAdminClient();
+    if (!admin) {
+      return NextResponse.json(
+        { error: "Service role key is not configured." },
+        { status: 503 },
+      );
+    }
 
-    // ---- upload to Supabase Storage --------------------------------------
-    // Path: {userId}/{docType}/{timestamp}-{filename}
-    const safeFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const storagePath = `${userId}/${docType}/${Date.now()}-${safeFilename}`;
+    const bytes = await file.arrayBuffer();
+    const safeName = sanitizeFileName(file.name || "document");
+    const storagePath = `${user.id}/${docType}/${Date.now()}-${safeName}`;
 
-    const fileBuffer = await file.arrayBuffer();
-
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await admin.storage
       .from("id-verification-docs")
-      .upload(storagePath, fileBuffer, {
+      .upload(storagePath, bytes, {
         contentType: file.type,
         upsert: false,
       });
 
     if (uploadError) {
-      console.error("Storage upload error:", uploadError);
-      return Response.json({ error: "Failed to upload document" }, { status: 500 });
+      return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
-    // ---- insert pending row to DB ----------------------------------------
-    const { data: pendingRow, error: insertError } = await insertPendingVerification(
-      supabase,
-      userId,
+    const { data: inserted, error: insertError } = await insertPendingVerification(
+      admin,
+      user.id,
       docType,
       storagePath,
     );
 
-    if (insertError || !pendingRow) {
-      console.error("DB insert error:", insertError);
-      return Response.json({ error: "Failed to create verification record" }, { status: 500 });
+    if (insertError || !inserted) {
+      return NextResponse.json(
+        { error: insertError?.message ?? "Failed to save verification record" },
+        { status: 500 },
+      );
     }
 
-    // ---- call Gemini ------------------------------------------------------
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (!geminiKey) {
+      return NextResponse.json(
+        { error: "GEMINI_API_KEY is not configured." },
+        { status: 503 },
+      );
+    }
 
-    const base64 = Buffer.from(fileBuffer).toString("base64");
+    const genAI = new GoogleGenerativeAI(geminiKey);
+    const base64 = Buffer.from(bytes).toString("base64");
     const prompt = docType === "certificate" ? CERTIFICATE_PROMPT : IDENTITY_PROMPT;
 
-    let geminiRaw = "";
-    let status: "approved" | "rejected" = "rejected";
-    let aiReason = "Could not assess document.";
+    let geminiResult = null;
+    let modelError = null;
 
-    try {
-      const geminiResult = await model.generateContent([
-        { inlineData: { data: base64, mimeType: file.type } },
-        prompt,
-      ]);
+    const configuredModel = process.env.GEMINI_MODEL?.trim();
+    const modelCandidates = [
+      ...(configuredModel ? [configuredModel] : []),
+      ...GEMINI_MODEL_CANDIDATES,
+    ];
 
-      geminiRaw = geminiResult.response.text();
-
-      const statusMatch = geminiRaw.match(/STATUS:\s*(approved|rejected)/i);
-      const reasonMatch = geminiRaw.match(/REASON:\s*(.+)/i);
-
-      status = (statusMatch?.[1]?.toLowerCase() as "approved" | "rejected") ?? "rejected";
-      aiReason = reasonMatch?.[1]?.trim() ?? "Document could not be assessed.";
-    } catch (geminiErr) {
-      // Gemini failed — leave as rejected rather than silently approving
-      console.error("Gemini error:", geminiErr);
-      aiReason = "Automated check failed. Please re-upload a clearer document.";
+    for (const modelName of modelCandidates) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        geminiResult = await model.generateContent([
+          { inlineData: { data: base64, mimeType: file.type } },
+          prompt,
+        ]);
+        modelError = null;
+        break;
+      } catch (error) {
+        modelError = error;
+      }
     }
 
-    // ---- write result back to DB -----------------------------------------
-    await updateVerificationResult(supabase, pendingRow.id, status, aiReason, geminiRaw);
+    if (!geminiResult) {
+      const message =
+        modelError instanceof Error
+          ? modelError.message
+          : "No supported Gemini model is available.";
+      return NextResponse.json({ error: message }, { status: 502 });
+    }
 
-    return Response.json({ status, reason: aiReason });
-  } catch (err) {
-    console.error("verify-document route error:", err);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    const geminiRaw = geminiResult.response.text();
+    const statusMatch = geminiRaw.match(/STATUS:\s*(approved|rejected)/i);
+    const reasonMatch = geminiRaw.match(/REASON:\s*(.+)/i);
+    const status = statusMatch?.[1]?.toLowerCase() ?? "rejected";
+    const reason =
+      reasonMatch?.[1]?.trim() ??
+      (docType === "certificate"
+        ? "Could not assess certificate."
+        : "Could not assess government ID.");
+
+    const { error: certUpdateError } = await updateVerificationResult(
+      admin,
+      inserted.id,
+      status,
+      reason,
+      geminiRaw,
+    );
+    if (certUpdateError) {
+      return NextResponse.json({ error: certUpdateError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      status,
+      reason,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unexpected error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
