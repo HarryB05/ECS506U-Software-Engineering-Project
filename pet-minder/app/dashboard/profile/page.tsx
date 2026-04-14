@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteAccountSection } from "@/components/delete-account-section";
+import { ProfileRolePreferences } from "@/components/profile-role-preferences";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -12,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
+type RoleType = "owner" | "minder";
+
 async function ProfileContent() {
   const supabase = await createClient();
   const {
@@ -21,6 +24,17 @@ async function ProfileContent() {
   if (!user?.email) {
     redirect("/auth/login");
   }
+
+  const { data: roleRows } = await supabase
+    .from("roles")
+    .select("role_type")
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .in("role_type", ["owner", "minder"]);
+
+  const initialRoles: RoleType[] = (roleRows ?? [])
+    .map((r) => r.role_type)
+    .filter((role): role is RoleType => role === "owner" || role === "minder");
 
   return (
     <div className="max-w-narrow mx-auto space-y-8">
@@ -41,6 +55,8 @@ async function ProfileContent() {
           <p className="text-base text-foreground">{user.email}</p>
         </CardContent>
       </Card>
+
+      <ProfileRolePreferences initialRoles={initialRoles} />
 
       <DeleteAccountSection email={user.email} />
     </div>
