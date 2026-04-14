@@ -23,6 +23,11 @@ declare
   v_request_id uuid;
   v_short_notice boolean;
   v_raised boolean;
+  v_pet_id_cat uuid;
+  v_pet_id_bird uuid;
+  v_pet_id_2 uuid;
+  v_pet_id_3 uuid;
+  v_pet_id_4 uuid;
   v_before_declined int;
   v_after_declined int;
   v_auto_rejected_at timestamptz;
@@ -121,10 +126,55 @@ begin
   )
   returning id into v_pet_id;
 
+  insert into public.pet_profiles (
+    owner_id,
+    name,
+    pet_type,
+    pet_size,
+    age,
+    medical_info,
+    dietary_requirements
+  ) values
+    (v_owner_user_id, 'Test Cat', 'cat', 'small', 2, null, null),
+    (v_owner_user_id, 'Test Bird', 'bird', 'small', 1, null, null),
+    (v_owner_user_id, 'Test Pup 2', 'dog', 'small', 4, null, null),
+    (v_owner_user_id, 'Test Pup 3', 'dog', 'small', 5, null, null),
+    (v_owner_user_id, 'Test Pup 4', 'dog', 'small', 6, null, null);
+
+  select id into v_pet_id_cat
+  from public.pet_profiles
+  where owner_id = v_owner_user_id and name = 'Test Cat'
+  order by created_at desc
+  limit 1;
+
+  select id into v_pet_id_bird
+  from public.pet_profiles
+  where owner_id = v_owner_user_id and name = 'Test Bird'
+  order by created_at desc
+  limit 1;
+
+  select id into v_pet_id_2
+  from public.pet_profiles
+  where owner_id = v_owner_user_id and name = 'Test Pup 2'
+  order by created_at desc
+  limit 1;
+
+  select id into v_pet_id_3
+  from public.pet_profiles
+  where owner_id = v_owner_user_id and name = 'Test Pup 3'
+  order by created_at desc
+  limit 1;
+
+  select id into v_pet_id_4
+  from public.pet_profiles
+  where owner_id = v_owner_user_id and name = 'Test Pup 4'
+  order by created_at desc
+  limit 1;
+
   perform set_config('request.jwt.claim.sub', v_owner_user_id::text, true);
   perform set_config('request.jwt.claim.role', 'authenticated', true);
 
-  -- 1) Dog walking < 3h should be rejected.
+  -- 1) Walking < 3h should be rejected.
   begin
     perform public.bookings_create_request(
       v_minder_profile_id,
@@ -134,14 +184,65 @@ begin
       null,
       array[v_pet_id],
       null,
-      'Dog Walking'
+      'Walking'
     );
     v_raised := false;
   exception
     when others then
       v_raised := position('at least 3 hours notice' in sqlerrm) > 0;
   end;
-  perform pg_temp.assert('1.1 Dog walk under 3h is blocked', v_raised);
+  perform pg_temp.assert('1.1 Walking under 3h is blocked', v_raised);
+
+  -- 1.2) Walking only allows dogs/cats.
+  begin
+    perform public.bookings_create_request(
+      v_minder_profile_id,
+      now() + interval '26 hours',
+      60,
+      'Walking with bird',
+      null,
+      array[v_pet_id, v_pet_id_bird],
+      null,
+      'Walking'
+    );
+    v_raised := false;
+  exception
+    when others then
+      v_raised := position('only support dogs and cats' in sqlerrm) > 0;
+  end;
+  perform pg_temp.assert('1.2 Walking blocks non dog/cat pets', v_raised);
+
+  -- 1.3) Walking allows at most 4 pets.
+  begin
+    perform public.bookings_create_request(
+      v_minder_profile_id,
+      now() + interval '26 hours',
+      60,
+      'Walking with too many pets',
+      null,
+      array[v_pet_id, v_pet_id_cat, v_pet_id_2, v_pet_id_3, v_pet_id_4],
+      null,
+      'Walking'
+    );
+    v_raised := false;
+  exception
+    when others then
+      v_raised := position('at most 4 pets' in sqlerrm) > 0;
+  end;
+  perform pg_temp.assert('1.3 Walking blocks more than 4 pets', v_raised);
+
+  -- 1.4) Walking with up to 4 dog/cat pets succeeds.
+  v_request_id := public.bookings_create_request(
+    v_minder_profile_id,
+    now() + interval '26 hours',
+    60,
+    'Walking valid pets',
+    null,
+    array[v_pet_id, v_pet_id_cat, v_pet_id_2, v_pet_id_3],
+    null,
+    'Walking'
+  );
+  perform pg_temp.assert('1.4 Walking with <=4 dog/cat pets is allowed', v_request_id is not null);
 
   -- 2) Pet sitting within 48h is allowed but flagged as short notice.
   v_request_id := public.bookings_create_request(

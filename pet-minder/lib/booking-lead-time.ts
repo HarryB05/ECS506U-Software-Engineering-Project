@@ -13,11 +13,17 @@ const DEFAULT_RULE: BookingLeadTimeRule = {
 };
 
 export const BOOKING_LEAD_TIME_RULES: Record<string, BookingLeadTimeRule> = {
+  walking: {
+    minimumNoticeHours: 3,
+    warningNoticeHours: null,
+    hardBlock: true,
+    label: "Walking",
+  },
   dogwalking: {
     minimumNoticeHours: 3,
     warningNoticeHours: null,
     hardBlock: true,
-    label: "Dog walk",
+    label: "Walking",
   },
   petsitting: {
     minimumNoticeHours: 0,
