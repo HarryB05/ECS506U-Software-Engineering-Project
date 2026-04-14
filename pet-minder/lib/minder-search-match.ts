@@ -1,5 +1,6 @@
 import type { PublicMinderListItem } from "@/lib/types/minder-profile";
 import type { PetSize } from "@/lib/types/pet-profile";
+import type { DayOfWeek } from "@/lib/types/availability";
 
 /**
  * Case-insensitive overlap check so e.g. filter "dogs" matches stored "dog"
@@ -144,6 +145,58 @@ export function haversineKm(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+const ISO_DAY_TO_DOW: DayOfWeek[] = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+
+/**
+ * Returns true if the minder has at least one availability slot on the given
+ * day of week that covers the (optional) requested time window.
+ *
+ * If no slots exist for the minder we assume they haven't configured
+ * availability yet and treat them as available (don't filter them out) unless
+ * the caller explicitly only wants minders with confirmed slots.
+ */
+export function minderAvailableForDateRange(
+  minder: PublicMinderListItem,
+  isoDate: string,
+  startHhmm: string,
+  endHhmm: string,
+): boolean {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  if (!y || !m || !d) return true;
+
+  const dow = ISO_DAY_TO_DOW[new Date(y, m - 1, d).getDay()];
+  if (!dow) return true;
+
+  const { availabilitySlots } = minder;
+  // No slots configured → treat as available (minder hasn't set up schedule).
+  if (availabilitySlots.length === 0) return true;
+
+  const slotsForDay = availabilitySlots.filter((s) => s.day_of_week === dow);
+  // No slots on that day → minder is unavailable.
+  if (slotsForDay.length === 0) return false;
+
+  if (!startHhmm) return true; // Day-only filter: has any slot that day.
+
+  // Normalise "HH:MM" to "HH:MM:SS" for comparison with DB times.
+  const startNorm = startHhmm.length === 5 ? `${startHhmm}:00` : startHhmm;
+  const endNorm =
+    endHhmm && (endHhmm.length === 5 ? `${endHhmm}:00` : endHhmm);
+
+  return slotsForDay.some((slot) => {
+    if (slot.start_time > startNorm) return false; // slot starts too late
+    if (endNorm && slot.end_time < endNorm) return false; // slot ends too early
+    return true;
+  });
+}
+
 export function filterMindersForOwnerSearch(
   minders: PublicMinderListItem[],
   options: {
@@ -152,6 +205,9 @@ export function filterMindersForOwnerSearch(
     petSize: string;
     verifiedOnly: boolean;
     nearLocation?: { latitude: number; longitude: number; radiusKm: number } | null;
+    availabilityDate?: string;
+    availabilityStartTime?: string;
+    availabilityEndTime?: string;
   },
 ): PublicMinderListItem[] {
   return minders.filter((m) => {
@@ -186,6 +242,18 @@ export function filterMindersForOwnerSearch(
         m.longitude,
       );
       if (dist > options.nearLocation.radiusKm) return false;
+    }
+    if (options.availabilityDate) {
+      if (
+        !minderAvailableForDateRange(
+          m,
+          options.availabilityDate,
+          options.availabilityStartTime ?? "",
+          options.availabilityEndTime ?? "",
+        )
+      ) {
+        return false;
+      }
     }
     return true;
   });
