@@ -1,19 +1,9 @@
--- Booking dispute feature (user-facing raise).
--- Adds dispute metadata columns to bookings and exposes
--- bookings_raise_dispute() so either party on a confirmed/completed
--- booking can flag it for admin review.
+-- Fix invalid UUID coercion in bookings_raise_dispute.
+-- The previous version used coalesce(v_minder_user_id, '') which tries to
+-- cast an empty string to uuid when the minder profile is not found,
+-- causing "invalid input syntax for type uuid: ''".
+-- Replace the authorisation check with a proper NULL-safe uuid comparison.
 
--- ============================================================
--- 1. Schema: add dispute columns to bookings
--- ============================================================
-alter table public.bookings
-  add column if not exists dispute_reason    text,
-  add column if not exists disputed_at       timestamptz,
-  add column if not exists disputed_by       uuid references auth.users(id);
-
--- ============================================================
--- 2. RPC: bookings_raise_dispute
--- ============================================================
 create or replace function public.bookings_raise_dispute(
   p_booking_id uuid,
   p_reason     text
@@ -24,9 +14,9 @@ security definer
 set search_path = public
 as $$
 declare
-  v_uid    uuid := auth.uid();
-  v_booking public.bookings%rowtype;
-  v_minder_user_id uuid;
+  v_uid             uuid := auth.uid();
+  v_booking         public.bookings%rowtype;
+  v_minder_user_id  uuid;
 begin
   if v_uid is null then
     raise exception 'Not authenticated';
@@ -45,12 +35,15 @@ begin
     raise exception 'Booking not found';
   end if;
 
-  -- Caller must be the owner or the minder on this booking.
+  -- Resolve the minder's auth user id from their profile row.
   select mp.user_id into v_minder_user_id
   from public.minder_profiles mp
   where mp.id = v_booking.minder_id;
 
-  if v_booking.owner_id <> v_uid and (v_minder_user_id is null or v_minder_user_id <> v_uid) then
+  -- Caller must be the owner or the minder on this booking.
+  if v_booking.owner_id <> v_uid
+     and (v_minder_user_id is null or v_minder_user_id <> v_uid)
+  then
     raise exception 'Not authorised to dispute this booking';
   end if;
 
@@ -65,10 +58,10 @@ begin
 
   update public.bookings
   set
-    status       = 'disputed',
+    status         = 'disputed',
     dispute_reason = trim(p_reason),
-    disputed_at  = now(),
-    disputed_by  = v_uid
+    disputed_at    = now(),
+    disputed_by    = v_uid
   where id = p_booking_id;
 end;
 $$;
