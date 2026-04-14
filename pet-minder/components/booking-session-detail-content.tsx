@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Star } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Loader2, Star } from "lucide-react";
 
 import { BookingLifecycleTimeline } from "@/components/booking-lifecycle-timeline";
 import { Button } from "@/components/ui/button";
@@ -44,12 +44,12 @@ function buildSessionTimeline(detail: BookingSessionDetail) {
     });
 
     steps.push({
-      id: "accepted",
-      title: "Accepted",
+      id: "confirmed",
+      title: "Confirmed",
       timestamp: detail.request.updatedAt
         ? formatBookingInstant(detail.request.updatedAt)
         : undefined,
-      body: `${minderLabel} accepted. This page is the confirmed booking: use it for cancellations and the agreed time window.`,
+      body: `${minderLabel} confirmed. This page is the confirmed booking: use it for cancellations and the agreed time window.`,
     });
   } else {
     steps.push({
@@ -71,6 +71,21 @@ function buildSessionTimeline(detail: BookingSessionDetail) {
       title: "Booking cancelled",
       timestamp: formatBookingInstant(detail.cancelledAt),
       body: "This booking is no longer going ahead in the app.",
+    });
+  } else if (detail.status === "disputed") {
+    const raisedBy =
+      detail.disputedBySelf === true
+        ? "You raised a dispute"
+        : detail.disputedBySelf === false
+          ? `${detail.counterpartyName} raised a dispute`
+          : "A dispute was raised";
+    steps.push({
+      id: "disputed",
+      title: "Dispute raised",
+      timestamp: detail.disputedAt
+        ? formatBookingInstant(detail.disputedAt)
+        : undefined,
+      body: `${raisedBy}. An administrator will review this and reach a resolution. No further changes can be made until it is resolved.`,
     });
   } else if (detail.status === "completed") {
     steps.push({
@@ -98,6 +113,12 @@ export function BookingSessionDetailContent({
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
 
+  // Dispute state
+  const [showDisputeForm, setShowDisputeForm] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
+  const [disputeBusy, setDisputeBusy] = useState(false);
+  const [disputeError, setDisputeError] = useState<string | null>(null);
+
   const timeline = useMemo(() => buildSessionTimeline(detail), [detail]);
 
   const canCancel =
@@ -106,6 +127,34 @@ export function BookingSessionDetailContent({
   const deadline = Date.parse(detail.cancellationDeadline);
   const withinCancelWindow =
     !Number.isNaN(deadline) && Date.now() < deadline;
+
+  // A dispute can be raised on any confirmed or completed booking that has
+  // not been cancelled and is not already disputed.
+  const canDispute =
+    (detail.status === "confirmed" || detail.status === "completed") &&
+    !detail.cancelledAt;
+
+  async function handleRaiseDispute(e: React.FormEvent) {
+    e.preventDefault();
+    setDisputeError(null);
+    if (!disputeReason.trim()) {
+      setDisputeError("Please describe the issue before submitting.");
+      return;
+    }
+    setDisputeBusy(true);
+    const supabase = createClient();
+    const { error: rpcError } = await supabase.rpc("bookings_raise_dispute", {
+      p_booking_id: detail.id,
+      p_reason: disputeReason.trim(),
+    });
+    setDisputeBusy(false);
+    if (rpcError) {
+      setDisputeError(rpcError.message);
+      return;
+    }
+    setShowDisputeForm(false);
+    router.refresh();
+  }
 
   async function cancelSession() {
     setError(null);
@@ -348,6 +397,121 @@ export function BookingSessionDetailContent({
           ) : null}
         </CardContent>
       </Card>
+
+      {/* Dispute section */}
+      {detail.status === "disputed" ? (
+        <Card className="shadow-card border-danger-500/30 bg-danger-100/30 dark:bg-danger-900/10">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-danger-500 shrink-0" />
+              <CardTitle className="text-base font-medium text-danger-700 dark:text-danger-400">
+                Dispute under review
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {detail.disputeReason ? (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Reason provided
+                </p>
+                <p className="text-foreground leading-relaxed mt-0.5">
+                  {detail.disputeReason}
+                </p>
+              </div>
+            ) : null}
+            <p className="text-muted-foreground text-xs">
+              An administrator will review this dispute and contact both
+              parties. This booking cannot be modified until it is resolved.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {canDispute ? (
+        <Card className="shadow-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">Raise a dispute</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              If there is a problem with this booking that you cannot resolve
+              directly with the {otherParty}, you can flag it for admin review.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {!showDisputeForm ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDisputeForm(true)}
+              >
+                <AlertTriangle className="size-4" />
+                Raise dispute
+              </Button>
+            ) : (
+              <form className="space-y-4" onSubmit={handleRaiseDispute}>
+                <div className="space-y-1.5">
+                  <Label htmlFor="dispute-reason">
+                    Describe the issue <span className="text-danger-500">*</span>
+                  </Label>
+                  <Textarea
+                    id="dispute-reason"
+                    placeholder="Explain what went wrong and what outcome you are seeking."
+                    value={disputeReason}
+                    onChange={(e) => setDisputeReason(e.target.value)}
+                    rows={4}
+                    maxLength={1000}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {disputeReason.length}/1000 characters
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-warning-500/40 bg-warning-100/60 px-4 py-3 text-sm dark:bg-warning-900/20">
+                  <p className="font-medium text-warning-700 dark:text-warning-400">
+                    Before you submit
+                  </p>
+                  <p className="text-warning-600 dark:text-warning-500 mt-0.5">
+                    Raising a dispute flags this booking for admin review. Once
+                    raised it cannot be undone. Please try to resolve the issue
+                    directly first.
+                  </p>
+                </div>
+
+                {disputeError ? (
+                  <p className="text-sm text-danger-500" role="alert">
+                    {disputeError}
+                  </p>
+                ) : null}
+
+                <div className="flex flex-wrap gap-2">
+                  <Button type="submit" variant="destructive" disabled={disputeBusy}>
+                    {disputeBusy ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        Submitting…
+                      </>
+                    ) : (
+                      "Submit dispute"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={disputeBusy}
+                    onClick={() => {
+                      setShowDisputeForm(false);
+                      setDisputeReason("");
+                      setDisputeError(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         {canCancel && withinCancelWindow ? (

@@ -1,6 +1,6 @@
 export type BookingRequestStatus =
   | "pending"
-  | "accepted"
+  | "confirmed"
   | "declined"
   | "cancelled";
 
@@ -8,7 +8,8 @@ export type BookingRowStatus =
   | "pending"
   | "confirmed"
   | "cancelled"
-  | "completed";
+  | "completed"
+  | "disputed";
 
 export type OwnerPetOption = {
   id: string;
@@ -95,6 +96,11 @@ export type BookingSessionDetail = {
   viewerRole: "owner" | "minder";
   request: BookingDetailRequestSnapshot | null;
   review: BookingSessionReviewState;
+  /** Dispute fields — only populated when status === 'disputed'. */
+  disputeReason: string | null;
+  disputedAt: string | null;
+  /** 'self' when the current viewer raised it, 'counterparty' otherwise. */
+  disputedBySelf: boolean | null;
 };
 
 export type BookingRequestDetail = BookingRequestListItem & {
@@ -103,7 +109,7 @@ export type BookingRequestDetail = BookingRequestListItem & {
   /** Pets currently attached to the request. */
   requestPetIds: string[];
   counterpartyUserId: string | null;
-  /** Populated once the minder has accepted (confirmed session). */
+  /** Populated once the minder has confirmed (linked session). */
   linkedSession: {
     id: string;
     startDatetime: string;

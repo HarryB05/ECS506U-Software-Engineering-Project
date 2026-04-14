@@ -61,15 +61,15 @@ function buildRequestTimeline(detail: BookingRequestDetail) {
             : "Accept to create a confirmed session, or decline if you cannot help.",
       });
       break;
-    case "accepted":
+    case "confirmed":
       steps.push({
-        id: "accepted",
-        title: "Accepted",
+        id: "confirmed",
+        title: "Confirmed",
         timestamp: detail.updatedAt
           ? formatBookingInstant(detail.updatedAt)
           : undefined,
         body:
-          "The minder accepted and a session was created. Open the linked session for cancellation rules and the final time window.",
+          "The minder confirmed and a session was created. Open the linked session for cancellation rules and the final time window.",
       });
       break;
     case "declined":
