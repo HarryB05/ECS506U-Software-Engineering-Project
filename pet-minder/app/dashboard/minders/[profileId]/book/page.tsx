@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -122,6 +123,7 @@ async function BookMinderInner({ profileId }: { profileId: string }) {
       ) : null}
 
       <BookMinderRequestForm
+        key={randomUUID()}
         minderProfileId={minder.profileId}
         minderDisplayName={minder.displayName}
         servicePricing={minder.servicePricing}
