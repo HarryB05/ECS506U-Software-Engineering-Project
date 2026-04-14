@@ -61,7 +61,7 @@ function buildActivityRows(
   );
 
   const requestRows = requests.filter(
-    (r) => r.status !== "accepted" || !requestIdsWithSession.has(r.id),
+    (r) => r.status !== "confirmed" || !requestIdsWithSession.has(r.id),
   );
 
   const rows: ActivityRow[] = [
@@ -86,7 +86,7 @@ function bucketForRow(row: ActivityRow): ActivityBucketKey {
     switch (row.request.status) {
       case "pending":
         return "pending";
-      case "accepted":
+      case "confirmed":
         return "confirmed";
       case "cancelled":
       case "declined":

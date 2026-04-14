@@ -44,12 +44,12 @@ function buildSessionTimeline(detail: BookingSessionDetail) {
     });
 
     steps.push({
-      id: "accepted",
-      title: "Accepted",
+      id: "confirmed",
+      title: "Confirmed",
       timestamp: detail.request.updatedAt
         ? formatBookingInstant(detail.request.updatedAt)
         : undefined,
-      body: `${minderLabel} accepted. This page is the confirmed booking: use it for cancellations and the agreed time window.`,
+      body: `${minderLabel} confirmed. This page is the confirmed booking: use it for cancellations and the agreed time window.`,
     });
   } else {
     steps.push({
