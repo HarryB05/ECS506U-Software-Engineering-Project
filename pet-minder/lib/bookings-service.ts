@@ -43,7 +43,8 @@ function mapBookingStatus(s: string): BookingRowStatus {
     s === "pending" ||
     s === "confirmed" ||
     s === "cancelled" ||
-    s === "completed"
+    s === "completed" ||
+    s === "disputed"
   ) {
     return s;
   }
@@ -354,6 +355,9 @@ export async function loadBookingSessionDetail(
       care_instructions,
       owner_id,
       minder_id,
+      dispute_reason,
+      disputed_at,
+      disputed_by,
       minder_profiles ( user_id, users ( full_name ) ),
       users!bookings_owner_id_fkey ( full_name ),
       booking_pets (
@@ -502,6 +506,12 @@ export async function loadBookingSessionDetail(
         reason,
         existing: existingReview,
       },
+      disputeReason: (row.dispute_reason as string | null) ?? null,
+      disputedAt: (row.disputed_at as string | null) ?? null,
+      disputedBySelf:
+        row.disputed_by != null
+          ? String(row.disputed_by) === userId
+          : null,
     },
     error: null,
   };

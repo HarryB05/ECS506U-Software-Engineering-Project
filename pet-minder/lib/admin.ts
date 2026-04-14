@@ -254,6 +254,8 @@ export async function fetchDisputedBookings(
       end_datetime,
       status,
       care_instructions,
+      dispute_reason,
+      disputed_at,
       minder_profiles ( users ( full_name ) ),
       users!bookings_owner_id_fkey ( full_name )
     `,
@@ -281,6 +283,8 @@ export async function fetchDisputedBookings(
       careInstructions: (row.care_instructions as string | null) ?? null,
       ownerName: displayNameFromUsersJoin(row.users, "Owner"),
       minderName: displayNameFromUsersJoin(mpOne?.users, "Minder"),
+      disputeReason: (row.dispute_reason as string | null) ?? null,
+      disputedAt: (row.disputed_at as string | null) ?? null,
     };
   });
 
