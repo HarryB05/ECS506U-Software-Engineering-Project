@@ -26,6 +26,69 @@ Pet Minder is a web application connecting pet owners with pet minders. Owners c
 **Out of scope (future work):**
 - Live activity tracking during sessions (e.g. GPS walk tracking, real-time owner view) — deprioritised in favour of completing the full booking and dispute lifecycle; the session data model is in place and Supabase Realtime would provide the subscription layer for a future iteration.
 
+## Running the App
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18 or later
+- npm (comes with Node.js)
+
+### Steps
+
+1. **Clone the repository** (if you haven't already):
+
+   ```bash
+   git clone https://github.com/RayyanPC/ECS506U-Software-Engineering-Project.git
+   cd ECS506U-Software-Engineering-Project
+   ```
+
+2. **Navigate to the app directory:**
+
+   ```bash
+   cd pet-minder
+   ```
+
+3. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+4. **Set up environment variables:**
+
+   Create a `.env` file inside `pet-minder/` with the following contents:
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+   ```
+
+   > The app uses a shared hosted Supabase project — no local database setup is required.
+
+5. **Start the development server:**
+
+   ```bash
+   npm run dev
+   ```
+
+   The app will be available at [http://localhost:3000](http://localhost:3000).
+
+### Test Accounts
+
+The database is seeded with mock data. You can log in with the following accounts:
+
+| Role   | Email                     | Password      |
+|--------|---------------------------|---------------|
+| Admin  | `admin@petminder.app`     | `TestPass123!` |
+| Minder | `mock.minder.01@example.com` | `TestPass123!` |
+| Minder | `mock.minder.02@example.com` | `TestPass123!` |
+| Owner  | `mock.owner.01@example.com`  | `TestPass123!` |
+| Owner  | `mock.owner.02@example.com`  | `TestPass123!` |
+
+Minder accounts `01`–`05` and owner accounts `01`–`05` are all available with the same password pattern.
+
+---
+
 ## Module Description
 Brief description about this module:
 
