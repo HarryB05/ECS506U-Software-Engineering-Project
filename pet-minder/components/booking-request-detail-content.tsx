@@ -74,15 +74,19 @@ function buildRequestTimeline(detail: BookingRequestDetail) {
       break;
     case "declined":
       steps.push({
-        id: "declined",
-        title: "Declined",
+        id: detail.autoRejectedAt ? "expired" : "declined",
+        title: detail.autoRejectedAt ? "Request expired" : "Declined",
         timestamp: detail.updatedAt
           ? formatBookingInstant(detail.updatedAt)
           : undefined,
         body:
-          detail.viewerRole === "minder"
-            ? "You declined this request. No session was created."
-            : `${name} declined. No session was created. Try another minder or different dates.`,
+          detail.autoRejectedAt
+            ? detail.viewerRole === "minder"
+              ? "This request expired after 24 hours with no response."
+              : "This request was automatically declined after 24 hours with no response. Try another minder or different dates."
+            : detail.viewerRole === "minder"
+              ? "You declined this request. No session was created."
+              : `${name} declined. No session was created. Try another minder or different dates.`,
       });
       break;
     case "cancelled":
@@ -384,7 +388,14 @@ export function BookingRequestDetailContent({
               {detail.petCount === 1 ? "" : "s"}
             </p>
           </div>
-          <BookingRequestStatusBadge status={detail.status} />
+          <div className="text-right">
+            <BookingRequestStatusBadge status={detail.status} />
+            {detail.autoRejectedAt ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Auto-declined after 24 hours with no response.
+              </p>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -680,7 +691,7 @@ export function BookingRequestDetailContent({
               {counterpartyRating != null ? (
                 <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
                   <Star className="size-4" />
-                  {counterpartyRating.toFixed(1)}/5
+                  {counterpartyRating.toFixed(1)}/5.0
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No ratings yet.</p>

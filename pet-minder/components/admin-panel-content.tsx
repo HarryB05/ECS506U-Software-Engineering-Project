@@ -434,9 +434,21 @@ function ReviewsTab({ rows, adminId, onRefresh, onResolveFromQueue, pushToast }:
               <p><span className="text-muted-foreground">From: </span>{r.reviewerName}</p>
               <p><span className="text-muted-foreground">About: </span>{r.revieweeName}</p>
             </div>
-            {r.rating != null ? <p className="text-xs text-muted-foreground">Rating: {r.rating.toFixed(1)} / 5</p> : null}
-            {r.comment ? <p className="text-xs text-foreground">{r.comment}</p> : <p className="text-xs text-muted-foreground">No comment text.</p>}
-            {r.reportCount > 0 ? <p className="text-xs text-warning-500">Reported by {r.reportCount} user{r.reportCount === 1 ? "" : "s"}</p> : null}
+            {r.rating != null ? (
+              <p className="text-xs text-muted-foreground">
+                Rating: {r.rating.toFixed(0)}/5
+              </p>
+            ) : null}
+            {r.comment ? (
+              <p className="text-xs text-foreground">{r.comment}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">No comment text.</p>
+            )}
+            {r.reportCount > 0 ? (
+              <p className="text-xs text-warning-500">
+                Reported by {r.reportCount} user{r.reportCount === 1 ? "" : "s"}
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <Button type="button" variant="default" size="sm" disabled={busyId === r.id} onClick={() => handleModerate(r.id)}>Resolve report (keep review)</Button>
               <Button type="button" variant="outline" size="sm" disabled={busyId === r.id} onClick={() => handleRemove(r.id)}>Remove review</Button>

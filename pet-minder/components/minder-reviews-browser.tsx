@@ -147,11 +147,7 @@ export function MinderReviewsBrowser({
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_14rem]">
-        <div>
-          <PublicReviewList title="All reviews" reviews={pagedReviews} />
-        </div>
-
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="lg:order-last lg:sticky lg:top-20 lg:self-start">
           <Card className="shadow-card border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-medium">Filter by rating</CardTitle>
@@ -198,6 +194,10 @@ export function MinderReviewsBrowser({
             </CardContent>
           </Card>
         </aside>
+
+        <div>
+          <PublicReviewList title="All reviews" reviews={pagedReviews} />
+        </div>
       </div>
     </div>
   );

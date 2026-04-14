@@ -32,7 +32,10 @@ import {
   minderIntroText,
   parsePriceSortValue,
 } from "@/lib/minder-display";
-import { filterMindersForOwnerSearch } from "@/lib/minder-search-match";
+import {
+  filterMindersForOwnerSearch,
+  getSimpleMinderSearchRank,
+} from "@/lib/minder-search-match";
 import { PRESET_PET_TYPES, type PresetPetType } from "@/lib/pet-types";
 import type { PetSize } from "@/lib/types/pet-profile";
 import {
@@ -153,6 +156,13 @@ export function SearchPageContent({
     });
 
     return [...results].sort((a, b) => {
+      if (search.trim()) {
+        const rankDiff =
+          getSimpleMinderSearchRank(b, search) -
+          getSimpleMinderSearchRank(a, search);
+        if (rankDiff !== 0) return rankDiff;
+      }
+
       let diff = 0;
       if (sortBy === "rating") {
         const ar = a.averageRating ?? 0;
@@ -579,7 +589,7 @@ function MinderSearchCard({ minder }: { minder: PublicMinderListItem }) {
           </div>
           <div className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-xs text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
             <Star className="size-3.5" />
-            {rating.toFixed(1)}
+            {rating.toFixed(1)}/5.0
           </div>
         </div>
         {minder.isVerified ? (

@@ -271,7 +271,7 @@ export function BookingSessionDetailContent({
               <p className="text-foreground">
                 You rated this booking{" "}
                 <strong>
-                  {detail.review.existing.rating.toFixed(1)}/5
+                  {detail.review.existing.rating.toFixed(0)}/5
                 </strong>
                 .
               </p>
