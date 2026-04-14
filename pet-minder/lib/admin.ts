@@ -254,6 +254,8 @@ export async function fetchDisputedBookings(
       end_datetime,
       status,
       care_instructions,
+      dispute_reason,
+      disputed_at,
       minder_profiles ( users ( full_name ) ),
       users!bookings_owner_id_fkey ( full_name )
     `,
@@ -281,6 +283,8 @@ export async function fetchDisputedBookings(
       careInstructions: (row.care_instructions as string | null) ?? null,
       ownerName: displayNameFromUsersJoin(row.users, "Owner"),
       minderName: displayNameFromUsersJoin(mpOne?.users, "Minder"),
+      disputeReason: (row.dispute_reason as string | null) ?? null,
+      disputedAt: (row.disputed_at as string | null) ?? null,
     };
   });
 
@@ -293,11 +297,10 @@ export async function resolveBookingDispute(
   bookingId: string,
   newStatus: "confirmed" | "completed" | "cancelled",
 ): Promise<{ error: Error | null }> {
-  const { error } = await supabase
-    .from("bookings")
-    .update({ status: newStatus })
-    .eq("id", bookingId)
-    .eq("status", "disputed");
+  const { error } = await supabase.rpc("bookings_resolve_dispute", {
+    p_booking_id: bookingId,
+    p_new_status: newStatus,
+  });
 
   if (error) {
     return { error: new Error(error.message) };

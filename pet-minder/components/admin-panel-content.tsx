@@ -351,11 +351,13 @@ function DisputesTab({
   rows,
   adminId,
   onRefresh,
+  onResolveFromQueue,
   pushToast,
 }: {
   rows: AdminDisputeBookingRow[];
   adminId: string;
   onRefresh: () => Promise<void>;
+  onResolveFromQueue: (bookingId: string) => void;
   pushToast: (type: "success" | "error", message: string) => void;
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -377,6 +379,7 @@ function DisputesTab({
       pushToast("error", error.message);
       return;
     }
+    onResolveFromQueue(bookingId);
     pushToast("success", "Dispute resolved.");
     await onRefresh();
   }
@@ -427,6 +430,17 @@ function DisputesTab({
                 {b.minderName}
               </p>
             </div>
+            {b.disputeReason ? (
+              <div className="rounded-md border border-danger-500/30 bg-danger-100/50 px-3 py-2 dark:bg-danger-900/20">
+                <p className="text-xs font-medium text-danger-700 dark:text-danger-400">
+                  Dispute reason
+                  {b.disputedAt ? ` · ${formatWhen(b.disputedAt)}` : ""}
+                </p>
+                <p className="text-xs text-danger-600 dark:text-danger-500 mt-0.5 leading-relaxed">
+                  {b.disputeReason}
+                </p>
+              </div>
+            ) : null}
             {b.careInstructions ? (
               <p className="text-xs text-muted-foreground">
                 Care notes: {b.careInstructions}
@@ -632,6 +646,17 @@ export function AdminPanelContent() {
   const [minders, setMinders] = useState<AdminMinderRow[]>([]);
   const [disputes, setDisputes] = useState<AdminDisputeBookingRow[]>([]);
   const [reviews, setReviews] = useState<AdminReviewRow[]>([]);
+
+  const handleDisputeResolvedFromQueue = useCallback((bookingId: string) => {
+    setDisputes((prev) => prev.filter((d) => d.id !== bookingId));
+    setStats((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        disputedBookings: Math.max(0, prev.disputedBookings - 1),
+      };
+    });
+  }, []);
 
   const handleReviewResolvedFromQueue = useCallback((reviewId: string) => {
     setReviews((prev) => prev.filter((r) => r.id !== reviewId));
@@ -843,6 +868,7 @@ export function AdminPanelContent() {
             rows={disputes}
             adminId={adminId}
             onRefresh={loadAll}
+            onResolveFromQueue={handleDisputeResolvedFromQueue}
             pushToast={pushToast}
           />
         ) : (

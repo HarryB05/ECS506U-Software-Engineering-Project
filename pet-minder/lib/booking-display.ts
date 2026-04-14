@@ -61,8 +61,9 @@ export function formatBookingWithPetsTitle(
 /** Maps a booking row to the session status badge variant. */
 export function sessionBadgeStatus(
   item: Pick<BookingListItem, "status" | "cancelledAt">,
-): "pending" | "confirmed" | "completed" | "cancelled" {
+): "pending" | "confirmed" | "completed" | "cancelled" | "disputed" {
   if (item.status === "cancelled" || item.cancelledAt) return "cancelled";
+  if (item.status === "disputed") return "disputed";
   if (item.status === "completed") return "completed";
   if (item.status === "confirmed") return "confirmed";
   return "pending";

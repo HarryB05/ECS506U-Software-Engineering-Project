@@ -39,6 +39,8 @@ export type AdminDisputeBookingRow = {
   careInstructions: string | null;
   ownerName: string;
   minderName: string;
+  disputeReason: string | null;
+  disputedAt: string | null;
 };
 
 export type AdminReviewRow = {
