@@ -14,7 +14,10 @@ import {
   estimateBookingCost,
   formatMinderPriceLabel,
 } from "@/lib/minder-display";
-import { assessBookingLeadTime } from "@/lib/booking-lead-time";
+import {
+  assessBookingLeadTime,
+  normalizeServiceTypeKey,
+} from "@/lib/booking-lead-time";
 import type { OwnerPetOption } from "@/lib/types/booking";
 import type { MinderAvailabilitySlot } from "@/lib/types/availability";
 import { toDisplayTime } from "@/lib/availability-service";
@@ -30,13 +33,16 @@ type BookMinderRequestFormProps = {
 const DURATION_OPTIONS = [30, 60, 90, 120, 180, 240];
 
 const SERVICE_TYPE_OPTIONS = [
-  "Dog Walking",
+  "Walking",
   "Pet Sitting",
   "Drop-in Visit",
   "Day Care",
   "Overnight Care",
   "Grooming",
 ] as const;
+
+const WALKING_ALLOWED_PET_TYPES = new Set(["dog", "cat"]);
+const MAX_WALKING_PETS = 4;
 
 type BookingMode = "session" | "range";
 
@@ -172,6 +178,25 @@ export function BookMinderRequestForm({
   const [loading, setLoading] = useState(false);
   const [acknowledgeShortNotice, setAcknowledgeShortNotice] = useState(false);
 
+  const serviceTypeKey = useMemo(
+    () => normalizeServiceTypeKey(serviceType),
+    [serviceType],
+  );
+  const isWalkingService = serviceTypeKey === "walking";
+
+  const walkingEligiblePetIds = useMemo(() => {
+    return new Set(
+      pets
+        .filter((p) => WALKING_ALLOWED_PET_TYPES.has(p.petType.trim().toLowerCase()))
+        .map((p) => p.id),
+    );
+  }, [pets]);
+
+  const selectablePets = useMemo(() => {
+    if (!isWalkingService) return pets;
+    return pets.filter((p) => walkingEligiblePetIds.has(p.id));
+  }, [isWalkingService, pets, walkingEligiblePetIds]);
+
   useEffect(() => {
     if (pets.length === 1) {
       setSelectedPetIds(new Set([pets[0]!.id]));
@@ -184,6 +209,19 @@ export function BookMinderRequestForm({
     }
   }, [bookingMode, date]);
 
+  useEffect(() => {
+    if (!isWalkingService) return;
+
+    setSelectedPetIds((prev) => {
+      const allowed = Array.from(prev).filter((id) => walkingEligiblePetIds.has(id));
+      const capped = allowed.slice(0, MAX_WALKING_PETS);
+      if (capped.length === prev.size && capped.every((id) => prev.has(id))) {
+        return prev;
+      }
+      return new Set(capped);
+    });
+  }, [isWalkingService, walkingEligiblePetIds]);
+
   function setMode(next: BookingMode) {
     setBookingMode(next);
     setError(null);
@@ -194,10 +232,22 @@ export function BookMinderRequestForm({
   }
 
   function togglePet(id: string) {
+    if (isWalkingService && !walkingEligiblePetIds.has(id)) {
+      setError("Walking bookings only support dogs and cats.");
+      return;
+    }
+
     setSelectedPetIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
-      else next.add(id);
+      else {
+        if (isWalkingService && next.size >= MAX_WALKING_PETS) {
+          setError("Walking bookings are limited to 4 pets per session.");
+          return prev;
+        }
+        next.add(id);
+      }
+      setError(null);
       return next;
     });
   }
@@ -280,6 +330,20 @@ export function BookMinderRequestForm({
     if (selectedPetIds.size === 0) {
       setError("Choose at least one pet for this booking.");
       return;
+    }
+
+    if (isWalkingService) {
+      const invalidPetSelected = Array.from(selectedPetIds).some(
+        (id) => !walkingEligiblePetIds.has(id),
+      );
+      if (invalidPetSelected) {
+        setError("Walking bookings only support dogs and cats.");
+        return;
+      }
+      if (selectedPetIds.size > MAX_WALKING_PETS) {
+        setError("Walking bookings are limited to 4 pets per session.");
+        return;
+      }
     }
 
     if (!date || !time) {
@@ -464,8 +528,13 @@ export function BookMinderRequestForm({
                 <PawPrint className="size-4 text-teal-700 dark:text-teal-300" />
                 <Label className="text-foreground">Pets included</Label>
               </div>
+              {isWalkingService ? (
+                <p className="text-xs text-muted-foreground">
+                  For walking, only dogs and cats can be selected (up to 4 pets).
+                </p>
+              ) : null}
               <ul className="space-y-2 rounded-lg border border-border bg-secondary/30 p-3 dark:bg-secondary/20">
-                {pets.map((p) => (
+                {selectablePets.map((p) => (
                   <li key={p.id}>
                     <label className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors hover:bg-card">
                       <input

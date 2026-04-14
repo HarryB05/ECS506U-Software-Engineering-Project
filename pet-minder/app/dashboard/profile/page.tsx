@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteAccountSection } from "@/components/delete-account-section";
+import { ProfileRolePreferences } from "@/components/profile-role-preferences";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -14,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 
+type RoleType = "owner" | "minder";
+
 async function ProfileContent() {
   const supabase = await createClient();
   const {
@@ -24,6 +27,7 @@ async function ProfileContent() {
     redirect("/auth/login");
   }
 
+<<<<<<< HEAD
   // Get verification status
   const { data: verification } = await supabase
     .from('verification_records')
@@ -68,6 +72,18 @@ async function ProfileContent() {
   };
 
   const verificationInfo = getVerificationDisplay();
+=======
+  const { data: roleRows } = await supabase
+    .from("roles")
+    .select("role_type")
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .in("role_type", ["owner", "minder"]);
+
+  const initialRoles: RoleType[] = (roleRows ?? [])
+    .map((r) => r.role_type)
+    .filter((role): role is RoleType => role === "owner" || role === "minder");
+>>>>>>> a628c4d14e4cd527b3b7a626c353329eb52bfcfe
 
   return (
     <div className="max-w-narrow mx-auto space-y-8">
@@ -89,6 +105,7 @@ async function ProfileContent() {
         </CardContent>
       </Card>
 
+<<<<<<< HEAD
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle>Verification Status</CardTitle>
@@ -104,6 +121,9 @@ async function ProfileContent() {
           <p className="text-sm text-muted-foreground">{verificationInfo.description}</p>
         </CardContent>
       </Card>
+=======
+      <ProfileRolePreferences initialRoles={initialRoles} />
+>>>>>>> a628c4d14e4cd527b3b7a626c353329eb52bfcfe
 
       <DeleteAccountSection email={user.email} />
     </div>
