@@ -60,8 +60,12 @@ function buildActivityRows(
       .filter((id): id is string => typeof id === "string" && id.length > 0),
   );
 
+  // If a booking session already exists for this request, show the session only.
+  // Filter by linked-session presence rather than request status so stale
+  // in-flight states (e.g. still showing "pending" before a refresh) can't
+  // produce a duplicate entry in the activity list.
   const requestRows = requests.filter(
-    (r) => r.status !== "confirmed" || !requestIdsWithSession.has(r.id),
+    (r) => !requestIdsWithSession.has(r.id),
   );
 
   const rows: ActivityRow[] = [
