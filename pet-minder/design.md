@@ -1,6 +1,6 @@
-# Pet Minder — Design System
+# PawKeeper — Design System
 
-> **For AI agents (Cursor):** This document is the authoritative design reference for the Pet Minder app.
+> **For AI agents (Cursor):** This document is the authoritative design reference for the PawKeeper app.
 > When building any UI, follow this file exactly. Do not invent colours, spacing, or component patterns — use what is defined here.
 > Stack: **Next.js 14 App Router · TypeScript · Tailwind CSS v3 · shadcn/ui (New York) · Supabase · next-themes · lucide-react**
 
@@ -67,7 +67,7 @@ import { ThemeProvider } from 'next-themes'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Pet Minder',
+  title: 'PawKeeper',
   description: 'Find trusted pet care, near you.',
 }
 
@@ -484,7 +484,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-narrow shadow-card">
         <CardHeader className="space-y-1 pb-2">
           <h1 className="font-display text-3xl text-foreground">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">Sign in to your Pet Minder account</p>
+          <p className="text-sm text-muted-foreground">Sign in to your PawKeeper account</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">

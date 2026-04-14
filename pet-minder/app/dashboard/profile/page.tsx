@@ -48,7 +48,7 @@ async function ProfileContent() {
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle>Account</CardTitle>
-          <CardDescription>Email linked to your Pet Minder account.</CardDescription>
+          <CardDescription>Email linked to your PawKeeper account.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           <Label>Email</Label>

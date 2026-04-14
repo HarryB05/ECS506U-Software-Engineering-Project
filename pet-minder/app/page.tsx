@@ -107,7 +107,7 @@ export default function Home() {
       <footer className="w-full border-t border-border py-8">
         <div className="max-w-content mx-auto px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            Pet Minder. Find trusted pet care, near you.
+            PawKeeper. Find trusted pet care, near you.
           </p>
           <ThemeToggle />
         </div>

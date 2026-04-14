@@ -126,7 +126,7 @@ export default function OnboardingPage() {
           <div className="space-y-6">
             <div className="space-y-3">
               <p className="text-base text-foreground font-medium">
-                How will you use Pet Minder?
+                How will you use PawKeeper?
               </p>
               <p className="text-sm text-muted-foreground">
                 You can choose one or both.
