@@ -9,7 +9,22 @@
 
 #### Pet Minder
 
-This project is creating a hub (application) for pet owners and pet minders (might be a specific pet only such as dogs like gowalkies). The application allows pet owners to find minders (and vice-versa) based on ratings, testimonials, location and availability. The app should allow pet owners to give specific instructions to minders such as choosing walking routes, minding directions, etc. The app should enable minders to track their pets during walks or other activities.
+Pet Minder is a web application connecting pet owners with pet minders. Owners can discover minders by service type, location, and availability; minders can manage their schedule, accept bookings, and build a reputation through reviews.
+
+**Implemented features:**
+- Dual-role accounts — users can register as an owner, a minder, or both
+- Minder profiles with service types, pricing, availability schedules, and a bio
+- Pet profiles (owners can register multiple pets with species, breed, and care notes)
+- Search and discovery — filter minders by service type and location
+- Full booking lifecycle: request → accept/decline → confirmed session → cancellation → completion
+- Booking lead-time rules and automatic rejection of stale pending requests
+- Dispute system — either party can raise a dispute on a completed booking; admin resolves it; each booking can only be disputed once
+- Review and rating system — owners leave reviews after completed bookings
+- Admin panel — manage users, view platform statistics, moderate disputes
+- Dark/light mode
+
+**Out of scope (future work):**
+- Live activity tracking during sessions (e.g. GPS walk tracking, real-time owner view) — deprioritised in favour of completing the full booking and dispute lifecycle; the session data model is in place and Supabase Realtime would provide the subscription layer for a future iteration.
 
 ## Module Description
 Brief description about this module:
