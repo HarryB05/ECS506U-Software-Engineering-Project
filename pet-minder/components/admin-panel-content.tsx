@@ -427,6 +427,17 @@ function DisputesTab({
                 {b.minderName}
               </p>
             </div>
+            {b.disputeReason ? (
+              <div className="rounded-md border border-danger-500/30 bg-danger-100/50 px-3 py-2 dark:bg-danger-900/20">
+                <p className="text-xs font-medium text-danger-700 dark:text-danger-400">
+                  Dispute reason
+                  {b.disputedAt ? ` · ${formatWhen(b.disputedAt)}` : ""}
+                </p>
+                <p className="text-xs text-danger-600 dark:text-danger-500 mt-0.5 leading-relaxed">
+                  {b.disputeReason}
+                </p>
+              </div>
+            ) : null}
             {b.careInstructions ? (
               <p className="text-xs text-muted-foreground">
                 Care notes: {b.careInstructions}

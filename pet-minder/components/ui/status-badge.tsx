@@ -5,7 +5,8 @@ type BookingStatus =
   | "confirmed"
   | "active"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "disputed";
 
 const config: Record<
   BookingStatus,
@@ -35,6 +36,11 @@ const config: Record<
     label: "Cancelled",
     className:
       "bg-muted text-muted-foreground border-transparent",
+  },
+  disputed: {
+    label: "Disputed",
+    className:
+      "bg-danger-100 text-danger-500 border-danger-500/20",
   },
 };
 
