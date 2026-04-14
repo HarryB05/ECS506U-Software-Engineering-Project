@@ -274,7 +274,7 @@ export function MinderPublicProfileEditor({
           </Link>
         </div>
 
-        {verificationChecklist && (
+        {verificationChecklist && !profile.is_verified && (
           <div className="rounded-lg border border-border p-4">
             <p className="text-sm font-medium">Verification checklist</p>
             <div className="mt-3 space-y-2 text-xs">
