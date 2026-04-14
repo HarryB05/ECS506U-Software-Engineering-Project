@@ -30,9 +30,9 @@ export default function VerifyPage() {
 
   // Auto-redirect when both required verifications are done
   useEffect(() => {
-    if (!loading && stripeResult?.status === 'verified') {
+    if (!loading && stripeResult?.status === 'approved') {
       const isMinder = userRoles.includes('minder')
-      const certificateVerified = !isMinder || certResult?.status === 'verified'
+      const certificateVerified = !isMinder || certResult?.status === 'approved'
 
       if (certificateVerified) {
         const timer = setTimeout(() => {
@@ -118,7 +118,7 @@ export default function VerifyPage() {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('userId', user.id)
-      formData.append('type', type === 'stripe' ? 'identity' : 'certificate')
+      formData.append('docType', type === 'stripe' ? 'identity' : 'certificate')
 
       const res = await fetch('/api/verify-document', {
         method: 'POST',
@@ -140,7 +140,7 @@ export default function VerifyPage() {
           setCertError(data.error || 'Verification failed')
         }
       }
-    } catch (err) {
+    } catch {
       if (type === 'stripe') {
         setStripeError('Network error. Please try again.')
       } else {
@@ -180,7 +180,7 @@ export default function VerifyPage() {
             <Badge variant="default">Required</Badge>
           </CardTitle>
           <CardDescription>
-            Upload your government-issued ID (passport, driver's license, or national ID)
+            Upload your government-issued ID (passport, driver&apos;s license, or national ID)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -190,7 +190,7 @@ export default function VerifyPage() {
               type="file"
               accept="image/*,.pdf"
               onChange={(e) => handleFileChange(e, 'stripe')}
-              disabled={stripeResult?.status === 'verified'}
+              disabled={stripeResult?.status === 'approved'}
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
             />
             {stripeFile && (
@@ -209,20 +209,20 @@ export default function VerifyPage() {
 
           {stripeResult && (
             <div className={`flex items-center gap-2 p-3 border rounded-md ${
-              stripeResult.status === 'verified'
+              stripeResult.status === 'approved'
                 ? 'bg-green-50 border-green-200'
                 : 'bg-red-50 border-red-200'
             }`}>
-              {stripeResult.status === 'verified' ? (
+              {stripeResult.status === 'approved' ? (
                 <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
               ) : (
                 <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
               )}
               <div>
                 <p className={`text-sm font-medium ${
-                  stripeResult.status === 'verified' ? 'text-green-700' : 'text-red-700'
+                  stripeResult.status === 'approved' ? 'text-green-700' : 'text-red-700'
                 }`}>
-                  {stripeResult.status === 'verified' ? 'Verified!' : 'Failed'}
+                  {stripeResult.status === 'approved' ? 'Verified!' : 'Failed'}
                 </p>
                 <p className="text-sm text-muted-foreground">{stripeResult.reason}</p>
               </div>
@@ -231,7 +231,7 @@ export default function VerifyPage() {
 
           <Button
             onClick={() => handleSubmitVerification('stripe')}
-            disabled={stripeLoading || !stripeFile || stripeResult?.status === 'verified'}
+            disabled={stripeLoading || !stripeFile || stripeResult?.status === 'approved'}
             className="w-full"
           >
             {stripeLoading ? 'Analysing...' : 'Verify ID'}
@@ -263,7 +263,7 @@ export default function VerifyPage() {
                 type="file"
                 accept="image/*,.pdf"
                 onChange={(e) => handleFileChange(e, 'certificate')}
-                disabled={certResult?.status === 'verified'}
+                disabled={certResult?.status === 'approved'}
                 className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
               />
               {certFile && (
@@ -282,20 +282,20 @@ export default function VerifyPage() {
 
             {certResult && (
               <div className={`flex items-center gap-2 p-3 border rounded-md ${
-                certResult.status === 'verified'
+                certResult.status === 'approved'
                   ? 'bg-green-50 border-green-200'
                   : 'bg-red-50 border-red-200'
               }`}>
-                {certResult.status === 'verified' ? (
+                {certResult.status === 'approved' ? (
                   <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                 ) : (
                   <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                 )}
                 <div>
                   <p className={`text-sm font-medium ${
-                    certResult.status === 'verified' ? 'text-green-700' : 'text-red-700'
+                    certResult.status === 'approved' ? 'text-green-700' : 'text-red-700'
                   }`}>
-                    {certResult.status === 'verified' ? 'Verified!' : 'Failed'}
+                    {certResult.status === 'approved' ? 'Verified!' : 'Failed'}
                   </p>
                   <p className="text-sm text-muted-foreground">{certResult.reason}</p>
                 </div>
@@ -304,7 +304,7 @@ export default function VerifyPage() {
 
             <Button
               onClick={() => handleSubmitVerification('certificate')}
-              disabled={certLoading || !certFile || certResult?.status === 'verified'}
+              disabled={certLoading || !certFile || certResult?.status === 'approved'}
               className="w-full"
             >
               {certLoading ? 'Analysing...' : 'Verify Certificate'}
@@ -327,25 +327,25 @@ export default function VerifyPage() {
                 <p className="font-medium text-blue-900">Status:</p>
                 <ul className="space-y-1 text-blue-800">
                   <li className="flex items-center gap-2">
-                    {stripeResult?.status === 'verified' ? (
+                    {stripeResult?.status === 'approved' ? (
                       <CheckCircle className="h-4 w-4 text-green-600" />
                     ) : (
                       <XCircle className="h-4 w-4 text-gray-400" />
                     )}
-                    ID: {stripeResult?.status === 'verified' ? 'Verified ✓' : 'Pending'}
+                    ID: {stripeResult?.status === 'approved' ? 'Verified ✓' : 'Pending'}
                   </li>
                   {isMinder && (
                     <li className="flex items-center gap-2">
-                      {certResult?.status === 'verified' ? (
+                      {certResult?.status === 'approved' ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-gray-400" />
                       )}
-                      Certificate: {certResult?.status === 'verified' ? 'Verified ✓' : 'Pending'}
+                      Certificate: {certResult?.status === 'approved' ? 'Verified ✓' : 'Pending'}
                     </li>
                   )}
                 </ul>
-                {stripeResult?.status === 'verified' && (!isMinder || certResult?.status === 'verified') && (
+                {stripeResult?.status === 'approved' && (!isMinder || certResult?.status === 'approved') && (
                   <p className="text-green-700 font-medium mt-2">✓ Redirecting...</p>
                 )}
               </div>

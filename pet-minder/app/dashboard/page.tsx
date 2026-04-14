@@ -34,11 +34,11 @@ export default async function DashboardPage() {
   // If roles were just created (new user who just onboarded) and they don't have verified ID, send to verify
   if (onboardingTime && onboardingTime > fiveMinutesAgo) {
     const { data: verifiedRecord } = await supabase
-      .from('verification_records')
-      .select('*')
+      .from('id_verifications')
+      .select('id')
       .eq('user_id', user.id)
-      .eq('type', 'identity')
-      .eq('status', 'verified')
+      .eq('doc_type', 'identity')
+      .eq('status', 'approved')
       .limit(1)
 
     // New user who hasn't verified yet

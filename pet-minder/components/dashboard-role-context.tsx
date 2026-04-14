@@ -30,11 +30,8 @@ const STORAGE_KEY = "pet-minder-dashboard-active-role";
 
 function normaliseRoleTypes(types: string[]): DashboardRole[] {
   const out: DashboardRole[] = [];
-  // Admin users can act as both owner and minder for platform oversight/testing,
-  // even if they have no explicit owner/minder role assignment.
-  const isAdmin = types.includes("admin");
-  if (types.includes("owner") || isAdmin) out.push("owner");
-  if (types.includes("minder") || isAdmin) out.push("minder");
+  if (types.includes("owner")) out.push("owner");
+  if (types.includes("minder")) out.push("minder");
   return out;
 }
 
