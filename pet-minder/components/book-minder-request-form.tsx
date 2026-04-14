@@ -402,6 +402,13 @@ export function BookMinderRequestForm({
       return;
     }
 
+    if (hasConflict) {
+      setError(
+        `${minderDisplayName} is unavailable during this time. Please choose a different slot.`,
+      );
+      return;
+    }
+
     const leadTime = assessBookingLeadTime(serviceType, requestedDatetime);
     if (leadTime?.isBelowMinimum) {
       setError(
@@ -623,7 +630,7 @@ export function BookMinderRequestForm({
               {bookedWindowsForSelectedDate.length > 0 && (
                 <div className="rounded-lg border border-warning-500/40 bg-warning-100/60 p-3 space-y-2 dark:bg-warning-900/20">
                   <p className="text-xs font-medium text-warning-700 dark:text-warning-400 uppercase tracking-wide">
-                    Already booked on this day
+                    Unavailable on this day
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {bookedWindowsForSelectedDate.map((w, i) => {
@@ -806,9 +813,8 @@ export function BookMinderRequestForm({
                   Time conflict
                 </p>
                 <p className="text-danger-600 dark:text-danger-500 mt-0.5">
-                  {minderDisplayName} already has a confirmed booking during this
-                  time. The minder will not be able to accept this request.
-                  Please choose a different date or time.
+                  {minderDisplayName} is unavailable during this time. Please
+                  choose a different date or time before sending this request.
                 </p>
               </div>
             )}
@@ -848,7 +854,7 @@ export function BookMinderRequestForm({
                   Cancel
                 </Link>
               </Button>
-              <Button type="submit" disabled={loading} className="gap-2">
+              <Button type="submit" disabled={loading || hasConflict} className="gap-2">
                 {loading ? (
                   <>
                     <Loader2 className="size-4 animate-spin" aria-hidden />
