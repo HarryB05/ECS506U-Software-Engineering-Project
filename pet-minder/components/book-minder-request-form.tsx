@@ -22,12 +22,15 @@ import type { OwnerPetOption } from "@/lib/types/booking";
 import type { MinderAvailabilitySlot } from "@/lib/types/availability";
 import { toDisplayTime } from "@/lib/availability-service";
 
+type BookedWindow = { start_datetime: string; end_datetime: string };
+
 type BookMinderRequestFormProps = {
   minderProfileId: string;
   minderDisplayName: string;
   servicePricing: string | null;
   pets: OwnerPetOption[];
   availabilitySlots?: MinderAvailabilitySlot[];
+  bookedWindows?: BookedWindow[];
 };
 
 const DURATION_OPTIONS = [30, 60, 90, 120, 180, 240];
@@ -145,6 +148,7 @@ export function BookMinderRequestForm({
   servicePricing,
   pets,
   availabilitySlots = [],
+  bookedWindows = [],
 }: BookMinderRequestFormProps) {
   const router = useRouter();
   const minSelectableIso = useMemo(() => todayLocalISODate(), []);
@@ -294,6 +298,40 @@ export function BookMinderRequestForm({
     if (!dayOfWeek || availabilitySlots.length === 0) return [];
     return availabilitySlots.filter((s) => s.day_of_week === dayOfWeek);
   }, [availabilitySlots, dayOfWeek]);
+
+  /** Booked windows that fall on the same calendar date as `date`. */
+  const bookedWindowsForSelectedDate = useMemo(() => {
+    if (!date || bookedWindows.length === 0) return [];
+    return bookedWindows.filter((w) => {
+      const wDate = new Date(w.start_datetime);
+      const [y, m, d] = date.split("-").map(Number);
+      return (
+        wDate.getFullYear() === y &&
+        wDate.getMonth() + 1 === m &&
+        wDate.getDate() === d
+      );
+    });
+  }, [bookedWindows, date]);
+
+  /** True when the chosen start/end overlaps any confirmed booking. */
+  const hasConflict = useMemo(() => {
+    if (!date || !time) return false;
+    const startMs = new Date(`${date}T${time}:00`).getTime();
+    if (Number.isNaN(startMs)) return false;
+    let endMs: number;
+    if (bookingMode === "range") {
+      if (!endDate || !endTime) return false;
+      endMs = new Date(`${endDate}T${endTime}:00`).getTime();
+    } else {
+      endMs = startMs + durationMinutes * 60_000;
+    }
+    if (Number.isNaN(endMs) || endMs <= startMs) return false;
+    return bookedWindows.some((w) => {
+      const wStart = Date.parse(w.start_datetime);
+      const wEnd   = Date.parse(w.end_datetime);
+      return wStart < endMs && wEnd > startMs;
+    });
+  }, [bookedWindows, bookingMode, date, time, endDate, endTime, durationMinutes]);
 
   const selectedPetNames = useMemo(() => {
     const names = pets
@@ -582,6 +620,37 @@ export function BookMinderRequestForm({
                 </div>
               </div>
 
+              {bookedWindowsForSelectedDate.length > 0 && (
+                <div className="rounded-lg border border-warning-500/40 bg-warning-100/60 p-3 space-y-2 dark:bg-warning-900/20">
+                  <p className="text-xs font-medium text-warning-700 dark:text-warning-400 uppercase tracking-wide">
+                    Already booked on this day
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {bookedWindowsForSelectedDate.map((w, i) => {
+                      const startLabel = new Date(w.start_datetime).toLocaleTimeString(
+                        undefined,
+                        { hour: "2-digit", minute: "2-digit" },
+                      );
+                      const endLabel = new Date(w.end_datetime).toLocaleTimeString(
+                        undefined,
+                        { hour: "2-digit", minute: "2-digit" },
+                      );
+                      return (
+                        <span
+                          key={i}
+                          className="rounded-full border border-warning-500/40 bg-warning-100 px-3 py-1 text-xs font-medium tabular-nums text-warning-700 dark:bg-warning-900/30 dark:text-warning-300"
+                        >
+                          {startLabel}–{endLabel}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-warning-600 dark:text-warning-500">
+                    Choose a time that does not overlap with these windows.
+                  </p>
+                </div>
+              )}
+
               {availabilitySlots.length > 0 && (
                 <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -730,6 +799,19 @@ export function BookMinderRequestForm({
                 </div>
               )}
             </div>
+
+            {hasConflict && (
+              <div className="rounded-lg border border-danger-500/40 bg-danger-100/60 px-4 py-3 text-sm dark:bg-danger-900/20">
+                <p className="font-medium text-danger-700 dark:text-danger-400">
+                  Time conflict
+                </p>
+                <p className="text-danger-600 dark:text-danger-500 mt-0.5">
+                  {minderDisplayName} already has a confirmed booking during this
+                  time. The minder will not be able to accept this request.
+                  Please choose a different date or time.
+                </p>
+              </div>
+            )}
 
             {error ? (
               <p className="text-sm text-danger-500" role="alert">
