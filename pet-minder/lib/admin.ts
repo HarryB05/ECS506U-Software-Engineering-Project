@@ -297,11 +297,10 @@ export async function resolveBookingDispute(
   bookingId: string,
   newStatus: "confirmed" | "completed" | "cancelled",
 ): Promise<{ error: Error | null }> {
-  const { error } = await supabase
-    .from("bookings")
-    .update({ status: newStatus })
-    .eq("id", bookingId)
-    .eq("status", "disputed");
+  const { error } = await supabase.rpc("bookings_resolve_dispute", {
+    p_booking_id: bookingId,
+    p_new_status: newStatus,
+  });
 
   if (error) {
     return { error: new Error(error.message) };
