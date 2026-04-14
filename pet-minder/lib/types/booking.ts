@@ -1,6 +1,6 @@
 export type BookingRequestStatus =
   | "pending"
-  | "accepted"
+  | "confirmed"
   | "declined"
   | "cancelled";
 
@@ -109,7 +109,7 @@ export type BookingRequestDetail = BookingRequestListItem & {
   /** Pets currently attached to the request. */
   requestPetIds: string[];
   counterpartyUserId: string | null;
-  /** Populated once the minder has accepted (confirmed session). */
+  /** Populated once the minder has confirmed (linked session). */
   linkedSession: {
     id: string;
     startDatetime: string;

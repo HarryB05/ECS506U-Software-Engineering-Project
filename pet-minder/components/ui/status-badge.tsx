@@ -63,7 +63,7 @@ export function StatusBadge({ status }: { status: BookingStatus }) {
 
 export type BookingRequestStatus =
   | "pending"
-  | "accepted"
+  | "confirmed"
   | "declined"
   | "cancelled";
 
@@ -76,8 +76,8 @@ const requestConfig: Record<
     className:
       "bg-warning-100 text-warning-500 border-warning-500/20",
   },
-  accepted: {
-    label: "Accepted",
+  confirmed: {
+    label: "Confirmed",
     className: "bg-success-100 text-success-500 border-success-500/20",
   },
   declined: {

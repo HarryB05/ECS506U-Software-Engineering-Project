@@ -29,7 +29,7 @@ function displayNameFromUsersJoin(
 function mapRequestStatus(s: string): BookingRequestStatus {
   if (
     s === "pending" ||
-    s === "accepted" ||
+    s === "confirmed" ||
     s === "declined" ||
     s === "cancelled"
   ) {
