@@ -62,11 +62,22 @@ async function BookMinderInner({ profileId }: { profileId: string }) {
     notFound();
   }
 
-  const [{ data: pets, error: petsError }, { data: availabilitySlots }] =
-    await Promise.all([
-      listOwnerPetsForBooking(supabase, user.id),
-      getMinderAvailability(supabase, minder.profileId),
-    ]);
+  const [
+    { data: pets, error: petsError },
+    { data: availabilitySlots },
+    { data: bookedWindows },
+  ] = await Promise.all([
+    listOwnerPetsForBooking(supabase, user.id),
+    getMinderAvailability(supabase, minder.profileId),
+    supabase
+      .rpc("get_minder_booked_windows", {
+        p_minder_profile_id: minder.profileId,
+      })
+      .then((res) => ({
+        data: (res.data ?? []) as { start_datetime: string; end_datetime: string }[],
+        error: res.error,
+      })),
+  ]);
 
   if (petsError) {
     return (
@@ -116,6 +127,7 @@ async function BookMinderInner({ profileId }: { profileId: string }) {
         servicePricing={minder.servicePricing}
         pets={pets}
         availabilitySlots={availabilitySlots ?? []}
+        bookedWindows={bookedWindows ?? []}
       />
     </div>
   );
