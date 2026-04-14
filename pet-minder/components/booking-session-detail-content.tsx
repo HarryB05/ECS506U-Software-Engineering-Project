@@ -72,27 +72,48 @@ function buildSessionTimeline(detail: BookingSessionDetail) {
       timestamp: formatBookingInstant(detail.cancelledAt),
       body: "This booking is no longer going ahead in the app.",
     });
-  } else if (detail.status === "disputed") {
-    const raisedBy =
-      detail.disputedBySelf === true
-        ? "You raised a dispute"
-        : detail.disputedBySelf === false
-          ? `${detail.counterpartyName} raised a dispute`
-          : "A dispute was raised";
-    steps.push({
-      id: "disputed",
-      title: "Dispute raised",
-      timestamp: detail.disputedAt
-        ? formatBookingInstant(detail.disputedAt)
-        : undefined,
-      body: `${raisedBy}. An administrator will review this and reach a resolution. No further changes can be made until it is resolved.`,
-    });
-  } else if (detail.status === "completed") {
-    steps.push({
-      id: "completed",
-      title: "Completed",
-      body: "This booking has been marked complete.",
-    });
+  } else {
+    if (detail.status === "disputed") {
+      const raisedBy =
+        detail.disputedBySelf === true
+          ? "You raised a dispute"
+          : detail.disputedBySelf === false
+            ? `${detail.counterpartyName} raised a dispute`
+            : "A dispute was raised";
+      steps.push({
+        id: "disputed",
+        title: "Dispute raised",
+        timestamp: detail.disputedAt
+          ? formatBookingInstant(detail.disputedAt)
+          : undefined,
+        body: `${raisedBy}. An administrator will review this and reach a resolution. No further changes can be made until it is resolved.`,
+      });
+    } else {
+      // Dispute was previously raised but has since been resolved by an admin.
+      // Keep it in the timeline as a permanent record.
+      if (detail.disputedAt) {
+        const raisedBy =
+          detail.disputedBySelf === true
+            ? "You raised a dispute"
+            : detail.disputedBySelf === false
+              ? `${detail.counterpartyName} raised a dispute`
+              : "A dispute was raised";
+        steps.push({
+          id: "dispute-resolved",
+          title: "Dispute resolved",
+          timestamp: formatBookingInstant(detail.disputedAt),
+          body: `${raisedBy}. An administrator reviewed and resolved the dispute.`,
+        });
+      }
+
+      if (detail.status === "completed") {
+        steps.push({
+          id: "completed",
+          title: "Completed",
+          body: "This booking has been marked complete.",
+        });
+      }
+    }
   }
 
   return steps;
@@ -128,11 +149,13 @@ export function BookingSessionDetailContent({
   const withinCancelWindow =
     !Number.isNaN(deadline) && Date.now() < deadline;
 
-  // A dispute can be raised on any confirmed or completed booking that has
-  // not been cancelled and is not already disputed.
+  // A dispute can be raised once and only once per booking.
+  // disputedAt is set when a dispute is raised and never cleared by admin
+  // resolution, so its presence permanently prevents a second dispute.
   const canDispute =
     (detail.status === "confirmed" || detail.status === "completed") &&
-    !detail.cancelledAt;
+    !detail.cancelledAt &&
+    detail.disputedAt === null;
 
   async function handleRaiseDispute(e: React.FormEvent) {
     e.preventDefault();
