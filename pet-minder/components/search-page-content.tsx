@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { BookingDatePicker } from "@/components/booking-date-picker";
 import { useDashboardRole } from "@/components/dashboard-role-context";
 import {
   ArrowDown,
@@ -46,6 +47,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 const MinderMap = dynamic(
   () => import("@/components/minder-map").then((m) => m.MinderMap),
@@ -421,16 +423,19 @@ export function SearchPageContent({
               Available on date
             </Label>
             <div className="flex flex-wrap items-end gap-2">
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">Date</span>
-                <Input
-                  type="date"
-                  className="h-9 w-auto"
-                  value={availabilityDate}
-                  onChange={(e) => setAvailabilityDate(e.target.value)}
-                  min={new Date().toISOString().slice(0, 10)}
-                />
-              </div>
+              <BookingDatePicker
+                id="availability-date"
+                label="Date"
+                value={availabilityDate}
+                onChange={setAvailabilityDate}
+                minDate={new Date()}
+                className="min-w-[220px]"
+                triggerClassName={cn(
+                  SELECT_TRIGGER_CLASSES,
+                  "justify-start font-normal",
+                  !availabilityDate && "text-muted-foreground",
+                )}
+              />
               {availabilityDate && (
                 <>
                   <div className="space-y-1">
