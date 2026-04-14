@@ -351,11 +351,13 @@ function DisputesTab({
   rows,
   adminId,
   onRefresh,
+  onResolveFromQueue,
   pushToast,
 }: {
   rows: AdminDisputeBookingRow[];
   adminId: string;
   onRefresh: () => Promise<void>;
+  onResolveFromQueue: (bookingId: string) => void;
   pushToast: (type: "success" | "error", message: string) => void;
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -377,6 +379,7 @@ function DisputesTab({
       pushToast("error", error.message);
       return;
     }
+    onResolveFromQueue(bookingId);
     pushToast("success", "Dispute resolved.");
     await onRefresh();
   }
@@ -644,6 +647,17 @@ export function AdminPanelContent() {
   const [disputes, setDisputes] = useState<AdminDisputeBookingRow[]>([]);
   const [reviews, setReviews] = useState<AdminReviewRow[]>([]);
 
+  const handleDisputeResolvedFromQueue = useCallback((bookingId: string) => {
+    setDisputes((prev) => prev.filter((d) => d.id !== bookingId));
+    setStats((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        disputedBookings: Math.max(0, prev.disputedBookings - 1),
+      };
+    });
+  }, []);
+
   const handleReviewResolvedFromQueue = useCallback((reviewId: string) => {
     setReviews((prev) => prev.filter((r) => r.id !== reviewId));
     setStats((prev) => {
@@ -854,6 +868,7 @@ export function AdminPanelContent() {
             rows={disputes}
             adminId={adminId}
             onRefresh={loadAll}
+            onResolveFromQueue={handleDisputeResolvedFromQueue}
             pushToast={pushToast}
           />
         ) : (
