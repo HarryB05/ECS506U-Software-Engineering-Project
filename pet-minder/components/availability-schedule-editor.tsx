@@ -48,6 +48,13 @@ export function AvailabilityScheduleEditor({
     return slots.filter((s) => s.day_of_week === day);
   }
 
+  /** Returns true when [newStart, newEnd) overlaps any existing slot on the same day. */
+  function overlapsExisting(day: DayOfWeek, newStart: string, newEnd: string): boolean {
+    return slotsForDay(day).some(
+      (s) => newStart < toDisplayTime(s.end_time) && newEnd > toDisplayTime(s.start_time),
+    );
+  }
+
   function openAddForm(day: DayOfWeek) {
     setAddingFor(day);
     setAddForm({ start: "09:00", end: "17:00", saving: false, error: null });
@@ -67,6 +74,14 @@ export function AvailabilityScheduleEditor({
       setAddForm((f) => ({
         ...f,
         error: "End time must be after start time.",
+      }));
+      return;
+    }
+
+    if (overlapsExisting(day, addForm.start, addForm.end)) {
+      setAddForm((f) => ({
+        ...f,
+        error: "This slot overlaps an existing one. Remove the existing slot first or choose different times.",
       }));
       return;
     }
