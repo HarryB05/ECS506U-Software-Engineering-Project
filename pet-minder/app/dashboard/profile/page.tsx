@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteAccountSection } from "@/components/delete-account-section";
+import { RoleManagementSection } from "@/components/role-management-section";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -22,6 +23,16 @@ async function ProfileContent() {
     redirect("/auth/login");
   }
 
+  const { data: rolesData } = await supabase
+    .from("roles")
+    .select("role_type")
+    .eq("user_id", user.id)
+    .is("deleted_at", null);
+
+  const currentRoles = (rolesData ?? [])
+    .map((r) => r.role_type)
+    .filter((r): r is "owner" | "minder" => r === "owner" || r === "minder");
+
   return (
     <div className="max-w-narrow mx-auto space-y-8">
       <div>
@@ -41,6 +52,8 @@ async function ProfileContent() {
           <p className="text-base text-foreground">{user.email}</p>
         </CardContent>
       </Card>
+
+      <RoleManagementSection currentRoles={currentRoles} />
 
       <DeleteAccountSection email={user.email} />
     </div>
