@@ -45,7 +45,7 @@ export default function LoginPage() {
           Welcome back
         </h1>
         <p className="text-sm text-muted-foreground">
-          Sign in to your Pet Minder account
+          Sign in to your PawKeeper account
         </p>
       </CardHeader>
       <CardContent>

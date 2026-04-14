@@ -111,7 +111,7 @@ export function MainNav({
             href="/"
             className="font-display text-xl text-foreground shrink-0"
           >
-            Pet Minder
+            PawKeeper
           </Link>
         </div>
 

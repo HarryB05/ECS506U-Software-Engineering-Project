@@ -4,7 +4,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pet Minder",
+  title: "PawKeeper",
   description: "Find trusted pet care, near you.",
 };
 

@@ -7,9 +7,9 @@
 
 ## Project Description
 
-#### Pet Minder
+#### PawKeeper
 
-Pet Minder is a web application connecting pet owners with pet minders. Owners can discover minders by service type, location, and availability; minders can manage their schedule, accept bookings, and build a reputation through reviews.
+PawKeeper is a web application connecting pet owners with pet minders. Owners can discover minders by service type, location, and availability; minders can manage their schedule, accept bookings, and build a reputation through reviews.
 
 **Implemented features:**
 - Dual-role accounts — users can register as an owner, a minder, or both
@@ -79,7 +79,7 @@ The database is seeded with mock data. You can log in with the following account
 
 | Role   | Email                     | Password      |
 |--------|---------------------------|---------------|
-| Admin  | `admin@petminder.app`     | `TestPass123!` |
+| Admin  | `admin@pawkeeper.app`     | `TestPass123!` |
 | Minder | `mock.minder.01@example.com` | `TestPass123!` |
 | Minder | `mock.minder.02@example.com` | `TestPass123!` |
 | Owner  | `mock.owner.01@example.com`  | `TestPass123!` |

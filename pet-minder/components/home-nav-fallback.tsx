@@ -10,7 +10,7 @@ export function HomeNavFallback() {
           href="/"
           className="font-display text-xl text-foreground shrink-0"
         >
-          Pet Minder
+          PawKeeper
         </Link>
         <Skeleton className="h-8 w-28" />
 

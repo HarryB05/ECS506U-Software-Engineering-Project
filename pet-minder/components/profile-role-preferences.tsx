@@ -241,7 +241,7 @@ export function ProfileRolePreferences({
       <CardHeader className="space-y-1">
         <CardTitle>Roles</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Choose how you use Pet Minder. You can be an owner, a minder, or both.
+          Choose how you use PawKeeper. You can be an owner, a minder, or both.
         </p>
       </CardHeader>
       <CardContent className="space-y-5">
