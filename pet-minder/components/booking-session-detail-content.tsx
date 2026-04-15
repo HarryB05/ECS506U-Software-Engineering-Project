@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, ArrowLeft, Loader2, Star } from "lucide-react";
 
 import { BookingLifecycleTimeline } from "@/components/booking-lifecycle-timeline";
+import { BookingPetDetailsList } from "@/components/booking-pet-details-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -283,6 +284,10 @@ export function BookingSessionDetailContent({
               You can cancel without charge before this time (see product rules).
               After that, speak to the {otherParty} directly.
             </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">Pets</p>
+            <BookingPetDetailsList pets={detail.pets} />
           </div>
           {detail.careInstructions ? (
             <div>

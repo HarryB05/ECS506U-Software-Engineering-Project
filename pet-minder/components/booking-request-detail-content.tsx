@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, CalendarRange, Clock, Loader2, PawPrint, Star } from "lucide-react";
 
 import { BookingLifecycleTimeline } from "@/components/booking-lifecycle-timeline";
+import { BookingPetDetailsList } from "@/components/booking-pet-details-list";
 import { BookingDatePicker } from "@/components/booking-date-picker";
 import { PublicReviewList } from "@/components/public-review-list";
 import { Button } from "@/components/ui/button";
@@ -476,6 +477,10 @@ export function BookingRequestDetailContent({
           <div>
             <p className="text-xs font-medium text-muted-foreground">Schedule</p>
             <p className="text-foreground">{formatRequestSchedule(detail)}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">Pets</p>
+            <BookingPetDetailsList pets={detail.pets} />
           </div>
           {detail.message ? (
             <div>
