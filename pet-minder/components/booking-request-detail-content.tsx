@@ -202,6 +202,7 @@ export function BookingRequestDetailContent({
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [minderActionError, setMinderActionError] = useState<string | null>(null);
 
   const timeline = useMemo(() => buildRequestTimeline(detail), [detail]);
 
@@ -360,9 +361,10 @@ export function BookingRequestDetailContent({
   const counterpartyRating = detail.counterpartyAverageRating;
 
   async function handleMinderAccept() {
+    setMinderActionError(null);
     const requestedStartMs = Date.parse(detail.requestedDatetime);
     if (!Number.isNaN(requestedStartMs) && requestedStartMs <= Date.now()) {
-      setError(
+      setMinderActionError(
         "This request cannot be accepted because its start time has already passed.",
       );
       return;
@@ -738,6 +740,11 @@ export function BookingRequestDetailContent({
             >
               Decline
             </Button>
+            {minderActionError ? (
+              <p className="self-center text-sm text-danger-500" role="alert">
+                {minderActionError}
+              </p>
+            ) : null}
           </>
         ) : null}
         {showOwnerCancel ? (
