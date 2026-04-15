@@ -202,6 +202,7 @@ export function BookingRequestDetailContent({
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [minderActionError, setMinderActionError] = useState<string | null>(null);
 
   const timeline = useMemo(() => buildRequestTimeline(detail), [detail]);
 
@@ -358,6 +359,19 @@ export function BookingRequestDetailContent({
   const showOwnerCancel =
     detail.viewerRole === "owner" && detail.status === "pending";
   const counterpartyRating = detail.counterpartyAverageRating;
+
+  async function handleMinderAccept() {
+    setMinderActionError(null);
+    const requestedStartMs = Date.parse(detail.requestedDatetime);
+    if (!Number.isNaN(requestedStartMs) && requestedStartMs <= Date.now()) {
+      setMinderActionError(
+        "This request cannot be accepted because its start time has already passed.",
+      );
+      return;
+    }
+
+    await callRpc("bookings_accept_request", { p_request_id: detail.id });
+  }
 
   return (
     <div className="max-w-content mx-auto space-y-8">
@@ -712,9 +726,7 @@ export function BookingRequestDetailContent({
             <Button
               type="button"
               disabled={busy}
-              onClick={() =>
-                callRpc("bookings_accept_request", { p_request_id: detail.id })
-              }
+              onClick={handleMinderAccept}
             >
               {busy ? "Working…" : "Accept"}
             </Button>
@@ -728,6 +740,11 @@ export function BookingRequestDetailContent({
             >
               Decline
             </Button>
+            {minderActionError ? (
+              <p className="self-center text-sm text-danger-500" role="alert">
+                {minderActionError}
+              </p>
+            ) : null}
           </>
         ) : null}
         {showOwnerCancel ? (

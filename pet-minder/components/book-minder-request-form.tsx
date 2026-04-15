@@ -75,6 +75,14 @@ function todayLocalISODate(): string {
   return `${y}-${m}-${day}`;
 }
 
+function formatUnavailableWindowTime(isoDatetime: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(isoDatetime));
+}
+
 function buildScheduleSummary(
   bookingMode: BookingMode,
   date: string,
@@ -634,13 +642,11 @@ export function BookMinderRequestForm({
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {bookedWindowsForSelectedDate.map((w, i) => {
-                      const startLabel = new Date(w.start_datetime).toLocaleTimeString(
-                        undefined,
-                        { hour: "2-digit", minute: "2-digit" },
+                      const startLabel = formatUnavailableWindowTime(
+                        w.start_datetime,
                       );
-                      const endLabel = new Date(w.end_datetime).toLocaleTimeString(
-                        undefined,
-                        { hour: "2-digit", minute: "2-digit" },
+                      const endLabel = formatUnavailableWindowTime(
+                        w.end_datetime,
                       );
                       return (
                         <span
