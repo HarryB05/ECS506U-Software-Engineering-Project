@@ -58,6 +58,39 @@ function asTextOrNull(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+type PetProfileRelRow = {
+  name?: string | null;
+  pet_type?: string | null;
+  sex?: string | null;
+  age?: number | null;
+  medical_info?: string | null;
+  dietary_requirements?: string | null;
+};
+
+type BookingPetRelRow = {
+  pet_id?: string;
+  pet_profiles?: PetProfileRelRow | PetProfileRelRow[] | null;
+};
+
+function mapPetDetails(rows: BookingPetRelRow[] | null): BookingPetDetail[] {
+  return (rows ?? [])
+    .map((row) => {
+      const profileRel = row.pet_profiles;
+      const profile = Array.isArray(profileRel) ? profileRel[0] : profileRel;
+      const id = typeof row.pet_id === "string" ? row.pet_id : "";
+      return {
+        id,
+        name: asTextOrNull(profile?.name) ?? "Pet",
+        petType: asTextOrNull(profile?.pet_type),
+        sex: asTextOrNull(profile?.sex),
+        age: typeof profile?.age === "number" ? profile.age : null,
+        medicalInfo: asTextOrNull(profile?.medical_info),
+        dietaryRequirements: asTextOrNull(profile?.dietary_requirements),
+      };
+    })
+    .filter((pet) => pet.id.length > 0);
+}
+
 export async function getMinderProfileIdForUser(
   supabase: SupabaseClient,
   userId: string,
@@ -418,46 +451,9 @@ export async function loadBookingSessionDetail(
   const counterpartyUserId =
     viewerRole === "owner" ? minderUserId : ownerId;
 
-  const pets = row.booking_pets as
-    | {
-        pet_id?: string;
-        pet_profiles?:
-          | { name?: string | null }
-          | { name?: string | null }[]
-          | null;
-      }[]
-    | null;
-
-  const petNames: string[] = [];
-  const petDetails: BookingPetDetail[] = [];
-  for (const bp of pets ?? []) {
-    const rel = bp.pet_profiles;
-    const profile = Array.isArray(rel) ? rel[0] : rel;
-    const raw = profile?.name;
-    if (typeof raw === "string" && raw.trim().length > 0) {
-      petNames.push(raw.trim());
-    }
-    const petId = typeof bp.pet_id === "string" ? bp.pet_id : null;
-    if (petId) {
-      petDetails.push({
-        id: petId,
-        name: asTextOrNull(profile?.name) ?? "Pet",
-        petType: asTextOrNull((profile as { pet_type?: unknown } | null)?.pet_type),
-        sex: asTextOrNull((profile as { sex?: unknown } | null)?.sex),
-        age:
-          typeof (profile as { age?: unknown } | null)?.age === "number"
-            ? (profile as { age: number }).age
-            : null,
-        medicalInfo: asTextOrNull(
-          (profile as { medical_info?: unknown } | null)?.medical_info,
-        ),
-        dietaryRequirements: asTextOrNull(
-          (profile as { dietary_requirements?: unknown } | null)
-            ?.dietary_requirements,
-        ),
-      });
-    }
-  }
+  const pets = row.booking_pets as BookingPetRelRow[] | null;
+  const petDetails = mapPetDetails(pets);
+  const petNames = petDetails.map((pet) => pet.name);
 
   const reqRaw = firstRelationRow(
     row.booking_requests as Record<string, unknown> | Record<string, unknown>[] | null,
@@ -622,42 +618,11 @@ export async function loadBookingRequestDetail(
   const counterpartyName = isOwner ? minderName : ownerName;
   const counterpartyUserId = isOwner ? minderUserId : ownerId;
 
-  const reqPets = row.booking_request_pets as
-    | { pet_id?: string }[]
-    | null;
+  const reqPets = row.booking_request_pets as BookingPetRelRow[] | null;
   const requestPetIds = (reqPets ?? [])
     .map((p) => p.pet_id)
     .filter((id): id is string => typeof id === "string");
-  const requestPetDetails = (reqPets ?? []).map((p) => {
-    const rel = (p as { pet_profiles?: unknown }).pet_profiles as
-      | {
-          name?: string | null;
-          pet_type?: string | null;
-          sex?: string | null;
-          age?: number | null;
-          medical_info?: string | null;
-          dietary_requirements?: string | null;
-        }
-      | {
-          name?: string | null;
-          pet_type?: string | null;
-          sex?: string | null;
-          age?: number | null;
-          medical_info?: string | null;
-          dietary_requirements?: string | null;
-        }[]
-      | null;
-    const profile = Array.isArray(rel) ? rel[0] : rel;
-    return {
-      id: typeof p.pet_id === "string" ? p.pet_id : "",
-      name: asTextOrNull(profile?.name) ?? "Pet",
-      petType: asTextOrNull(profile?.pet_type),
-      sex: asTextOrNull(profile?.sex),
-      age: typeof profile?.age === "number" ? profile.age : null,
-      medicalInfo: asTextOrNull(profile?.medical_info),
-      dietaryRequirements: asTextOrNull(profile?.dietary_requirements),
-    };
-  }).filter((pet) => pet.id.length > 0);
+  const requestPetDetails = mapPetDetails(reqPets);
 
   const bookRaw = firstRelationRow(
     row.bookings as Record<string, unknown> | Record<string, unknown>[] | null,
