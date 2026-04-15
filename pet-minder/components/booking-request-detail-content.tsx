@@ -359,6 +359,18 @@ export function BookingRequestDetailContent({
     detail.viewerRole === "owner" && detail.status === "pending";
   const counterpartyRating = detail.counterpartyAverageRating;
 
+  async function handleMinderAccept() {
+    const requestedStartMs = Date.parse(detail.requestedDatetime);
+    if (!Number.isNaN(requestedStartMs) && requestedStartMs <= Date.now()) {
+      setError(
+        "This request cannot be accepted because its start time has already passed.",
+      );
+      return;
+    }
+
+    await callRpc("bookings_accept_request", { p_request_id: detail.id });
+  }
+
   return (
     <div className="max-w-content mx-auto space-y-8">
       <div>
@@ -712,9 +724,7 @@ export function BookingRequestDetailContent({
             <Button
               type="button"
               disabled={busy}
-              onClick={() =>
-                callRpc("bookings_accept_request", { p_request_id: detail.id })
-              }
+              onClick={handleMinderAccept}
             >
               {busy ? "Working…" : "Accept"}
             </Button>
