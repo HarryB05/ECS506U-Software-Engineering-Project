@@ -460,6 +460,58 @@ export function BookingRequestDetailContent({
         </Card>
       ) : null}
 
+      {detail.pets && detail.pets.length > 0 ? (
+        <Card className="shadow-card border-border">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <PawPrint className="size-4 text-teal-700 dark:text-teal-300" />
+              <CardTitle className="text-base font-medium">
+                {detail.pets.length === 1 ? "Pet" : "Pets"}
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              {detail.pets.map((pet) => (
+                <li key={pet.id} className="text-sm space-y-1.5">
+                  <p className="font-medium text-foreground">
+                    {pet.name}
+                    {pet.petType ? (
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                        {pet.petType}
+                      </span>
+                    ) : null}
+                  </p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    {pet.age != null ? (
+                      <span>Age: {pet.age} yr{pet.age === 1 ? "" : "s"}</span>
+                    ) : null}
+                    {pet.sex ? (
+                      <span>{pet.sex.charAt(0).toUpperCase() + pet.sex.slice(1)}</span>
+                    ) : null}
+                    {pet.petSize ? (
+                      <span>Size: {pet.petSize.charAt(0).toUpperCase() + pet.petSize.slice(1)}</span>
+                    ) : null}
+                  </div>
+                  {pet.medicalInfo ? (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Medical info</p>
+                      <p className="text-foreground leading-relaxed">{pet.medicalInfo}</p>
+                    </div>
+                  ) : null}
+                  {pet.dietaryRequirements ? (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Dietary requirements</p>
+                      <p className="text-foreground leading-relaxed">{pet.dietaryRequirements}</p>
+                    </div>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card className="shadow-card border-border">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-medium">Details</CardTitle>
