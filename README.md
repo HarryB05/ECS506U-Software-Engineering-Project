@@ -73,19 +73,6 @@ PawKeeper is a web application connecting pet owners with pet minders. Owners ca
 
    The app will be available at [http://localhost:3000](http://localhost:3000).
 
-### Test Accounts
-
-The database is seeded with mock data. You can log in with the following accounts:
-
-| Role   | Email                     | Password      |
-|--------|---------------------------|---------------|
-| Admin  | `admin@pawkeeper.app`     | `TestPass123!` |
-| Minder | `mock.minder.01@example.com` | `TestPass123!` |
-| Minder | `mock.minder.02@example.com` | `TestPass123!` |
-| Owner  | `mock.owner.01@example.com`  | `TestPass123!` |
-| Owner  | `mock.owner.02@example.com`  | `TestPass123!` |
-
-Minder accounts `01`–`05` and owner accounts `01`–`05` are all available with the same password pattern.
 
 ---
 
