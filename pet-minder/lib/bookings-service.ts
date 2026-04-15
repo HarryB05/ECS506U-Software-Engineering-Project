@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
-  BookingPetDetail,
   BookingListItem,
   BookingRequestDetail,
   BookingRequestListItem,
@@ -50,45 +49,6 @@ function mapBookingStatus(s: string): BookingRowStatus {
     return s;
   }
   return "pending";
-}
-
-function asTextOrNull(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-type PetProfileRelRow = {
-  name?: string | null;
-  pet_type?: string | null;
-  sex?: string | null;
-  age?: number | null;
-  medical_info?: string | null;
-  dietary_requirements?: string | null;
-};
-
-type BookingPetRelRow = {
-  pet_id?: string;
-  pet_profiles?: PetProfileRelRow | PetProfileRelRow[] | null;
-};
-
-function mapPetDetails(rows: BookingPetRelRow[] | null): BookingPetDetail[] {
-  return (rows ?? [])
-    .map((row) => {
-      const profileRel = row.pet_profiles;
-      const profile = Array.isArray(profileRel) ? profileRel[0] : profileRel;
-      const id = typeof row.pet_id === "string" ? row.pet_id : "";
-      return {
-        id,
-        name: asTextOrNull(profile?.name) ?? "Pet",
-        petType: asTextOrNull(profile?.pet_type),
-        sex: asTextOrNull(profile?.sex),
-        age: typeof profile?.age === "number" ? profile.age : null,
-        medicalInfo: asTextOrNull(profile?.medical_info),
-        dietaryRequirements: asTextOrNull(profile?.dietary_requirements),
-      };
-    })
-    .filter((pet) => pet.id.length > 0);
 }
 
 export async function getMinderProfileIdForUser(
@@ -402,14 +362,7 @@ export async function loadBookingSessionDetail(
       users!bookings_owner_id_fkey ( full_name ),
       booking_pets (
         pet_id,
-        pet_profiles (
-          name,
-          pet_type,
-          sex,
-          age,
-          medical_info,
-          dietary_requirements
-        )
+        pet_profiles ( name )
       ),
       booking_requests (
         id,
@@ -451,9 +404,25 @@ export async function loadBookingSessionDetail(
   const counterpartyUserId =
     viewerRole === "owner" ? minderUserId : ownerId;
 
-  const pets = row.booking_pets as BookingPetRelRow[] | null;
-  const petDetails = mapPetDetails(pets);
-  const petNames = petDetails.map((pet) => pet.name);
+  const pets = row.booking_pets as
+    | {
+        pet_id?: string;
+        pet_profiles?:
+          | { name?: string | null }
+          | { name?: string | null }[]
+          | null;
+      }[]
+    | null;
+
+  const petNames: string[] = [];
+  for (const bp of pets ?? []) {
+    const rel = bp.pet_profiles;
+    const profile = Array.isArray(rel) ? rel[0] : rel;
+    const raw = profile?.name;
+    if (typeof raw === "string" && raw.trim().length > 0) {
+      petNames.push(raw.trim());
+    }
+  }
 
   const reqRaw = firstRelationRow(
     row.booking_requests as Record<string, unknown> | Record<string, unknown>[] | null,
@@ -526,7 +495,6 @@ export async function loadBookingSessionDetail(
       counterpartyUserId,
       petCount: Array.isArray(pets) ? pets.length : 0,
       petNames,
-      pets: petDetails,
       createdAt: null,
       viewerRole,
       request,
@@ -574,17 +542,7 @@ export async function loadBookingRequestDetail(
       minder_id,
       minder_profiles ( user_id, users ( full_name ) ),
       users!booking_requests_owner_id_fkey ( full_name ),
-      booking_request_pets (
-        pet_id,
-        pet_profiles (
-          name,
-          pet_type,
-          sex,
-          age,
-          medical_info,
-          dietary_requirements
-        )
-      ),
+      booking_request_pets ( pet_id ),
       bookings (
         id,
         start_datetime,
@@ -618,11 +576,12 @@ export async function loadBookingRequestDetail(
   const counterpartyName = isOwner ? minderName : ownerName;
   const counterpartyUserId = isOwner ? minderUserId : ownerId;
 
-  const reqPets = row.booking_request_pets as BookingPetRelRow[] | null;
+  const reqPets = row.booking_request_pets as
+    | { pet_id?: string }[]
+    | null;
   const requestPetIds = (reqPets ?? [])
     .map((p) => p.pet_id)
     .filter((id): id is string => typeof id === "string");
-  const requestPetDetails = mapPetDetails(reqPets);
 
   const bookRaw = firstRelationRow(
     row.bookings as Record<string, unknown> | Record<string, unknown>[] | null,
@@ -666,7 +625,6 @@ export async function loadBookingRequestDetail(
       petCount: Array.isArray(reqPets) ? reqPets.length : 0,
       viewerRole: isOwner ? "owner" : "minder",
       requestPetIds,
-      pets: requestPetDetails,
       counterpartyUserId: counterpartyUserId ?? null,
       linkedSession,
       counterpartyAverageRating,

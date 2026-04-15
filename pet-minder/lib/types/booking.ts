@@ -17,16 +17,6 @@ export type OwnerPetOption = {
   petType: string;
 };
 
-export type BookingPetDetail = {
-  id: string;
-  name: string;
-  petType: string | null;
-  sex: string | null;
-  age: number | null;
-  medicalInfo: string | null;
-  dietaryRequirements: string | null;
-};
-
 export type BookingRequestListItem = {
   id: string;
   requestedDatetime: string;
@@ -101,8 +91,6 @@ export type BookingSessionDetail = {
   petCount: number;
   /** Resolved from booking pets; may be empty if names are not readable. */
   petNames: string[];
-  /** Full pet profile details linked to this booking. */
-  pets: BookingPetDetail[];
   /** When the session row was created (if column exists). */
   createdAt: string | null;
   viewerRole: "owner" | "minder";
@@ -120,8 +108,6 @@ export type BookingRequestDetail = BookingRequestListItem & {
   viewerRole: "owner" | "minder";
   /** Pets currently attached to the request. */
   requestPetIds: string[];
-  /** Full pet profile details attached to this request. */
-  pets: BookingPetDetail[];
   counterpartyUserId: string | null;
   /** Populated once the minder has confirmed (linked session). */
   linkedSession: {
